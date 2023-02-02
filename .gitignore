@@ -130,6 +130,7 @@ dmypy.json
 
 # data
 data/
+data_zip/
 
 # MAC OS
 .DS_store
