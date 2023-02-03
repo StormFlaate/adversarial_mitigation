@@ -4,6 +4,10 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms # Import the transforms module from torchvision
 from skimage import io
+import numpy as np
+import cv2
+
+
 
 class ISICDataset(Dataset):
     """Custom Dataset for loading ISIC images and annotations.
@@ -28,6 +32,7 @@ class ISICDataset(Dataset):
         """Return the length of the dataset."""
         return len(self.annotations)
 
+
     def __getitem__(self, index:int) -> tuple:
         """Get the image and label at the given index.
 
@@ -43,7 +48,9 @@ class ISICDataset(Dataset):
             img_path = f"{img_path}.{self.image_file_type}"
         
         # reads in the image with scikit-image
-        image = io.imread(img_path)
+        
+        image = cv2.imread(img_path,cv2.IMREAD_UNCHANGED)
+
         # reads in correct label -> format: [MEL,NV,BCC,AKIEC,BKL,DF,VASC]
         label_tensor = torch.tensor(self.annotations.iloc[index, 1:])
 
