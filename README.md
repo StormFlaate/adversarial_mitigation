@@ -53,7 +53,4 @@
 - 
 ### Run files:
 - [run.py](./run.py): file containing everything to run
-### Helper functions:
-- 
-### Folders:
 
