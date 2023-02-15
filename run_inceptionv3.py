@@ -66,7 +66,7 @@ model_inceptionv3 = train_model_finetuning(
     data_loader_train_2018,
     criterion,
     optimizer,
-    model_type="inceptionv3",
+    mode_name="inceptionv3",
     epoch_count=100
     )
 
