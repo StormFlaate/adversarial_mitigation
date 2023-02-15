@@ -12,7 +12,7 @@ def train_model_finetuning(
         data_loader: DataLoader,
         criterion: Module, 
         optimizer: torch.optim.Optimizer,
-        mode_name: str = "",
+        model_name: str = "",
         epoch_count: int = 20) -> Module:
     """Trains a neural network model by fine-tuning the last layer.
 
@@ -22,7 +22,7 @@ def train_model_finetuning(
         data_loader: The data loader used for iterating over the dataset.
         criterion: The loss function used for calculating the loss between model output and labels.
         optimizer: The optimizer used for updating the model parameters.
-        mode_name: The type of the model being used (if applicable).
+        model_name: The type of the model being used (if applicable).
         epoch_count: The number of epochs to train the model.
 
     Returns:
@@ -63,7 +63,7 @@ def train_model_finetuning(
             labels = labels.to(device)
             
             # If the model type is "inceptionv3", pass inputs through the model and get two outputs
-            if mode_name == "inceptionv3":
+            if model_name == "inceptionv3":
                 outputs, x = model(inputs)
             # Otherwise, pass inputs through the model and get one output
             else: 
