@@ -68,7 +68,7 @@ for data, labels in data_loader_train_2018:
     total_bytes += labels.numel() * labels.element_size()
 
 print(f"Estimated memory usage of a batch with {BATCH_SIZE} samples: {total_bytes / 1e6} MB")
-sys.exit/()
+sys.exit()
 
 print("Start training model...")
 model_inceptionv3 = train_model_finetuning(
