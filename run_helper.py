@@ -115,7 +115,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        outputs = _get_model_outputs(model, model_name, inputs)
+        outputs = model(inputs)
 
         # Convert the predicted outputs to a list of labels
         _, predicted = torch.max(outputs.data, 1)
