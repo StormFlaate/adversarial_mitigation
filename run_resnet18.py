@@ -44,16 +44,20 @@ test_dataset_2018_resnet18 = ISICDataset(
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-test_dataset_2018_resnet18.to(device)
-
 
 # Define the train data loader
 print("Define the train data loader...")
-data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_resnet18, batch_size=BATCH_SIZE, shuffle=True)
+data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_resnet18, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
 
 # Load the pretrained Resnet-18 model
 print("Load the pretrained Resnet-18 model...")
 model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+
+# Move the model to the GPU if GPU is available 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Is CUDA available:", torch.cuda.is_available())
+model_resnet18.to(device)
+
 
 # Define the criterion and optimizer
 criterion = torch.nn.CrossEntropyLoss()
@@ -77,7 +81,7 @@ save_model_to_file(model_resnet18, RESNET18_MODEL_NAME, train_set_name, models_d
 
 # Define the test data loader
 print("Define the test data loader...")
-data_loader_test_2018 = torch.utils.data.DataLoader(test_dataset_2018_resnet18, batch_size=BATCH_SIZE, shuffle=False)
+data_loader_test_2018 = torch.utils.data.DataLoader(test_dataset_2018_resnet18, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
 
 

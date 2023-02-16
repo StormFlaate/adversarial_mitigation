@@ -41,11 +41,8 @@ def train_model_finetuning(
     num_classes = len(dataset.annotations.columns)-1
     model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
-    # Move the model to the GPU if GPU is available 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Is CUDA available:", torch.cuda.is_available())
-    model.to(device)
-
 
     # Loop over the number of epochs
     for epoch in range(epoch_count):
@@ -55,7 +52,7 @@ def train_model_finetuning(
         # Loop over the data in the data loader
         for i, data in tqdm(enumerate(data_loader, 0)):
             # Get the inputs and labels from the data
-            inputs, labels = data
+            inputs, labels = data.to(device)
             
             # Convert labels to a tensor of type float
             labels = torch.tensor(labels, dtype=torch.float)
@@ -64,8 +61,8 @@ def train_model_finetuning(
             optimizer.zero_grad()
             
             # Move inputs and labels to the specified device
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+            # inputs = inputs.to(device)
+            # labels = labels.to(device)
             
             if model_name == "inceptionv3":
                 outputs, x = model(inputs)
