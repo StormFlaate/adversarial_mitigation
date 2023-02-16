@@ -44,6 +44,9 @@ def train_model_finetuning(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Is CUDA available:", torch.cuda.is_available())
 
+
+    model.to(device)
+
     # Loop over the number of epochs
     for epoch in range(epoch_count):
         # Initialize the running loss for this epoch

@@ -53,11 +53,6 @@ data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_resnet18
 print("Load the pretrained Resnet-18 model...")
 model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 
-# Move the model to the GPU if GPU is available 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Is CUDA available:", torch.cuda.is_available())
-model_resnet18.to(device)
-
 
 # Define the criterion and optimizer
 criterion = torch.nn.CrossEntropyLoss()
