@@ -80,7 +80,9 @@ def train_model_finetuning(
             
             # Add the loss for this batch to the running loss for this epoch
             running_loss += loss.item()
-
+        
+        # zero gradients after each epoch
+        optimizer.zero_grad()
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
 
