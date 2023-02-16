@@ -1,6 +1,7 @@
 #########################################################
 # ============ IMPORT REQUIRED LIBRARIES ================
 #########################################################
+import sys
 import torch # Import the Pytorch library
 import torchvision # Import the torchvision library
 from torchvision import datasets, transforms # Import the transforms module from torchvision
@@ -9,6 +10,7 @@ from torchvision import datasets, transforms # Import the transforms module from
 import numpy as np
 from PIL import Image
 from config import TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
+from config import BATCH_SIZE
 
 from customDataset import ISICDataset
 from run_helper import train_model_finetuning # Custom dataset class
@@ -48,7 +50,7 @@ test_dataset_2018_inceptionv3 = ISICDataset(
 
 # Define the data loader
 print("Define the data loader...")
-data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_inceptionv3, batch_size=32, shuffle=True)
+data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_inceptionv3, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load the pretrained Inception v3 model
 print("Load the pretrained Inception v3 model...")
@@ -58,6 +60,15 @@ model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pre
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=0.001, momentum=0.9)
 
+# Estimate the memory usage of a batch
+total_bytes = 0
+for data, labels in data_loader_train_2018:
+    bytes_per_element = data.element_size()  # in bytes
+    total_bytes += data.numel() * bytes_per_element
+    total_bytes += labels.numel() * labels.element_size()
+
+print(f"Estimated memory usage of a batch with {BATCH_SIZE} samples: {total_bytes / 1e6} MB")
+sys.exit/()
 
 print("Start training model...")
 model_inceptionv3 = train_model_finetuning(
