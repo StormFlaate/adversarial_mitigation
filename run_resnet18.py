@@ -6,7 +6,6 @@ from torchvision import datasets, transforms
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-import multiprocessing as mp
 from config import NUM_WORKERS, RESNET18_MODEL_NAME, TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR
 from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS, IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, RESNET18_PIXEL_SIZE, LEARNING_RATE, MOMENTUM
 from customDataset import ISICDataset
@@ -44,11 +43,10 @@ test_dataset_2018_resnet18 = ISICDataset(
     nrows=TEST_NROWS
 )
 
-mp.set_start_method('spawn')
 
 # Define the train data loader
 print("Define the train data loader...")
-data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_resnet18, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True)
+data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_resnet18, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load the pretrained Resnet-18 model
 print("Load the pretrained Resnet-18 model...")

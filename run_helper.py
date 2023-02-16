@@ -67,7 +67,11 @@ def train_model_finetuning(
             inputs = inputs.to(device)
             labels = labels.to(device)
             
-            outputs = _get_model_outputs(model, model_name, inputs)
+            if model_name == "inceptionv3":
+                outputs, x = model(inputs)
+            else:
+                outputs = model(inputs)
+            return outputs
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)
@@ -170,10 +174,4 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
 
-def _get_model_outputs(model: Module, model_name: str, inputs: torch.Tensor) -> torch.Tensor:
-    """Returns the outputs of a given model for a given input."""
-    if model_name == "inceptionv3":
-        outputs, x = model(inputs)
-    else:
-        outputs = model(inputs)
-    return outputs
+
