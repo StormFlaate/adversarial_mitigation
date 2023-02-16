@@ -84,4 +84,4 @@ data_loader_test_2018 = torch.utils.data.DataLoader(test_dataset_2018_inceptionv
 
 
 print("test the models performance...")
-test_model(model_inceptionv3, test_dataset_2018_inceptionv3, data_loader_test_2018)
+test_model(model_inceptionv3, test_dataset_2018_inceptionv3, data_loader_test_2018, model_name="inceptionv3")

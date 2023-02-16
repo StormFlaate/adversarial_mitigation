@@ -64,12 +64,7 @@ def train_model_finetuning(
             inputs = inputs.to(device)
             labels = labels.to(device)
             
-            # If the model type is "inceptionv3", pass inputs through the model and get two outputs
-            if model_name == "inceptionv3":
-                outputs, x = model(inputs)
-            # Otherwise, pass inputs through the model and get one output
-            else: 
-                outputs = model(inputs)
+            outputs = _get_model_outputs(model, model_name, inputs)
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)
@@ -92,7 +87,7 @@ def train_model_finetuning(
 
     return model
 
-def test_model(model, dataset, data_loader):
+def test_model(model, dataset, data_loader, model_name: str=""):
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
@@ -120,8 +115,7 @@ def test_model(model, dataset, data_loader):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        # Pass inputs through the model to get the predicted outputs
-        outputs = model(inputs)
+        outputs = _get_model_outputs(model, model_name, inputs)
 
         # Convert the predicted outputs to a list of labels
         _, predicted = torch.max(outputs.data, 1)
@@ -151,3 +145,21 @@ def test_model(model, dataset, data_loader):
     for col in dataset.annotations.columns[1:]:
         accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
         print("{} accuracy: {:.4f}".format(col, accuracy))
+
+
+
+
+
+
+
+#######################################################################
+# ======================= PRIVATE FUNCTION ========================== #
+#######################################################################
+
+def _get_model_outputs(model: Module, model_name: str, inputs: torch.Tensor) -> torch.Tensor:
+    """Returns the outputs of a given model for a given input."""
+    if model_name == "inceptionv3":
+        outputs, x = model(inputs)
+    else:
+        outputs = model(inputs)
+    return outputs
