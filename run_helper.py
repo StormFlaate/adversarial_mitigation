@@ -118,8 +118,11 @@ def test_model(model, dataset, data_loader, model_name: str=""):
         outputs = model(inputs)
 
         # Convert the predicted outputs to a list of labels
-        _, predicted = torch.max(outputs.data, 1)
-        print(_, predicted)
+        labels = torch.argmax(labels, 1)
+
+        # 
+        predicted = torch.argmax(outputs.data, 1)
+        
 
         # Append the target and predicted labels to their respective lists
         target_labels.extend(labels.cpu().numpy())
