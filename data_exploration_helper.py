@@ -4,13 +4,14 @@ from customDataset import ISICDataset
 import torch # Import the Pytorch library
 import pandas as pd
 from tqdm import tqdm
+from typing import Dict
 
 def dataset_overview(
     dataset: ISICDataset, 
     title:str="Default title",
     xlabel:str="",
     ylabel:str="",
-    check_image_size:bool=False) -> dict[str, torch.Size | int | pd.core.indexes.base.Index | np.ndarray]:
+    check_image_size:bool=False) -> Dict[str, torch.Size | int | pd.core.indexes.base.Index | np.ndarray]:
     """
     Generates a bar plot that provides an overview of the ISICDataset,
     and provides some key statistics about the dataset.
@@ -29,7 +30,7 @@ def dataset_overview(
 
     # CONSTANTS
     COLORS:tuple = ('navy', 'gold', 'green', 'brown', "lightblue", "yellowgreen", "lightgreen", "blue", "red")
-    info: dict = {}
+    info: Dict = {}
     
     sizes: set = set()
     
