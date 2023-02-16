@@ -11,10 +11,15 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from config import TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
-from config import BATCH_SIZE
+from config import BATCH_SIZE, EPOCH_COUNT
 
 from customDataset import ISICDataset
-from run_helper import train_model_finetuning # Custom dataset class
+from run_helper import test_model, train_model_finetuning # Custom dataset class
+
+# setting the randomness seed
+torch.manual_seed(42)
+np.random.seed(42)
+
 
 
 print("Setting up preprocess transforms...")
@@ -49,8 +54,8 @@ test_dataset_2018_inceptionv3 = ISICDataset(
     )
 
 
-# Define the data loader
-print("Define the data loader...")
+# Define the train data loader
+print("Define the train data loader...")
 data_loader_train_2018 = torch.utils.data.DataLoader(train_dataset_2018_inceptionv3, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load the pretrained Inception v3 model
@@ -70,7 +75,13 @@ model_inceptionv3 = train_model_finetuning(
     criterion,
     optimizer,
     model_name="inceptionv3",
-    epoch_count=100
+    epoch_count=EPOCH_COUNT
     )
 
+# Define the test data loader
+print("Define the test data loader...")
+data_loader_test_2018 = torch.utils.data.DataLoader(test_dataset_2018_inceptionv3, batch_size=BATCH_SIZE, shuffle=False)
 
+
+print("test the models performance...")
+test_model(model_inceptionv3, test_dataset_2018_inceptionv3, data_loader_test_2018)
