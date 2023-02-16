@@ -5,7 +5,6 @@ from torch.utils.data import Dataset
 from torchvision import datasets, transforms # Import the transforms module from torchvision
 from skimage import io
 import numpy as np
-import cv2
 from PIL import Image
 from torchvision.io import read_image
 

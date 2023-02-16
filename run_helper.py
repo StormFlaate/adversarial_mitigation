@@ -92,81 +92,61 @@ def train_model_finetuning(
 
     return model
 
-
-def test_model(model, test_dataset, data_loader_test):
-    """Tests a neural network model on a separate dataset.
+def test_model(model, dataset, data_loader):
+    """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
-        model: The trained neural network model.
-        test_dataset: The dataset used for testing.
-        data_loader_test: The data loader used for iterating over the dataset.
-
-    Returns:
-        A dictionary containing the accuracy, F1 score, and accuracy for different categories.
+        model: The neural network model to test.
+        dataset: The dataset used for testing.
+        data_loader: The data loader used for iterating over the dataset.
     """
-    # Set the model to evaluation mode
+    # Put the model in evaluation mode to turn off dropout and batch normalization
     model.eval()
 
-    # Initialize variables for computing accuracy and F1 score
-    true_labels = []
+    # Define the list of target labels and predicted labels
+    target_labels = []
     predicted_labels = []
 
-    # Initialize variables for computing accuracy for different categories
-    category_correct = {}
-    category_total = {}
+    # Initialize the dictionary of accuracy for each skin lesion type
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, data in enumerate(data_loader_test, 0):
+    for i, data in enumerate(data_loader, 0):
         # Get the inputs and labels from the data
         inputs, labels = data
-
-        # Convert labels to a tensor of type float
-        labels = torch.tensor(labels.detach(), dtype=torch.float)
 
         # Move inputs and labels to the specified device
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        # Pass inputs through the model to get the predicted labels
+        # Pass inputs through the model to get the predicted outputs
         outputs = model(inputs)
-        predicted = torch.round(outputs)
 
-        # Convert predicted labels and true labels to numpy arrays and append to the variables
-        predicted_labels += predicted.detach().cpu().numpy().tolist()
-        true_labels += labels.detach().cpu().numpy().tolist()
+        # Convert the predicted outputs to a list of labels
+        _, predicted = torch.max(outputs.data, 1)
 
-        # Compute accuracy for different categories
-        for j, category in enumerate(test_dataset.annotations.columns[1:]):
-            if category not in category_correct:
-                category_correct[category] = 0
-                category_total[category] = 0
+        # Append the target and predicted labels to their respective lists
+        target_labels.extend(labels.cpu().numpy())
+        predicted_labels.extend(predicted.cpu().numpy())
 
-            category_predicted = predicted[:, j].detach().cpu().numpy().tolist()
-            category_true = labels[:, j].detach().cpu().numpy().tolist()
-            category_accuracy = accuracy_score(category_true, category_predicted)
-            category_correct[category] += np.sum(np.logical_and(category_predicted, category_true))
-            category_total[category] += np.sum(category_true)
+        # Calculate the accuracy for each skin lesion type
+        for j in range(len(labels)):
+            for k, col in enumerate(dataset.annotations.columns[1:]):
+                if labels[j][k] == 1:
+                    accuracy_by_type[col]["total"] += 1
+                    if predicted[j] == k:
+                        accuracy_by_type[col]["correct"] += 1
 
-    # Compute overall accuracy and F1 score
-    accuracy = accuracy_score(true_labels, predicted_labels)
-    f1 = f1_score(true_labels, predicted_labels, average='weighted')
+    # Calculate the overall accuracy and F1 score
+    overall_accuracy = accuracy_score(target_labels, predicted_labels)
+    overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
 
-    # Compute accuracy for different categories
-    category_accuracy = {}
-    for category in test_dataset.annotations.columns[1:]:
-        category_accuracy[category] = category_correct[category] / category_total[category]
+    # Print the overall accuracy and F1 score
+    print("Overall accuracy: {:.4f}".format(overall_accuracy))
+    print("Overall F1 score: {:.4f}".format(overall_f1_score))
 
-    # Print the accuracy, F1 score, and accuracy for different categories
-    print('Accuracy: {:.4f}'.format(accuracy))
-    print('F1 score: {:.4f}'.format(f1))
-    print('Accuracy by category:')
-    for category in category_accuracy:
-        print('{}: {:.4f}'.format(category, category_accuracy[category]))
-
-    # Return a dictionary containing the accuracy, F1 score, and accuracy for different categories
-    return {
-        'accuracy': accuracy,
-        'f1_score': f1,
-        'category_accuracy': category_accuracy
-    }
+    # Print the accuracy for each skin lesion type
+    for col in dataset.annotations.columns[1:]:
+        accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
+        print("{} accuracy: {:.4f}".format(col, accuracy))
