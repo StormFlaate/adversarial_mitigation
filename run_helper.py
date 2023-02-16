@@ -48,12 +48,12 @@ def train_model_finetuning(
 
 
     # Loop over the number of epochs
-    for epoch in tqdm(range(epoch_count)):
+    for epoch in range(epoch_count):
         # Initialize the running loss for this epoch
         running_loss = 0.0
         
         # Loop over the data in the data loader
-        for i, data in enumerate(data_loader, 0):
+        for i, data in tqdm(enumerate(data_loader, 0)):
             # Get the inputs and labels from the data
             inputs, labels = data
             
@@ -109,7 +109,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, data in enumerate(data_loader, 0):
+    for i, data in tqdm(enumerate(data_loader, 0)):
         # Get the inputs and labels from the data
         inputs, labels = data
 
