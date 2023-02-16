@@ -71,7 +71,6 @@ def train_model_finetuning(
                 outputs, x = model(inputs)
             else:
                 outputs = model(inputs)
-            return outputs
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)
