@@ -1,9 +1,11 @@
 import sys
+from typing import Dict
 import torch
+import numpy as np
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from customDataset import ISICDataset # Import the Pytorch library
-
+from sklearn.metrics import accuracy_score, f1_score
 
 
 def train_model_finetuning(
@@ -89,3 +91,83 @@ def train_model_finetuning(
 
 
     return model
+
+
+def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> Dict:
+    """Tests a neural network model on a separate dataset.
+
+    Args:
+        model: The trained neural network model.
+        dataset: The dataset used for testing.
+        data_loader: The data loader used for iterating over the dataset.
+
+    Returns:
+        A dictionary containing the accuracy, F1 score, and accuracy for different categories.
+    """
+    # Set the model to evaluation mode
+    model.eval()
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Initialize variables for computing accuracy and F1 score
+    true_labels = []
+    predicted_labels = []
+
+    # Initialize variables for computing accuracy for different categories
+    category_correct = {}
+    category_total = {}
+
+    # Loop over the data in the data loader
+    for i, data in enumerate(data_loader, 0):
+        # Get the inputs and labels from the data
+        inputs, labels = data
+
+        # Convert labels to a tensor of type float
+        labels = torch.tensor(labels, dtype=torch.float)
+
+        # Move inputs and labels to the specified device
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
+        # Pass inputs through the model to get the predicted labels
+        outputs = model(inputs)
+        predicted = torch.round(outputs)
+
+        # Convert predicted labels and true labels to numpy arrays and append to the variables
+        predicted_labels += predicted.cpu().numpy().tolist()
+        true_labels += labels.cpu().numpy().tolist()
+
+        # Compute accuracy for different categories
+        for j, category in enumerate(dataset.annotations.columns[1:]):
+            if category not in category_correct:
+                category_correct[category] = 0
+                category_total[category] = 0
+
+            category_predicted = predicted[:, j].cpu().numpy().tolist()
+            category_true = labels[:, j].cpu().numpy().tolist()
+            category_accuracy = accuracy_score(category_true, category_predicted)
+            category_correct[category] += np.sum(np.logical_and(category_predicted, category_true))
+            category_total[category] += np.sum(category_true)
+
+    # Compute overall accuracy and F1 score
+    accuracy = accuracy_score(true_labels, predicted_labels)
+    f1 = f1_score(true_labels, predicted_labels)
+
+    # Compute accuracy for different categories
+    category_accuracy = {}
+    for category in dataset.annotations.columns[1:]:
+        category_accuracy[category] = category_correct[category] / category_total[category]
+
+    # Print the accuracy, F1 score, and accuracy for different categories
+    print('Accuracy: {:.4f}'.format(accuracy))
+    print('F1 score: {:.4f}'.format(f1))
+    print('Accuracy by category:')
+    for category in category_accuracy:
+        print('{}: {:.4f}'.format(category, category_accuracy[category]))
+
+    # Return a dictionary containing the accuracy, F1 score, and accuracy for different categories
+    return {
+        'accuracy': accuracy,
+        'f1_score': f1,
+        'category_accuracy': category_accuracy
+    }
