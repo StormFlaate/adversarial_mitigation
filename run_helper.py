@@ -93,21 +93,19 @@ def train_model_finetuning(
     return model
 
 
-def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> Dict:
+def test_model(model, test_dataset, data_loader_test):
     """Tests a neural network model on a separate dataset.
 
     Args:
         model: The trained neural network model.
-        dataset: The dataset used for testing.
-        data_loader: The data loader used for iterating over the dataset.
+        test_dataset: The dataset used for testing.
+        data_loader_test: The data loader used for iterating over the dataset.
 
     Returns:
         A dictionary containing the accuracy, F1 score, and accuracy for different categories.
     """
     # Set the model to evaluation mode
     model.eval()
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize variables for computing accuracy and F1 score
     true_labels = []
@@ -118,7 +116,7 @@ def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> 
     category_total = {}
 
     # Loop over the data in the data loader
-    for i, data in enumerate(data_loader, 0):
+    for i, data in enumerate(data_loader_test, 0):
         # Get the inputs and labels from the data
         inputs, labels = data
 
@@ -126,6 +124,7 @@ def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> 
         labels = torch.tensor(labels, dtype=torch.float)
 
         # Move inputs and labels to the specified device
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         inputs = inputs.to(device)
         labels = labels.to(device)
 
@@ -134,17 +133,17 @@ def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> 
         predicted = torch.round(outputs)
 
         # Convert predicted labels and true labels to numpy arrays and append to the variables
-        predicted_labels += predicted.cpu().numpy().tolist()
-        true_labels += labels.cpu().numpy().tolist()
+        predicted_labels += predicted.detach().cpu().numpy().tolist()
+        true_labels += labels.detach().cpu().numpy().tolist()
 
         # Compute accuracy for different categories
-        for j, category in enumerate(dataset.annotations.columns[1:]):
+        for j, category in enumerate(test_dataset.annotations.columns[1:]):
             if category not in category_correct:
                 category_correct[category] = 0
                 category_total[category] = 0
 
-            category_predicted = predicted[:, j].cpu().numpy().tolist()
-            category_true = labels[:, j].cpu().numpy().tolist()
+            category_predicted = predicted[:, j].detach().cpu().numpy().tolist()
+            category_true = labels[:, j].detach().cpu().numpy().tolist()
             category_accuracy = accuracy_score(category_true, category_predicted)
             category_correct[category] += np.sum(np.logical_and(category_predicted, category_true))
             category_total[category] += np.sum(category_true)
@@ -155,7 +154,7 @@ def test_model(model: Module, dataset: ISICDataset, data_loader: DataLoader) -> 
 
     # Compute accuracy for different categories
     category_accuracy = {}
-    for category in dataset.annotations.columns[1:]:
+    for category in test_dataset.annotations.columns[1:]:
         category_accuracy[category] = category_correct[category] / category_total[category]
 
     # Print the accuracy, F1 score, and accuracy for different categories
