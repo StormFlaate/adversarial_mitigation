@@ -53,7 +53,7 @@ def train_model_finetuning(
         for i, data in tqdm(enumerate(data_loader, 0)):
             # Get the inputs and labels from the data
             inputs, labels = data
-            input, labels = input.to(device), labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device)
             
             # Convert labels to a tensor of type float
             labels = torch.tensor(labels, dtype=torch.float)
