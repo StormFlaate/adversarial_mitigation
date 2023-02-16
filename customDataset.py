@@ -72,6 +72,8 @@ class ISICDataset(Dataset):
 
         # reads in correct label -> format 2018 example: [MEL,NV,BCC,AKIEC,BKL,DF,VASC]
         label_tensor = torch.tensor(self.annotations.iloc[index, 1:])
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        label_tensor.to(device)
 
         # The transform is applied to the image to pre-process it. This can include data augmentation, normalization, etc.
         if self.transform:
