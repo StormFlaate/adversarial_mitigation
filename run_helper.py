@@ -125,6 +125,7 @@ def test_model(model, dataset, data_loader):
 
         # Convert the predicted outputs to a list of labels
         _, predicted = torch.max(outputs.data, 1)
+        print(_, predicted)
 
         # Append the target and predicted labels to their respective lists
         target_labels.extend(labels.cpu().numpy())
