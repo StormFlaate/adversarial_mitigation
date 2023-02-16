@@ -132,7 +132,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 
 
         # Calculate the accuracy for each skin lesion type
-        for j in range(len(labels)):
+        for j in range(len(np_labels)):
             for k, col in enumerate(dataset.annotations.columns[1:]):
                 if np_labels[j] == k:
                     accuracy_by_type[col]["total"] += 1
