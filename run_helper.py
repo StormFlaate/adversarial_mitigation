@@ -37,7 +37,7 @@ def train_model_finetuning(
     model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
     # Move the model to the GPU if GPU is available 
-    device = torch.device("cude" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Is CUDA available:", torch.cuda.is_available())
     model.to(device)
 
