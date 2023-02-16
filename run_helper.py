@@ -117,6 +117,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 
         outputs = model(inputs)
 
+
         # Convert the labels to a list of labels
         labels = torch.argmax(labels, 1)
         # Convert the predicted outputs to a list of labels
