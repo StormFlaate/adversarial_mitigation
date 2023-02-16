@@ -32,7 +32,7 @@ TEST_2018_ROOT_DIR: str = "./data/ISIC2018_Validation_Input"
 DATASET_2019_LABELS: str = "./data/ISIC_2019_Training_GroundTruth.csv"
 DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 
-BATCH_SIZE: int = 32
+BATCH_SIZE: int = 64
 EPOCH_COUNT: int = 20
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
