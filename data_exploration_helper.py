@@ -11,7 +11,7 @@ def dataset_overview(
     title:str="Default title",
     xlabel:str="",
     ylabel:str="",
-    check_image_size:bool=False) -> Dict[str, torch.Size | int | pd.core.indexes.base.Index | np.ndarray]:
+    check_image_size:bool=False) -> Dict[str, torch.Size or int or pd.core.indexes.base.Index or np.ndarray]:
     """
     Generates a bar plot that provides an overview of the ISICDataset,
     and provides some key statistics about the dataset.
