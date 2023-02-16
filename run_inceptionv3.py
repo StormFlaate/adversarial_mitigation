@@ -9,6 +9,7 @@ from torchvision import datasets, transforms # Import the transforms module from
 
 import numpy as np
 from PIL import Image
+from tqdm import tqdm
 from config import TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
 from config import BATCH_SIZE
 
@@ -62,7 +63,7 @@ optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=0.001, momentu
 
 # Estimate the memory usage of a batch
 total_bytes = 0
-for data, labels in data_loader_train_2018:
+for data, labels in tqdm(data_loader_train_2018):
     bytes_per_element = data.element_size()  # in bytes
     total_bytes += data.numel() * bytes_per_element
     total_bytes += labels.numel() * labels.element_size()
