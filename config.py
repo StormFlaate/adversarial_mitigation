@@ -55,4 +55,4 @@ IMAGE_FILE_TYPE: str = "jpg"
 INCEPTIONV3_MODEL_NAME: str = "inceptionv3"
 RESNET18_MODEL_NAME: str = "resnet18"
 
-NUM_WORKERS: int = 0
+NUM_WORKERS: int = 2
