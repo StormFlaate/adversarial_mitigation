@@ -117,23 +117,26 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 
         outputs = model(inputs)
 
-        # Convert the predicted outputs to a list of labels
+        # Convert the labels to a list of labels
         labels = torch.argmax(labels, 1)
-
-        # 
+        # Convert the predicted outputs to a list of labels
         predicted = torch.argmax(outputs.data, 1)
         
 
+        np_labels = labels.cpu().numpy()
+        np_predicted = predicted.cpu().numpy()
+
         # Append the target and predicted labels to their respective lists
-        target_labels.extend(labels.cpu().numpy())
-        predicted_labels.extend(predicted.cpu().numpy())
+        target_labels.extend(np_labels)
+        predicted_labels.extend(np_predicted)
+
 
         # Calculate the accuracy for each skin lesion type
         for j in range(len(labels)):
             for k, col in enumerate(dataset.annotations.columns[1:]):
-                if labels[j][k] == 1:
+                if np_labels[j] == k:
                     accuracy_by_type[col]["total"] += 1
-                    if predicted[j] == k:
+                    if np_predicted[j] == k:
                         accuracy_by_type[col]["correct"] += 1
 
     # Calculate the overall accuracy and F1 score
@@ -146,7 +149,10 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 
     # Print the accuracy for each skin lesion type
     for col in dataset.annotations.columns[1:]:
-        accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
+        if accuracy_by_type[col]["total"]:
+            accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
+        else:
+            accuracy = 0
         print("{} accuracy: {:.4f}".format(col, accuracy))
 
 
