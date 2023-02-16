@@ -32,27 +32,35 @@ TEST_2018_ROOT_DIR: str = "./data/ISIC2018_Validation_Input"
 DATASET_2019_LABELS: str = "./data/ISIC_2019_Training_GroundTruth.csv"
 DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 
-BATCH_SIZE: int = 256
-EPOCH_COUNT: int = 20
-
 # NUMBER OF ROWS - can be used if you want to run some simple tests
 TRAIN_NROWS: int = None # SET TO None if you want all samples
 TEST_NROWS: int = None # SET TO None if you want all samples
 
 
+
+# hypter parameters
+IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
+IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
+
+BATCH_SIZE: int = 256
+EPOCH_COUNT: int = 20
 LEARNING_RATE: float = 0.001
 MOMENTUM: float = 0.9
 
 
-IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
-IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
 
-INCEPTIONV3_PIXEL_SIZE: int = 299
-RESNET18_PIXEL_SIZE: int = 224
+
+
+
+
+
 
 IMAGE_FILE_TYPE: str = "jpg"
 
 INCEPTIONV3_MODEL_NAME: str = "inceptionv3"
 RESNET18_MODEL_NAME: str = "resnet18"
 
-NUM_WORKERS: int = 2
+INCEPTIONV3_PIXEL_SIZE: int = 299
+RESNET18_PIXEL_SIZE: int = 224
+
+NUM_WORKERS: int = 8
