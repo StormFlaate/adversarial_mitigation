@@ -1,4 +1,5 @@
 # Importing the required libraries
+from typing import Tuple
 import torch # Import the Pytorch library
 import torchvision # Import the torchvision library
 from torchvision import datasets, transforms # Import the transforms module from torchvision
@@ -41,3 +42,15 @@ TEST_NROWS: int = None # SET TO None if you want all samples
 
 LEARNING_RATE: float = 0.001
 MOMENTUM: float = 0.9
+
+
+IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
+IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
+
+INCEPTIONV3_PIXEL_SIZE: int = 299
+RESNET18_PIXEL_SIZE: int = 224
+
+IMAGE_FILE_TYPE: str = "jpg"
+
+INCEPTIONV3_MODEL_NAME: str = "inceptionv3"
+RESNET18_MODEL_NAME: str = "resnet18"
