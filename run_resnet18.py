@@ -43,6 +43,9 @@ test_dataset_2018_resnet18 = ISICDataset(
     nrows=TEST_NROWS
 )
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+test_dataset_2018_resnet18.to(device)
+
 
 # Define the train data loader
 print("Define the train data loader...")
