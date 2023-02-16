@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from config import TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
-from config import BATCH_SIZE, EPOCH_COUNT
+from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS
 
 from customDataset import ISICDataset
 from run_helper import test_model, train_model_finetuning # Custom dataset class
