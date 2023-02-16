@@ -15,7 +15,8 @@ def train_model_finetuning(
         criterion: Module, 
         optimizer: torch.optim.Optimizer,
         model_name: str = "",
-        epoch_count: int = 20) -> Module:
+        epoch_count: int = 20,
+        freeze_model_params: bool = False) -> Module:
     """Trains a neural network model by fine-tuning the last layer.
 
     Args:
@@ -30,9 +31,10 @@ def train_model_finetuning(
     Returns:
         The trained neural network model.
     """
-    # Freeze the model parameters to prevent backpropagation
-    for param in model.parameters():
-        param.requires_grad = False
+    if freeze_model_params:
+        # Freeze the model parameters to prevent backpropagation
+        for param in model.parameters():
+            param.requires_grad = False
 
     # Replace the final layer with a new layer that matches the number of classes in the dataset
     num_classes = len(dataset.annotations.columns)-1
@@ -117,12 +119,11 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 
         outputs = model(inputs)
 
-
         # Convert the labels to a list of labels
         labels = torch.argmax(labels, 1)
         # Convert the predicted outputs to a list of labels
         predicted = torch.argmax(outputs.data, 1)
-        
+
 
         np_labels = labels.cpu().numpy()
         np_predicted = predicted.cpu().numpy()
