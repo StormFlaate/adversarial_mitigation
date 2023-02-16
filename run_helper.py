@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from torch.nn import Module
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 from customDataset import ISICDataset # Import the Pytorch library
 from sklearn.metrics import accuracy_score, f1_score
 
@@ -47,7 +48,7 @@ def train_model_finetuning(
 
 
     # Loop over the number of epochs
-    for epoch in range(epoch_count):
+    for epoch in tqdm(range(epoch_count)):
         # Initialize the running loss for this epoch
         running_loss = 0.0
         

@@ -10,7 +10,7 @@ from torchvision import datasets, transforms # Import the transforms module from
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from config import TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
+from config import LEARNING_RATE, MOMENTUM, TEST_2018_LABELS, TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR # Import the Image module from the Python Imaging Library (PIL)
 from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS
 
 from customDataset import ISICDataset
@@ -64,7 +64,7 @@ model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pre
 
 # Define criterion and optimizer -> do not use adam, since learning rate is so small
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=0.001, momentum=0.9)
+optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
 
 
 print("Start training model...")
