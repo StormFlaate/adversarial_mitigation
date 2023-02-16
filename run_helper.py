@@ -121,7 +121,7 @@ def test_model(model, test_dataset, data_loader_test):
         inputs, labels = data
 
         # Convert labels to a tensor of type float
-        labels = torch.tensor(labels, dtype=torch.float)
+        labels = torch.tensor(labels.detach(), dtype=torch.float)
 
         # Move inputs and labels to the specified device
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -150,7 +150,7 @@ def test_model(model, test_dataset, data_loader_test):
 
     # Compute overall accuracy and F1 score
     accuracy = accuracy_score(true_labels, predicted_labels)
-    f1 = f1_score(true_labels, predicted_labels)
+    f1 = f1_score(true_labels, predicted_labels, average='weighted')
 
     # Compute accuracy for different categories
     category_accuracy = {}

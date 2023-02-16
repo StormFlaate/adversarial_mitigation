@@ -41,7 +41,7 @@ train_dataset_2018_inceptionv3 = ISICDataset(
     root_dir=TRAIN_2018_ROOT_DIR, 
     transform=preprocess_inceptionv3,
     image_file_type="jpg",
-    #nrows=5000 # defines the number of rows used, utilized this for testing purposes
+    nrows=TRAIN_NROWS # defines the number of rows used, utilized this for testing purposes
     )
 
 # Test set 2018 - custom class
@@ -50,7 +50,7 @@ test_dataset_2018_inceptionv3 = ISICDataset(
     root_dir=TEST_2018_ROOT_DIR, 
     transform=preprocess_inceptionv3,
     image_file_type="jpg",
-    # nrows=100 # defines the number of rows used, utilized this for testing purposes
+    nrows=TEST_NROWS
     )
 
 

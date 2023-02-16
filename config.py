@@ -32,4 +32,8 @@ DATASET_2019_LABELS: str = "./data/ISIC_2019_Training_GroundTruth.csv"
 DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 
 BATCH_SIZE: int = 128
-EPOCH_COUNT: int = 2
+EPOCH_COUNT: int = 1
+
+# NUMBER OF ROWS - can be used if you want to run some simple tests
+TRAIN_NROWS: int = 2000 # SET TO None if you want all samples
+TEST_NROWS: int = 500 # SET TO None if you want all samples
