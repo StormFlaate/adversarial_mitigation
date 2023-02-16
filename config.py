@@ -42,7 +42,7 @@ TEST_NROWS: int = None # SET TO None if you want all samples
 IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
 IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
 
-BATCH_SIZE: int = 256
+BATCH_SIZE: int = 32
 EPOCH_COUNT: int = 20
 LEARNING_RATE: float = 0.001
 MOMENTUM: float = 0.9
@@ -63,4 +63,7 @@ RESNET18_MODEL_NAME: str = "resnet18"
 INCEPTIONV3_PIXEL_SIZE: int = 299
 RESNET18_PIXEL_SIZE: int = 224
 
-NUM_WORKERS: int = 8
+NUM_WORKERS: int = 10
+
+
+# fastest for resnet18 batch size 256 -> num workers 10
