@@ -65,6 +65,7 @@ optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=0.001, momentu
 total_bytes = 0
 for data, labels in tqdm(data_loader_train_2018):
     bytes_per_element = data.element_size()  # in bytes
+    print("bytes_per_element:",bytes_per_element)
     total_bytes += data.numel() * bytes_per_element
     total_bytes += labels.numel() * labels.element_size()
 
