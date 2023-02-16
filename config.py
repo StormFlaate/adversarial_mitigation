@@ -32,3 +32,4 @@ DATASET_2019_LABELS: str = "./data/ISIC_2019_Training_GroundTruth.csv"
 DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 
 BATCH_SIZE: int = 128
+EPOCH_COUNT: int = 2
