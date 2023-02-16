@@ -61,16 +61,6 @@ model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pre
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=0.001, momentum=0.9)
 
-# Estimate the memory usage of a batch
-total_bytes = 0
-for data, labels in tqdm(data_loader_train_2018):
-    bytes_per_element = data.element_size()  # in bytes
-    print("bytes for one batch:",data.numel() * bytes_per_element)
-    total_bytes += data.numel() * bytes_per_element
-    total_bytes += labels.numel() * labels.element_size()
-
-print(f"Estimated memory usage of a batch with {BATCH_SIZE} samples: {total_bytes / 1e6} MB")
-sys.exit()
 
 print("Start training model...")
 model_inceptionv3 = train_model_finetuning(
