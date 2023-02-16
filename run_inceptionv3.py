@@ -64,7 +64,7 @@ model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pre
 
 # Define criterion and optimizer -> do not use adam, since learning rate is so small
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model_inceptionv3.fc.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+optimizer = torch.optim.SGD(model_inceptionv3.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
 
 
 print("Start training model...")
