@@ -25,7 +25,7 @@ from data_augmentation import augment_images_and_save_to_file
 augmentation_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(p=RANDOM_HORIZONTAL_FLIP_PROBABILITY),
     transforms.RandomVerticalFlip(p=RANDOM_VERTICAL_FLIP_PROBABILITY),
-    transforms.RandAugment(num_ops=RAND_AUGMENT_NUM_OPS, magnitude=RAND_AUGMENT_MAGNITUDE, num_magnitude_bins=RAND_AUGMENT_NUM_MAGNITUDE_BINS),
+    # transforms.RandAugment(num_ops=RAND_AUGMENT_NUM_OPS, magnitude=RAND_AUGMENT_MAGNITUDE, num_magnitude_bins=RAND_AUGMENT_NUM_MAGNITUDE_BINS),
     transforms.ToPILImage()
 ])
 
@@ -33,6 +33,8 @@ augmentation_transform = transforms.Compose([
 
 
 augment_images_and_save_to_file(TRAIN_2018_ROOT_DIR, AUGMENTED_TRAIN_2018_ROOT_DIR, TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
-augment_images_and_save_to_file(TEST_2018_ROOT_DIR, AUGMENTED_TEST_2018_ROOT_DIR, TEST_2018_LABELS, AUGMENTED_TEST_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
+
+
+# augment_images_and_save_to_file(TEST_2018_ROOT_DIR, AUGMENTED_TEST_2018_ROOT_DIR, TEST_2018_LABELS, AUGMENTED_TEST_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
 
 
