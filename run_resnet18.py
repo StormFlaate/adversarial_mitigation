@@ -80,6 +80,7 @@ if __name__ == '__main__':
         data_loader_train,
         criterion,
         optimizer,
+        scheduler,
         model_name="resnet18",
         epoch_count=EPOCH_COUNT
     )
