@@ -137,4 +137,5 @@ data_zip/
 
 # local storage
 local_files/
-/models
+models/
+augmented_data/
