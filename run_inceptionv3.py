@@ -7,8 +7,8 @@ from PIL import Image
 from tqdm import tqdm
 from config import (
     IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, INCEPTIONV3_MODEL_NAME, INCEPTIONV3_PIXEL_SIZE, 
-    LEARNING_RATE, MOMENTUM, TEST_2018_LABELS, TEST_2018_ROOT_DIR, 
-    TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR, BATCH_SIZE, EPOCH_COUNT, 
+    LEARNING_RATE, MOMENTUM, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, 
+    BATCH_SIZE, EPOCH_COUNT, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, 
     TRAIN_NROWS, TEST_NROWS
 )
 from customDataset import ISICDataset
@@ -30,16 +30,16 @@ preprocess_inceptionv3 = transforms.Compose([
 
 # Load the datasets
 print("Loading datasets...")
-train_dataset_2018_inceptionv3 = ISICDataset(
-    csv_file=TRAIN_2018_LABELS, 
-    root_dir=TRAIN_2018_ROOT_DIR, 
+train_dataset_inceptionv3 = ISICDataset(
+    csv_file=TRAIN_DATASET_LABELS, 
+    root_dir=TRAIN_DATASET_ROOT_DIR, 
     transform=preprocess_inceptionv3,
     image_file_type=IMAGE_FILE_TYPE,
     nrows=TRAIN_NROWS
 )
-test_dataset_2018_inceptionv3 = ISICDataset(
-    csv_file=TEST_2018_LABELS, 
-    root_dir=TEST_2018_ROOT_DIR, 
+test_dataset_inceptionv3 = ISICDataset(
+    csv_file=TEST_DATASET_LABELS, 
+    root_dir=TEST_DATASET_ROOT_DIR, 
     transform=preprocess_inceptionv3,
     image_file_type=IMAGE_FILE_TYPE,
     nrows=TEST_NROWS
@@ -47,13 +47,13 @@ test_dataset_2018_inceptionv3 = ISICDataset(
 
 # Define the data loaders
 print("Defining data loaders...")
-train_2018_data_loader = torch.utils.data.DataLoader(
-    train_dataset_2018_inceptionv3, 
+train_data_loader = torch.utils.data.DataLoader(
+    train_dataset_inceptionv3, 
     batch_size=BATCH_SIZE, 
     shuffle=True
 )
 test_data_loader = torch.utils.data.DataLoader(
-    test_dataset_2018_inceptionv3, 
+    test_dataset_inceptionv3, 
     batch_size=BATCH_SIZE, 
     shuffle=False
 )
@@ -71,8 +71,8 @@ optimizer = torch.optim.SGD(model_inceptionv3.parameters(), lr=LEARNING_RATE, mo
 print("Training model...")
 model_inceptionv3 = train_model_finetuning(
     model_inceptionv3, 
-    train_dataset_2018_inceptionv3, 
-    train_2018_data_loader,
+    train_dataset_inceptionv3, 
+    train_data_loader,
     criterion,
     optimizer,
     model_name=INCEPTIONV3_MODEL_NAME,
@@ -80,10 +80,10 @@ model_inceptionv3 = train_model_finetuning(
 )
 
 # save the model to file
-train_set_name: str = next(iter(TEST_2018_ROOT_DIR.split("/")), None)
+train_set_name: str = next(iter(TEST_DATASET_ROOT_DIR.split("/")), None)
 save_model_to_file(model_inceptionv3, INCEPTIONV3_MODEL_NAME, train_set_name, models_dir="models")
 
 
 # Test the model's performance
 print("Testing the model's performance...")
-test_model(model_inceptionv3, test_dataset_2018_inceptionv3, test_data_loader, model_name=INCEPTIONV3_MODEL_NAME)
+test_model(model_inceptionv3, test_dataset_inceptionv3, test_data_loader, model_name=INCEPTIONV3_MODEL_NAME)
