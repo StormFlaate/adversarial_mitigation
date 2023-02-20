@@ -81,6 +81,7 @@ def train_model_finetuning(
             loss.backward()
             
             # Update the model parameters using the gradients and the optimizer
+            optimizer.step()
             scheduler.step()
             
             # Add the loss for this batch to the running loss for this epoch
