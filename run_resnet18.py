@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import multiprocessing as mp
-from config import NUM_WORKERS, RESNET18_MODEL_NAME, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR
+from config import GAMMA, NUM_WORKERS, RESNET18_MODEL_NAME, STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR
 from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS, IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, RESNET18_PIXEL_SIZE, LEARNING_RATE, MOMENTUM
 from customDataset import ISICDataset
 from misc_helper import save_model_to_file
@@ -71,6 +71,7 @@ if __name__ == '__main__':
     # Define the criterion and optimizer
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model_resnet18.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
 
     print("Start training model...")
     model_resnet18 = train_model_finetuning(
