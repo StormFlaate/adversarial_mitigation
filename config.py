@@ -21,6 +21,8 @@ from data_exploration_helper import dataset_overview
 #########################################################
 # ==================== CONSTANTS ========================
 #########################################################
+
+# ORIGINAL DATA
 # Training set 2018
 TRAIN_2018_LABELS: str = "./data/ISIC2018_Training_GroundTruth.csv"
 TRAIN_2018_ROOT_DIR: str = "./data/ISIC2018_Training_Input"
@@ -32,6 +34,22 @@ TEST_2018_ROOT_DIR: str = "./data/ISIC2018_Validation_Input"
 DATASET_2019_LABELS: str = "./data/ISIC_2019_Training_GroundTruth.csv"
 DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 
+# AUGMENTED DATA
+# Training set 2018
+AUGMENTED_TRAIN_2018_LABELS: str = "./augmented_data/ISIC2018_Training_GroundTruth.csv"
+AUGMENTED_TRAIN_2018_ROOT_DIR: str = "./augmented_data/ISIC2018_Training_Input"
+
+AUGMENTED_TEST_2018_LABELS: str = "./augmented_data/ISIC2018_Validation_GroundTruth.csv"
+AUGMENTED_TEST_2018_ROOT_DIR: str = "./augmented_data/ISIC2018_Validation_Input"
+
+# Dataset 2019 - has not been split into train and test
+AUGMENTED_DATASET_2019_LABELS: str = "./augmented_data/ISIC_2019_Training_GroundTruth.csv"
+AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Input"
+
+
+
+
+
 # NUMBER OF ROWS - can be used if you want to run some simple tests
 TRAIN_NROWS: int = None # SET TO None if you want all samples
 TEST_NROWS: int = None # SET TO None if you want all samples
@@ -42,16 +60,20 @@ TEST_NROWS: int = None # SET TO None if you want all samples
 IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
 IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
 
-BATCH_SIZE: int = 32
+BATCH_SIZE: int = 64
 EPOCH_COUNT: int = 20
 LEARNING_RATE: float = 0.001
 MOMENTUM: float = 0.9
 
 
 
-
-
-
+# Data augmentation
+MIN_NUMBER_OF_EACH_CLASS: int = 2000
+RANDOM_HORIZONTAL_FLIP_PROBABILITY: float = 0.5
+RANDOM_VERTICAL_FLIP_PROBABILITY: float = 0.5
+RAND_AUGMENT_NUM_OPS: int = 4
+RAND_AUGMENT_MAGNITUDE: int = 2
+RAND_AUGMENT_NUM_MAGNITUDE_BINS: int = 10
 
 
 
