@@ -47,7 +47,12 @@ AUGMENTED_DATASET_2019_LABELS: str = "./augmented_data/ISIC_2019_Training_Ground
 AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Input"
 
 
+# which data to choose
+TRAIN_DATASET_LABELS: str = AUGMENTED_TRAIN_2018_LABELS
+TRAIN_DATASET_ROOT_DIR: str = AUGMENTED_TRAIN_2018_ROOT_DIR
 
+TEST_DATASET_LABELS: str = AUGMENTED_TEST_2018_LABELS 
+TEST_DATASET_ROOT_DIR: str = AUGMENTED_TEST_2018_ROOT_DIR 
 
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
