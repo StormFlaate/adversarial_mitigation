@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from customDataset import ISICDataset
-import torch # Import the Pytorch library
+from torchvision import transforms
+import torch
 import pandas as pd
 from tqdm import tqdm
 from typing import Dict
@@ -37,7 +38,7 @@ def dataset_overview(
     # will create a set of all the unique sizes/dimensions of the images
     # takes some time to go through all images
     if check_image_size:
-        for image, label in tqdm(dataset):
+        for image, label in dataset:
             size = image.size()
             if size not in sizes:
                 sizes.add(size)
@@ -50,12 +51,12 @@ def dataset_overview(
     info["dataset_labels"] = df.columns[1:] # exclude the first one which only contains image
     info["label_occurences"] = np.array([0]*len(info["dataset_labels"]))
 
-    # calculate the occurences of the different values
+    # calculate the occurrences of the different values
     for index, label in enumerate(info["dataset_labels"] ):
         # count the values for a given category
         count = df[label].value_counts()
-        if 1.0 in count.index:
-            info["label_occurences"][index] = count[1.0]
+        if 1 in count.index:
+            info["label_occurences"][index] = count[1]
     info["label_occurences"]
     
     # plotting
@@ -70,9 +71,6 @@ def dataset_overview(
 
     print(f"Dataset length:", info["dataset_len"])
     print(f"Dataset labels:", info["dataset_labels"])
-    print(f"Dataset occurences:", [*zip(iter(info["dataset_labels"]), iter(info["label_occurences"]))])
-
-
-
+    print(f"Dataset occurrences:", [*zip(iter(info["dataset_labels"]), iter(info["label_occurences"]))])
 
     return info
