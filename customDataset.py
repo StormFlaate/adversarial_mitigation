@@ -1,4 +1,5 @@
 import os
+import random
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -23,6 +24,7 @@ class ISICDataset(Dataset):
         transform (optional): Optional transform to be applied on an image sample.
         target_transform (optional): Optional transform to be applied on the labels.
         image_file_type (str, optional): File type of the images, defaults to "".
+        random_seed (int, optional): random seed for repoproducability
     """
 
     def __init__(
@@ -32,7 +34,9 @@ class ISICDataset(Dataset):
         nrows:int=None, 
         transform=None,
         target_transform=None,
-        image_file_type:str="") -> None:
+        image_file_type:str="",
+        random_seed:int=42
+        ) -> None:
         """
         Initialize the ISICDataset class by reading in the annotations from the csv file,
         storing the root directory for the images, and storing the image transform and
@@ -47,6 +51,7 @@ class ISICDataset(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         self.image_file_type = image_file_type
+        self.random_seed = random_seed
 
     def __len__(self) -> int:
         """Return the length of the dataset."""
@@ -58,6 +63,7 @@ class ISICDataset(Dataset):
 
         Args:
             index (int): Index of the sample to retrieve.
+            radom_seed (int): Random seed for specific image, ensures that each image has its own transform
 
         Returns:
             Tuple: (image, label_tensor) where label_tensor is the class label.
@@ -69,6 +75,11 @@ class ISICDataset(Dataset):
         
         # reads in the image with torchvision.io read_image function
         image = read_image(img_path)
+
+        # sets the randomness for reproducability, but makes each image have its own random seed (for randomness in transforms)
+        np.random.seed(self.random_seed)
+        seed = np.random.randint(len(self.annotations)) 
+        torch.manual_seed(seed)
 
         # reads in correct label -> format 2018 example: [MEL,NV,BCC,AKIEC,BKL,DF,VASC]
         label_tensor = torch.tensor(self.annotations.iloc[index, 1:])
