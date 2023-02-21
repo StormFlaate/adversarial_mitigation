@@ -205,7 +205,7 @@ def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader[
             predicted_labels.extend(pred.cpu().numpy().flatten())
 
             for i in range(len(target)):
-                category = data_loader.dataset.get_category(target[i])
+                category = data_loader.dataset.dataset.get_category(target[i])
                 category_total[category] += 1
                 if pred[i] == target[i]:
                     category_correct[category] += 1
