@@ -89,7 +89,7 @@ def train_model(
 
     
         # check the accuracy of the model
-        _test_model_during_training(model, data_loader)
+        _test_model_during_training(model, val_data_loader)
         model.train()
             
         # Print the average loss for this epoch
