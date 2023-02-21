@@ -1,3 +1,4 @@
+# Import the required libraries
 import sys
 import torch
 import torchvision
@@ -5,14 +6,11 @@ from torchvision import datasets, transforms
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from config import (
-    GAMMA, IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, INCEPTIONV3_MODEL_NAME, INCEPTIONV3_PIXEL_SIZE, 
-    LEARNING_RATE, MOMENTUM, NUM_WORKERS, STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, 
-    BATCH_SIZE, EPOCH_COUNT, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, 
-    TRAIN_NROWS, TEST_NROWS
-)
+import multiprocessing as mp
+from config import GAMMA, INCEPTIONV3_MODEL_NAME, INCEPTIONV3_PIXEL_SIZE, NUM_WORKERS, RESNET18_MODEL_NAME, STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR
+from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS, IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, RESNET18_PIXEL_SIZE, LEARNING_RATE, MOMENTUM
 from customDataset import ISICDataset
-from misc_helper import save_model_to_file, truncated_uuid4
+from misc_helper import save_model_to_file
 from run_helper import test_model, train_model
 
 if __name__ == '__main__':
