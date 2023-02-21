@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     val_data_loader = torch.utils.data.DataLoader(
         val_dataset, 
-        batch_size=VAL_BATCH_SIZE, 
+        batch_size=BATCH_SIZE, 
         shuffle=SHUFFLE_VAL_DATALOADER,
         num_workers=NUM_WORKERS,
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER

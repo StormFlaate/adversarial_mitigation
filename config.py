@@ -77,7 +77,7 @@ STEP_SIZE: int = 10
 GAMMA: int = 0.1
 
 # PARAMETERS - Dataloader
-BATCH_SIZE: int = 32
+BATCH_SIZE: int = 64
 VAL_BATCH_SIZE: int = 1
 PIN_MEMORY_TRAIN_DATALOADER: bool = True
 SHUFFLE_TRAIN_DATALOADER: bool = True
