@@ -9,8 +9,9 @@ from PIL import Image
 from tqdm import tqdm
 import multiprocessing as mp
 from config import (
-    GAMMA, MODEL_NAME, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM, SHUFFLE_TRAIN_DATALOADER, 
-    STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, 
+    GAMMA, MODEL_NAME, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM, 
+    SHUFFLE_TRAIN_DATALOADER, 
+    STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
     TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, IMAGE_FILE_TYPE,
     TRAIN_NROWS, BATCH_SIZE, TEST_NROWS, LEARNING_RATE, MOMENTUM,
     EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
@@ -62,6 +63,14 @@ if __name__ == '__main__':
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
+    val_data_loader = torch.utils.data.DataLoader(
+        val_dataset, 
+        batch_size=BATCH_SIZE, 
+        shuffle=SHUFFLE_VAL_DATALOADER,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY_TRAIN_DATALOADER
+    )
+
 
     # Load the pretrained model
     print(f"Loading pretrained {MODEL_NAME} model...")
@@ -74,13 +83,14 @@ if __name__ == '__main__':
     optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
 
-    
+
     # Train the model
     print("Training model...")
     cnn_model = train_model(
         cnn_model, 
         train_dataset, 
         train_data_loader,
+        val_data_loader,
         criterion,
         optimizer,
         scheduler,
