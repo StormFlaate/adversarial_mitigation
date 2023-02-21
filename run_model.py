@@ -56,8 +56,7 @@ if __name__ == '__main__':
     
 
 
-    # Define the data loaders
-    print("Defining data loaders...")
+    print("Defining train data loaders...")
     train_data_loader = torch.utils.data.DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE, 
@@ -65,7 +64,9 @@ if __name__ == '__main__':
         num_workers=NUM_WORKERS,
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
+    
 
+    print("Defining validation data loaders...")
     val_data_loader = torch.utils.data.DataLoader(
         val_dataset, 
         batch_size=BATCH_SIZE, 
@@ -74,13 +75,19 @@ if __name__ == '__main__':
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
+    print("Define the test data loader...")
+    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=True, pin_memory=True)
+
     train_count_dict = get_category_counts(train_data_loader)
     val_count_dict = get_category_counts(val_data_loader)
+    test_count_dict = get_category_counts(data_loader_test)
     
-    print("Train data loader - occurences of the skin lesion categories")
+    print("Train data loader - distribution of the skin lesion categories")
     print(train_count_dict)
-    print("Validation data loader - occurences of the skin lesion categories")
+    print("Validation data loader - distribution of the skin lesion categories")
     print(val_count_dict)
+    print("Test data loader - distribution of the skin lesion categories")
+    print(test_count_dict)
     
 
     # Load the pretrained model
@@ -112,11 +119,6 @@ if __name__ == '__main__':
 
     # save the model to file
     save_model_and_parameters_to_file(cnn_model, MODEL_NAME, TRAIN_DATASET_ROOT_DIR, models_dir="models")
-
-
-    # Define the test data loader
-    print("Define the test data loader...")
-    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, pin_memory=True)
 
 
     # Test the model's performance
