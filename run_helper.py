@@ -89,9 +89,9 @@ def train_model(
 
     
         # check the accuracy of the model
-        _validate_model_during_training(model, val_data_loader)
-        model.train()
-            
+        overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
+        _print_test_results(overall_accuracy, overall_f1_score, accuracy_by_type_dict)
+
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
 
@@ -245,8 +245,27 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
         else:
             accuracy = 0
         accuracy_by_type_dict[col] = accuracy
+    
+    model.train()
 
     return overall_accuracy, overall_f1_score, accuracy_by_type_dict
 
 
 
+def _print_test_results(
+    overall_accuracy: float,
+    overall_f1_score: float,
+    accuracy_by_type_dict: Dict[str, float]) -> None:
+    """Prints the results of testing a trained neural network model.
+
+    Args:
+        overall_accuracy: The overall accuracy of the model.
+        overall_f1_score: The overall F1 score of the model.
+        accuracy_by_type_dict: A dictionary containing the accuracy for each category of the model.
+    """
+    print(f"Overall accuracy: {overall_accuracy:.4f}")
+    print(f"Overall F1 score: {overall_f1_score:.4f}")
+    print("Accuracy by type:")
+    for category, acc_dict in accuracy_by_type_dict.items():
+        acc = acc_dict["correct"] / acc_dict["total"] if acc_dict["total"] != 0 else 0
+        print(f" {category}: {acc:.4f}")
