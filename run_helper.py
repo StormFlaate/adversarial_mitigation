@@ -185,7 +185,7 @@ def get_category_counts(data_loader: DataLoader[Subset[ISICDataset]]) -> Dict[st
 
     for _, labels in data_loader:
         for label in labels:
-            category = data_loader.dataset.dataset.annotations.columns[label+1]
+            category = data_loader.dataset.dataset.annotations.columns[1:]
             if category not in category_counts:
                 category_counts[category] = 1
             else:
