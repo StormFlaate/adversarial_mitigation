@@ -179,7 +179,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader) -> tuple:
+def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]]) -> tuple:
     """Tests the accuracy of a trained neural network model.
 
     Args:
@@ -192,8 +192,8 @@ def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader)
     model.eval()
     target_labels = []
     predicted_labels = []
-    category_correct = {category: 0 for category in data_loader.dataset.annotations}
-    category_total = {category: 0 for category in data_loader.dataset.annotations}
+    category_correct = {category: 0 for category in data_loader.dataset.dataset.annotations}
+    category_total = {category: 0 for category in data_loader.dataset.dataset.annotations}
 
     with torch.no_grad():
         for data, target in data_loader:
@@ -212,7 +212,7 @@ def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader)
 
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
-    category_accuracy = {category: category_correct[category] / category_total[category] for category in data_loader.dataset.annotations}
+    category_accuracy = {category: category_correct[category] / category_total[category] for category in data_loader.dataset.dataset.annotations}
 
     return overall_accuracy, overall_f1_score, category_accuracy
 
