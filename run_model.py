@@ -11,7 +11,7 @@ import multiprocessing as mp
 from config import (
     GAMMA, MODEL_NAME, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM, 
     SHUFFLE_TRAIN_DATALOADER, 
-    STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
+    STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER, TEST_SPLIT_PERCENTAGE,
     TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, IMAGE_FILE_TYPE,
     TRAIN_NROWS, BATCH_SIZE, TEST_NROWS, LEARNING_RATE, MOMENTUM,
     EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_BATCH_SIZE, VAL_SPLIT_PERCENTAGE)
@@ -39,11 +39,7 @@ if __name__ == '__main__':
     )
 
     # Splits the dataset into train and validation
-    train_dataset, val_dataset = random_split(train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE])
-
-
-
-    
+    train_dataset, val_dataset = random_split(train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE])    
     print(f"Train dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(val_dataset)}")
 
@@ -54,6 +50,10 @@ if __name__ == '__main__':
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TEST_NROWS
     )
+
+    # Creates the test dataset
+    _, test_dataset = random_split(test_dataset_full, [1-TEST_SPLIT_PERCENTAGE, TEST_SPLIT_PERCENTAGE])
+    
 
 
     # Define the data loaders
@@ -91,8 +91,8 @@ if __name__ == '__main__':
     # Define criterion and optimizer
     print("Defining criterion and optimizer...")
     criterion = torch.nn.CrossEntropyLoss()
-    # optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
-    optimizer = torch.optim.Adam(cnn_model.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    # optimizer = torch.optim.Adam(cnn_model.parameters(), lr=LEARNING_RATE)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
 
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     # Define the test data loader
     print("Define the test data loader...")
-    data_loader_test = torch.utils.data.DataLoader(test_dataset_full, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, pin_memory=True)
 
 
     # Test the model's performance
