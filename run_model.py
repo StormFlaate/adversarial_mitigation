@@ -43,9 +43,7 @@ if __name__ == '__main__':
     
     print(f"Train dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(val_dataset)}")
-    get_category_counts(train_dataset)
-    get_category_counts(val_dataset)
-    sys.exit()
+
     test_dataset_full = ISICDataset(
         csv_file=TEST_DATASET_LABELS, 
         root_dir=TEST_DATASET_ROOT_DIR, 
@@ -73,6 +71,9 @@ if __name__ == '__main__':
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
+    get_category_counts(train_data_loader)
+    get_category_counts(val_data_loader)
+    sys.exit()
 
     # Load the pretrained model
     print(f"Loading pretrained {MODEL_NAME} model...")
