@@ -84,7 +84,7 @@ def train_model(
 
         if epoch%5==0:
             # check the accuracy of the model
-            current_accuracy = _test_model_during_training(model, data_loader)
+            current_accuracy = _test_model_during_training(model, data_loader, device)
             print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy / (i + 1)))    
             
         # Print the average loss for this epoch
@@ -96,7 +96,7 @@ def train_model(
 
     return model
 
-def test_model(model, dataset, data_loader, model_name: str=""):
+def test_model(model, dataset, data_loader, device, model_name: str=""):
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
@@ -120,7 +120,6 @@ def test_model(model, dataset, data_loader, model_name: str=""):
         inputs, labels = data
 
         # Move inputs and labels to the specified device
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         inputs = inputs.to(device)
         labels = labels.to(device)
 
