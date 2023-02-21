@@ -13,7 +13,7 @@ from config import (
 )
 from customDataset import ISICDataset
 from misc_helper import save_model_to_file, truncated_uuid4
-from run_helper import test_model, train_model_finetuning
+from run_helper import test_model, train_model
 
 # Set the randomness seed
 torch.manual_seed(42)
@@ -69,7 +69,7 @@ optimizer = torch.optim.SGD(model_inceptionv3.parameters(), lr=LEARNING_RATE, mo
 
 # Train the model
 print("Training model...")
-model_inceptionv3 = train_model_finetuning(
+model_inceptionv3 = train_model(
     model_inceptionv3, 
     train_dataset_inceptionv3, 
     train_data_loader,

@@ -96,7 +96,7 @@ def train_model(
 
     return model
 
-def test_model(model, dataset, data_loader, device, model_name: str=""):
+def test_model(model, dataset, data_loader, model_name: str=""):
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
@@ -120,6 +120,7 @@ def test_model(model, dataset, data_loader, device, model_name: str=""):
         inputs, labels = data
 
         # Move inputs and labels to the specified device
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         inputs = inputs.to(device)
         labels = labels.to(device)
 
@@ -172,7 +173,7 @@ def test_model(model, dataset, data_loader, device, model_name: str=""):
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _test_model_during_training(model: Module, data_loader: DataLoader) -> float:
+def _test_model_during_training(model: Module, data_loader: DataLoader, device) -> float:
     """Tests the accuracy of a trained neural network model.
 
     Args:
@@ -182,8 +183,6 @@ def _test_model_during_training(model: Module, data_loader: DataLoader) -> float
     Returns:
         The accuracy of the model.
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Is CUDA available:", torch.cuda.is_available())
     
     model.eval()
     correct = 0
@@ -192,11 +191,24 @@ def _test_model_during_training(model: Module, data_loader: DataLoader) -> float
     with torch.no_grad():
         for data in data_loader:
             inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+            # Move inputs and labels to the specified device
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
             outputs = model(inputs)
-            _, predicted = torch.max(outputs.data, 1)
+
+            # Convert the labels to a list of labels
+            labels = torch.argmax(labels, 1)
+            # Convert the predicted outputs to a list of labels
+            predicted = torch.argmax(outputs.data, 1)
+
+
+            np_labels = labels.cpu().numpy()
+            np_predicted = predicted.cpu().numpy()
+
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            correct += (np_predicted == np_labels).sum()
     
     model.train()
     accuracy = 100.0 * correct / total
