@@ -9,7 +9,7 @@ from customDataset import ISICDataset # Import the Pytorch library
 from sklearn.metrics import accuracy_score, f1_score
 
 
-def train_model_finetuning(
+def train_model(
         model: Module,
         dataset: ISICDataset,
         data_loader: DataLoader,
@@ -19,7 +19,7 @@ def train_model_finetuning(
         model_name: str = "",
         epoch_count: int = 20,
         requires_grad: bool = True) -> Module:
-    """Trains a neural network model by fine-tuning the last layer.
+    """Trains a neural network model by retraining a model with already existing weights form Image Net.
 
     Args:
         model: The neural network model to train.
@@ -52,7 +52,6 @@ def train_model_finetuning(
     for epoch in range(epoch_count):
         # Initialize the running loss for this epoch
         running_loss = 0.0
-        
         # Loop over the data in the data loader
         for i, data in tqdm(enumerate(data_loader, 0)):
             # Get the inputs and labels from the data
@@ -64,15 +63,8 @@ def train_model_finetuning(
             
             # Clear the gradients in the optimizer
             optimizer.zero_grad()
-            
-            # Move inputs and labels to the specified device
-            # inputs = inputs.to(device)
-            # labels = labels.to(device)
-            
-            if model_name == "inceptionv3":
-                outputs, x = model(inputs)
-            else:
-                outputs = model(inputs)
+
+            outputs = model(inputs)
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)
@@ -82,13 +74,19 @@ def train_model_finetuning(
             
             # Update the model parameters using the gradients and the optimizer
             optimizer.step()
-            scheduler.step()
             
             # Add the loss for this batch to the running loss for this epoch
             running_loss += loss.item()
         
         # zero gradients after each epoch
         optimizer.zero_grad()
+        scheduler.step()
+
+        if epoch%5==0:
+            # check the accuracy of the model
+            current_accuracy = _test_model_during_training(model, data_loader)
+            print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy / (i + 1)))    
+            
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
 
@@ -175,5 +173,34 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
+def _test_model_during_training(model: Module, data_loader: DataLoader) -> float:
+    """Tests the accuracy of a trained neural network model.
+
+    Args:
+        model: The neural network model to test.
+        data_loader: The data loader used for iterating over the dataset.
+
+    Returns:
+        The accuracy of the model.
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Is CUDA available:", torch.cuda.is_available())
+    
+    model.eval()
+    correct = 0
+    total = 0
+    
+    with torch.no_grad():
+        for data in data_loader:
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    
+    model.train()
+    accuracy = 100.0 * correct / total
+    return accuracy
 
 
