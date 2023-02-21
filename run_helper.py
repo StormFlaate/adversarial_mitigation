@@ -117,7 +117,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
     predicted_labels = []
 
     # Initialize the dictionary of accuracy for each skin lesion type
-    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in data_loader.annotations.columns[1:]}
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
 
     # Loop over the data in the data loader
     for i, data in tqdm(enumerate(data_loader, 0)):
@@ -179,7 +179,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _test_model_during_training(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader) -> tuple:
+def _test_model_during_training(model: torch.nn.Module, data_loader: DataLoader) -> tuple:
     """Tests the accuracy of a trained neural network model.
 
     Args:
@@ -192,8 +192,8 @@ def _test_model_during_training(model: torch.nn.Module, data_loader: torch.utils
     model.eval()
     target_labels = []
     predicted_labels = []
-    category_correct = {category: 0 for category in data_loader.dataset.categories}
-    category_total = {category: 0 for category in data_loader.dataset.categories}
+    category_correct = {category: 0 for category in data_loader.dataset.annotations}
+    category_total = {category: 0 for category in data_loader.dataset.annotations}
 
     with torch.no_grad():
         for data, target in data_loader:
@@ -212,7 +212,7 @@ def _test_model_during_training(model: torch.nn.Module, data_loader: torch.utils
 
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
-    category_accuracy = {category: category_correct[category] / category_total[category] for category in data_loader.dataset.categories}
+    category_accuracy = {category: category_correct[category] / category_total[category] for category in data_loader.dataset.annotations}
 
     return overall_accuracy, overall_f1_score, category_accuracy
 
