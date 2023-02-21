@@ -63,7 +63,7 @@ def train_model(
             inputs, labels = inputs.to(device), labels.to(device)
             
             # Convert labels to a tensor of type float
-            labels = torch.tensor(labels, dtype=torch.float)
+            labels = torch.tensor(labels, dtype=torch.float).clone().detach()
 
             # If the model type is "inceptionv3", pass inputs through the model and get two outputs
             if model_name == "inceptionv3":
