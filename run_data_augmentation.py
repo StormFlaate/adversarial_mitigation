@@ -25,6 +25,7 @@ augmentation_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(p=RANDOM_HORIZONTAL_FLIP_PROBABILITY),
     transforms.RandomVerticalFlip(p=RANDOM_VERTICAL_FLIP_PROBABILITY),
     transforms.RandomRotation(degrees=MIN_MAX_ROTATION_RANGE),
+    transforms.TrivialAugmentWide(),
     transforms.ToPILImage()
 ])
 
