@@ -2,7 +2,7 @@
 import sys
 import torch
 import torchvision
-from torch.utils.data import random_split, Dataset
+from torch.utils.data import random_split, Dataset, Subset
 from torchvision import datasets, transforms
 import numpy as np
 from PIL import Image
@@ -50,10 +50,7 @@ if __name__ == '__main__':
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TEST_NROWS
     )
-
-    # Creates the test dataset
-    _, test_dataset = random_split(test_dataset_full, [1-TEST_SPLIT_PERCENTAGE, TEST_SPLIT_PERCENTAGE])
-    
+    test_dataset = Subset(test_dataset_full)
 
 
     print("Defining train data loaders...")
@@ -76,7 +73,7 @@ if __name__ == '__main__':
     )
 
     print("Define the test data loader...")
-    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=True, pin_memory=True)
+    data_loader_test = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, pin_memory=True)
 
     train_count_dict = get_category_counts(train_data_loader)
     val_count_dict = get_category_counts(val_data_loader)
