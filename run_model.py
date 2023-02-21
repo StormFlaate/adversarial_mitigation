@@ -73,11 +73,13 @@ if __name__ == '__main__':
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
+
+    
     # Train the model
     print("Training model...")
     cnn_model = train_model(
         cnn_model, 
-        train_dataset_full, 
+        train_dataset, 
         train_data_loader,
         criterion,
         optimizer,

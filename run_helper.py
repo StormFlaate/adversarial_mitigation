@@ -2,6 +2,7 @@ import sys
 from typing import Dict
 import torch
 import numpy as np
+from torch.utils.data import Subset
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -10,8 +11,9 @@ from sklearn.metrics import accuracy_score, f1_score
 
 def train_model(
         model: Module,
-        dataset: ISICDataset,
-        data_loader: DataLoader,
+        train_dataset_subset: Subset[ISICDataset],
+        train_data_loader: DataLoader,
+        val_data_loader: DataLoader,
         criterion: Module, 
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
@@ -22,8 +24,9 @@ def train_model(
 
     Args:
         model: The neural network model to train.
-        dataset: The dataset used for training.
-        data_loader: The data loader used for iterating over the dataset.
+        train_dataset: The train_dataset used for training.
+        train_data_loader: The data loader used for iterating over the train_dataset.
+        val_data_loader: The data loader used for validating the training
         criterion: The loss function used for calculating the loss between model output and labels.
         optimizer: The optimizer used for updating the model parameters.
         model_name: The type of the model being used (if applicable).
@@ -37,8 +40,9 @@ def train_model(
     for param in model.parameters():
         param.requires_grad = requires_grad
 
-    # Replace the final layer with a new layer that matches the number of classes in the dataset
-    num_classes = len(dataset.annotations.columns)-1
+    # Replace the final layer with a new layer that matches the number of classes in the train_dataset
+    train_dataset = train_dataset_subset.dataset
+    num_classes = len(train_dataset.annotations.columns)-1
     model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,7 +56,7 @@ def train_model(
         # Initialize the running loss for this epoch
         running_loss = 0.0
         # Loop over the data in the data loader
-        for i, data in tqdm(enumerate(data_loader, 0)):
+        for i, data in tqdm(enumerate(train_data_loader, 0)):
             # Get the inputs and labels from the data
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
@@ -83,10 +87,10 @@ def train_model(
         optimizer.zero_grad()
         scheduler.step()
 
-        # if epoch != 0 and epoch%10==0:
-        #     # check the accuracy of the model
-        #     current_accuracy = _test_model_during_training(model, data_loader, device)
-        #     print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy))    
+    
+        # check the accuracy of the model
+        _test_model_during_training(model, data_loader)
+        model.train()
             
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
@@ -113,7 +117,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
     predicted_labels = []
 
     # Initialize the dictionary of accuracy for each skin lesion type
-    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in data_loader.annotations.columns[1:]}
 
     # Loop over the data in the data loader
     for i, data in tqdm(enumerate(data_loader, 0)):
@@ -175,7 +179,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _test_model_during_training(model: Module, data_loader: DataLoader, device) -> float:
+def _test_model_during_training(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader) -> tuple:
     """Tests the accuracy of a trained neural network model.
 
     Args:
@@ -183,37 +187,34 @@ def _test_model_during_training(model: Module, data_loader: DataLoader, device) 
         data_loader: The data loader used for iterating over the dataset.
 
     Returns:
-        The accuracy of the model.
+        A tuple containing the overall accuracy and F1 score of the model, and the accuracy of each of the categories of the model.
     """
-    
     model.eval()
-    correct = 0
-    total = 0
-    
+    target_labels = []
+    predicted_labels = []
+    category_correct = {category: 0 for category in data_loader.dataset.categories}
+    category_total = {category: 0 for category in data_loader.dataset.categories}
+
     with torch.no_grad():
-        for data in tqdm(data_loader):
-            inputs, labels = data
-            # Move inputs and labels to the specified device
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+        for data, target in data_loader:
+            data = data.cuda()
+            target = target.cuda()
+            output = model(data)
+            pred = output.argmax(dim=1, keepdim=True)
+            target_labels.extend(target.cpu().numpy())
+            predicted_labels.extend(pred.cpu().numpy().flatten())
 
-            outputs = model(inputs)
+            for i in range(len(target)):
+                category = data_loader.dataset.get_category(target[i])
+                category_total[category] += 1
+                if pred[i] == target[i]:
+                    category_correct[category] += 1
 
-            # Convert the labels to a list of labels
-            labels = torch.argmax(labels, 1)
-            # Convert the predicted outputs to a list of labels
-            predicted = torch.argmax(outputs.data, 1)
+    overall_accuracy = accuracy_score(target_labels, predicted_labels)
+    overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
+    category_accuracy = {category: category_correct[category] / category_total[category] for category in data_loader.dataset.categories}
 
+    return overall_accuracy, overall_f1_score, category_accuracy
 
-            np_labels = labels.cpu().numpy()
-            np_predicted = predicted.cpu().numpy()
-
-            total += len(np_labels)
-            correct += (np_predicted == np_labels).sum()
-    
-    model.train()
-    accuracy = 100.0 * correct / total
-    return accuracy
 
 
