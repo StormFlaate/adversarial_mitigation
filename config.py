@@ -56,8 +56,8 @@ TEST_DATASET_ROOT_DIR: str = TEST_2018_ROOT_DIR
 
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
-TRAIN_NROWS: int = 10 # SET TO None if you want all samples
-TEST_NROWS: int = 10 # SET TO None if you want all samples
+TRAIN_NROWS: int = None # SET TO None if you want all samples
+TEST_NROWS: int = None # SET TO None if you want all samples
 
 
 
