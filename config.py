@@ -69,11 +69,11 @@ INCEPTIONV3_PIXEL_SIZE: int = 299
 RESNET18_PIXEL_SIZE: int = 224
 
 # PARAMETERS - Optimizer
-LEARNING_RATE: float = 0.001
+LEARNING_RATE: float = 0.01
 MOMENTUM: float = 0.9
 
 # PARAMETERS - Scheduler
-STEP_SIZE: int = 30
+STEP_SIZE: int = 10
 GAMMA: int = 0.1
 
 # PARAMETERS - Dataloader
@@ -83,13 +83,10 @@ SHUFFLE_TRAIN_DATALOADER: bool = True
 SHUFFLE_VAL_DATALOADER: bool = True
 
 # PARAMETERS - Model Training
-EPOCH_COUNT: int = 100
+EPOCH_COUNT: int = 30
 TRAIN_SPLIT_PERCENTAGE: float = 0.8
 VAL_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE
 
-
-
-# NEED TO PUT THE TEST AND TRAIN DATASET TOGETHER, and create a validation set with eq
 
 # PARAMETERS - DATA AUGMENTATION
 MIN_NUMBER_OF_EACH_CLASS: int = 2000
@@ -138,7 +135,9 @@ PREPROCESS_TRANSFORM = PREPROCESS_RESNET18
 
 
 """
-Network training was performed using two NVIDIA GTX 1080Ti cards and the Caffe [9] framework. As optimizer, SGD was chosen with learning rate starting at 0.01, weight decay and momentum equal to 0.0001 and 0.9 respectively. The maximum number of iterations has been set at 75000, decreasing the learning rate by a factor of 10 at each step of 20000 iterations. Finally, the 0.008 value was used for the 𝛾
+Network training was performed using two NVIDIA GTX 1080Ti cards and the Caffe [9] framework.
+ As optimizer, SGD was chosen with learning rate starting at 0.01, weight decay and momentum equal to 0.0001 and 0.9 respectively.
+The maximum number of iterations has been set at 75000, decreasing the learning rate by a factor of 10 at each step of 20000 iterations. Finally, the 0.008 value was used for the 𝛾
  parameter in the Eq. 2. Regarding SVM classifier, an RBF kernel with 𝜆=0.01
  and 𝐶=10
  were used.
