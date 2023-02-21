@@ -73,7 +73,7 @@ LEARNING_RATE: float = 0.001
 MOMENTUM: float = 0.9
 
 # PARAMETERS - Scheduler
-STEP_SIZE: int = 10
+STEP_SIZE: int = 5
 GAMMA: int = 0.1
 
 # PARAMETERS - Dataloader
@@ -84,7 +84,7 @@ SHUFFLE_TRAIN_DATALOADER: bool = True
 SHUFFLE_VAL_DATALOADER: bool = True
 
 # PARAMETERS - Model Training
-EPOCH_COUNT: int = 30
+EPOCH_COUNT: int = 5
 TRAIN_SPLIT_PERCENTAGE: float = 0.9
 VAL_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE
 

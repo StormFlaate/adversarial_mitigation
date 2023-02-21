@@ -91,7 +91,8 @@ if __name__ == '__main__':
     # Define criterion and optimizer
     print("Defining criterion and optimizer...")
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    # optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    optimizer = torch.optim.Adam(cnn_model.parameters(), lr=LEARNING_RATE)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
 
 
