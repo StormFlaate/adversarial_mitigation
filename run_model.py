@@ -14,7 +14,7 @@ from config import (
     STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
     TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, IMAGE_FILE_TYPE,
     TRAIN_NROWS, BATCH_SIZE, TEST_NROWS, LEARNING_RATE, MOMENTUM,
-    EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
+    EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_BATCH_SIZE, VAL_SPLIT_PERCENTAGE)
 from customDataset import ISICDataset
 from misc_helper import save_model_and_parameters_to_file
 from run_helper import get_category_counts, test_model, train_model
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     val_data_loader = torch.utils.data.DataLoader(
         val_dataset, 
-        batch_size=BATCH_SIZE, 
+        batch_size=VAL_BATCH_SIZE, 
         shuffle=SHUFFLE_VAL_DATALOADER,
         num_workers=NUM_WORKERS,
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER

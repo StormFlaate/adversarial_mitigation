@@ -223,7 +223,7 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, data in enumerate(data_loader, 0):
+    for i, data in tqdm(enumerate(data_loader, 0)):
         # Get the inputs and labels from the data
         inputs, labels = data
 
