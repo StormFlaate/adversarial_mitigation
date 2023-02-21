@@ -109,4 +109,4 @@ if __name__ == '__main__':
 
     # Test the model's performance
     print("Testing the model's performance...")
-    test_model(cnn_model, test_dataset_full, data_loader_test, model_name=MODEL_NAME)
+    test_model(cnn_model, data_loader_test, model_name=MODEL_NAME)

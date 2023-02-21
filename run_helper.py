@@ -101,7 +101,7 @@ def train_model(
 
     return model
 
-def test_model(model, dataset, data_loader, model_name: str=""):
+def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]], model_name: str=""):
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
@@ -115,6 +115,7 @@ def test_model(model, dataset, data_loader, model_name: str=""):
     # Define the list of target labels and predicted labels
     target_labels = []
     predicted_labels = []
+    dataset: ISICDataset = data_loader.dataset.dataset
 
     # Initialize the dictionary of accuracy for each skin lesion type
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
@@ -194,9 +195,10 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
     # Define the list of target labels and predicted labels
     target_labels = []
     predicted_labels = []
+    dataset: ISICDataset = data_loader.dataset.dataset
 
     # Initialize the dictionary of accuracy for each skin lesion type
-    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in data_loader.dataset.dataset.annotations.columns[1:]}
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
 
     # Loop over the data in the data loader
     for i, data in enumerate(data_loader, 0):
@@ -225,7 +227,7 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
 
         # Calculate the accuracy for each skin lesion type
         for j in range(len(np_labels)):
-            for k, col in enumerate(data_loader.dataset.dataset.annotations.columns[1:]):
+            for k, col in enumerate(dataset.annotations.columns[1:]):
                 if np_labels[j] == k:
                     accuracy_by_type[col]["total"] += 1
                     if np_predicted[j] == k:
@@ -239,7 +241,7 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
     accuracy_by_type_dict = {}
 
     # Calculate the accuracy for each skin lesion type
-    for col in data_loader.dataset.dataset.annotations.columns[1:]:
+    for col in dataset.annotations.columns[1:]:
         if accuracy_by_type[col]["total"]:
             accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
         else:
@@ -263,9 +265,10 @@ def _print_test_results(
         overall_f1_score: The overall F1 score of the model.
         accuracy_by_type_dict: A dictionary containing the accuracy for each category of the model.
     """
+    
     print(f"Overall accuracy: {overall_accuracy:.4f}")
     print(f"Overall F1 score: {overall_f1_score:.4f}")
     print("Accuracy by type:")
-    for category, acc_dict in accuracy_by_type_dict.items():
-        acc = acc_dict["correct"] / acc_dict["total"] if acc_dict["total"] != 0 else 0
+    for category, acc in accuracy_by_type_dict.items():
         print(f" {category}: {acc:.4f}")
+
