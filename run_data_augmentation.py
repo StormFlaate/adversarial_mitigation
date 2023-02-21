@@ -24,7 +24,6 @@ from data_augmentation import augment_images_and_save_to_file
 augmentation_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(p=RANDOM_HORIZONTAL_FLIP_PROBABILITY),
     transforms.RandomVerticalFlip(p=RANDOM_VERTICAL_FLIP_PROBABILITY),
-    transforms.RandomAffine(p=RANDOM_AFFINE_PROBABILITY),
     transforms.RandomRotation(p=RANDOM_ROTATION_PROBABILITY),
     transforms.ToPILImage()
 ])

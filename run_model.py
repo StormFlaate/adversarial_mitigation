@@ -37,10 +37,11 @@ if __name__ == '__main__':
         nrows=TRAIN_NROWS
     )
 
+    # Splits the dataset into train and validation
     train_dataset, val_dataset = random_split(train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE])
-    print(len(train_dataset))
-    print(len(val_dataset))
-
+    
+    print(f"Train dataset length: {len(train_dataset)}")
+    print(f"Validation dataset length: {len(val_dataset)}")
 
     test_dataset_full = ISICDataset(
         csv_file=TEST_DATASET_LABELS, 
