@@ -65,7 +65,7 @@ TEST_NROWS: int = None # SET TO None if you want all samples
 IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
 IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
 
-BATCH_SIZE: int = 64
+BATCH_SIZE: int = 32
 STEP_SIZE: int = 10
 GAMMA: int = 0.1
 EPOCH_COUNT: int = 10
