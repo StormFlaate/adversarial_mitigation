@@ -66,7 +66,7 @@ IMAGENET_MEAN: Tuple = (0.485, 0.456, 0.406)
 IMAGENET_STD: Tuple = (0.229, 0.224, 0.225)
 
 BATCH_SIZE: int = 32
-STEP_SIZE: int = 10
+STEP_SIZE: int = 30
 GAMMA: int = 0.1
 EPOCH_COUNT: int = 100
 LEARNING_RATE: float = 0.001
