@@ -125,12 +125,8 @@ def test_model(model, dataset, data_loader, model_name: str=""):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        # If the model type is "inceptionv3", pass inputs through the model and get two outputs
-        if model_name == "inceptionv3":
-            outputs, x = model(inputs)
-        # Otherwise, pass inputs through the model and get one output
-        else: 
-            outputs = model(inputs)
+   
+        outputs = model(inputs)
 
         # Convert the labels to a list of labels
         labels = torch.argmax(labels, 1)

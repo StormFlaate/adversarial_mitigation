@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     # Load the pretrained Inception v3 model
     print("Loading pretrained Inception v3 model...")
-    model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', weights=True)
+    model_inceptionv3 = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained=True)
 
     # Define criterion and optimizer
     print("Defining criterion and optimizer...")
