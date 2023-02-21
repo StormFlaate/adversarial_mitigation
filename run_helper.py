@@ -82,7 +82,7 @@ def train_model(
         optimizer.zero_grad()
         scheduler.step()
 
-        if epoch%5==0:
+        if epoch != 0 and epoch%10==0:
             # check the accuracy of the model
             current_accuracy = _test_model_during_training(model, data_loader, device)
             print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy))    
