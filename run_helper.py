@@ -7,8 +7,11 @@ from torch.utils.data import Subset
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from config import TRAIN_DATASET_ROOT_DIR
 from customDataset import ISICDataset # Import the Pytorch library
 from sklearn.metrics import accuracy_score, f1_score
+
+from misc_helper import save_model_and_parameters_to_file
 
 def train_model(
         model: Module,
@@ -88,10 +91,13 @@ def train_model(
         optimizer.zero_grad()
         scheduler.step()
 
-    
-        # check the accuracy of the model
-        overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
-        _print_test_results(overall_accuracy, overall_f1_score, accuracy_by_type_dict)
+        if epoch_count and epoch_count%5==0:
+            # check the accuracy of the model
+            overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
+            _print_test_results(overall_accuracy, overall_f1_score, accuracy_by_type_dict)
+            
+            # save the model to file
+            save_model_and_parameters_to_file(model, model_name, TRAIN_DATASET_ROOT_DIR, models_dir="models")
 
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
