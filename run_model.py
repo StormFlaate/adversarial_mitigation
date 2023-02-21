@@ -50,7 +50,9 @@ if __name__ == '__main__':
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TEST_NROWS
     )
-    test_dataset = Subset(test_dataset_full)
+    
+    # added for consistency
+    test_dataset = Subset(test_dataset_full, indices=[x for x in range(len(test_dataset_full))])
 
 
     print("Defining train data loaders...")
