@@ -6,6 +6,7 @@ import torch
 import pandas as pd
 from tqdm import tqdm
 from typing import Dict
+import seaborn as sns
 
 def dataset_overview(
     dataset: ISICDataset, 
@@ -38,7 +39,7 @@ def dataset_overview(
     # will create a set of all the unique sizes/dimensions of the images
     # takes some time to go through all images
     if check_image_size:
-        for image, label in dataset:
+        for image, label in tqdm(dataset):
             size = image.size()
             if size not in sizes:
                 sizes.add(size)
@@ -74,3 +75,32 @@ def dataset_overview(
     print(f"Dataset occurrences:", [*zip(iter(info["dataset_labels"]), iter(info["label_occurences"]))])
 
     return info
+
+
+
+
+def perform_eda(data):
+    # Print the number of rows and columns in the dataset
+    print("Number of rows: {}\nNumber of columns: {}".format(data.shape[0], data.shape[1]))
+    
+    # Print the first 5 rows of the dataset
+    print("\nFirst 5 rows:\n", data.head())
+    
+    # Print the last 5 rows of the dataset
+    print("\nLast 5 rows:\n", data.tail())
+    
+    # Print information about the dataset, including column data types and null values
+    print("\nDataset information:")
+    print(data.info())
+    
+    # Print summary statistics for the numerical columns in the dataset
+    print("\nSummary statistics:")
+    print(data.describe())
+
+    # Plot boxplots of the numerical columns
+    
+    plt.bar(data['benign_malignant'].unique(), data['benign_malignant'].value_counts())
+    plt.title('Diagnosis')
+    plt.xlabel('Diagnosis')
+    plt.ylabel('Counts')
+    plt.show()
