@@ -85,7 +85,7 @@ def train_model(
         if epoch%5==0:
             # check the accuracy of the model
             current_accuracy = _test_model_during_training(model, data_loader, device)
-            print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy / (i + 1)))    
+            print('Accuracy {} : {:.4f}'.format(epoch + 1, current_accuracy))    
             
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
@@ -189,7 +189,7 @@ def _test_model_during_training(model: Module, data_loader: DataLoader, device) 
     total = 0
     
     with torch.no_grad():
-        for data in data_loader:
+        for data in tqdm(data_loader):
             inputs, labels = data
             # Move inputs and labels to the specified device
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -207,7 +207,7 @@ def _test_model_during_training(model: Module, data_loader: DataLoader, device) 
             np_labels = labels.cpu().numpy()
             np_predicted = predicted.cpu().numpy()
 
-            total += labels.size(0)
+            total += len(np_labels)
             correct += (np_predicted == np_labels).sum()
     
     model.train()
