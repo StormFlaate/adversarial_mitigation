@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     # Load the pretrained Resnet-18 model
     print("Load the pretrained Resnet-18 model...")
-    model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+    model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', weights=True)
 
     # Define the train data loader
     print("Define the train data loader...")
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         criterion,
         optimizer,
         scheduler,
-        model_name="resnet18",
+        model_name=RESNET18_MODEL_NAME,
         epoch_count=EPOCH_COUNT
     )
 
@@ -98,4 +98,4 @@ if __name__ == '__main__':
 
     # Test the model's performance
     print("Test the model's performance...")
-    test_model(model_resnet18, test_dataset_resnet18, data_loader_test, model_name="resnet18")
+    test_model(model_resnet18, test_dataset_resnet18, data_loader_test, model_name=RESNET18_MODEL_NAME)

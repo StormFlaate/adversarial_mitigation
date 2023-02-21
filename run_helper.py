@@ -8,7 +8,6 @@ from tqdm import tqdm
 from customDataset import ISICDataset # Import the Pytorch library
 from sklearn.metrics import accuracy_score, f1_score
 
-
 def train_model(
         model: Module,
         dataset: ISICDataset,
