@@ -59,11 +59,13 @@ def train_model(
             
             # Convert labels to a tensor of type float
             labels = torch.tensor(labels, dtype=torch.float)
-            
-            # Clear the gradients in the optimizer
-            optimizer.zero_grad()
 
-            outputs = model(inputs)
+            # If the model type is "inceptionv3", pass inputs through the model and get two outputs
+            if model_name == "inceptionv3":
+                outputs, x = model(inputs)
+            # Otherwise, pass inputs through the model and get one output
+            else: 
+                outputs = model(inputs)
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)
@@ -123,7 +125,12 @@ def test_model(model, dataset, data_loader, model_name: str=""):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        outputs = model(inputs)
+        # If the model type is "inceptionv3", pass inputs through the model and get two outputs
+        if model_name == "inceptionv3":
+            outputs, x = model(inputs)
+        # Otherwise, pass inputs through the model and get one output
+        else: 
+            outputs = model(inputs)
 
         # Convert the labels to a list of labels
         labels = torch.argmax(labels, 1)

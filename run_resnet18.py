@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     # Load the pretrained Resnet-18 model
     print("Load the pretrained Resnet-18 model...")
-    model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', weights=True)
+    model_resnet18 = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 
     # Define the train data loader
     print("Define the train data loader...")
