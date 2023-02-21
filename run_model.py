@@ -40,6 +40,9 @@ if __name__ == '__main__':
 
     # Splits the dataset into train and validation
     train_dataset, val_dataset = random_split(train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE])
+
+
+
     
     print(f"Train dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(val_dataset)}")
@@ -71,9 +74,14 @@ if __name__ == '__main__':
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
-    get_category_counts(train_data_loader)
-    get_category_counts(val_data_loader)
-    sys.exit()
+    train_count_dict = get_category_counts(train_data_loader)
+    val_count_dict = get_category_counts(val_data_loader)
+    
+    print("Train data loader - occurences of the skin lesion categories")
+    print(train_count_dict)
+    print("Validation data loader - occurences of the skin lesion categories")
+    print(val_count_dict)
+    
 
     # Load the pretrained model
     print(f"Loading pretrained {MODEL_NAME} model...")

@@ -1,5 +1,6 @@
 import sys
 from typing import Dict
+import pandas as pd
 import torch
 import numpy as np
 from torch.utils.data import Subset
@@ -114,10 +115,11 @@ def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDatase
     # Define the list of target labels and predicted labels
     target_labels = []
     predicted_labels = []
-    dataset: ISICDataset = data_loader.dataset.dataset
+    # extract the correct indecis from the dataset
+    df: pd.DataFrame = _get_annotations_subset(data_loader) 
 
     # Initialize the dictionary of accuracy for each skin lesion type
-    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
     for i, data in tqdm(enumerate(data_loader, 0)):
@@ -148,7 +150,7 @@ def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDatase
 
         # Calculate the accuracy for each skin lesion type
         for j in range(len(np_labels)):
-            for k, col in enumerate(dataset.annotations.columns[1:]):
+            for k, col in enumerate(df.columns[1:]):
                 if np_labels[j] == k:
                     accuracy_by_type[col]["total"] += 1
                     if np_predicted[j] == k:
@@ -163,7 +165,7 @@ def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDatase
     print("Overall F1 score: {:.4f}".format(overall_f1_score))
 
     # Print the accuracy for each skin lesion type
-    for col in dataset.annotations.columns[1:]:
+    for col in df.columns[1:]:
         if accuracy_by_type[col]["total"]:
             accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
         else:
@@ -181,17 +183,17 @@ def get_category_counts(data_loader: DataLoader[Subset[ISICDataset]]) -> Dict[st
     Returns:
         A dictionary containing the name and count of each category.
     """
-    category_counts = {}
 
-    for _, labels in data_loader:
-        for label in labels:
-            category = data_loader.dataset.dataset.annotations.columns[1:]
-            if category not in category_counts:
-                category_counts[category] = 1
-            else:
-                category_counts[category] += 1
+    df: pd.DataFrame = _get_annotations_subset(data_loader) 
+    # Initialize the dictionary to store the counts
+    count_dict = {}
+    # Loop over the columns of the DataFrame
+    for col in df.columns[1:]:
+        # Count the number of occurrences of '1' in the column and add it to the dictionary
+        count_dict[col] = df[col].sum()
 
-    return category_counts
+    return count_dict
+    
 
 
 
@@ -214,10 +216,11 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
     # Define the list of target labels and predicted labels
     target_labels = []
     predicted_labels = []
-    dataset: ISICDataset = data_loader.dataset.dataset
+
+    df: pd.DataFrame = _get_annotations_subset(data_loader) 
 
     # Initialize the dictionary of accuracy for each skin lesion type
-    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in dataset.annotations.columns[1:]}
+    accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
     for i, data in enumerate(data_loader, 0):
@@ -246,7 +249,7 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
 
         # Calculate the accuracy for each skin lesion type
         for j in range(len(np_labels)):
-            for k, col in enumerate(dataset.annotations.columns[1:]):
+            for k, col in enumerate(df.columns[1:]):
                 if np_labels[j] == k:
                     accuracy_by_type[col]["total"] += 1
                     if np_predicted[j] == k:
@@ -260,7 +263,7 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
     accuracy_by_type_dict = {}
 
     # Calculate the accuracy for each skin lesion type
-    for col in dataset.annotations.columns[1:]:
+    for col in df.columns[1:]:
         if accuracy_by_type[col]["total"]:
             accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
         else:
@@ -291,3 +294,17 @@ def _print_test_results(
     for category, acc in accuracy_by_type_dict.items():
         print(f" {category}: {acc:.4f}")
 
+
+def _get_annotations_subset(data_loader: DataLoader[Subset[ISICDataset]]) -> pd.DataFrame:
+    """Extracts the annotations subset corresponding to the indices in the given data loader.
+
+    Args:
+        data_loader: The data loader for the dataset.
+
+    Returns:
+        A pandas DataFrame containing the annotations subset, which corresponds to the respective indices.
+    """
+    subset: Subset = data_loader.dataset
+    df: pd.DataFrame = subset.dataset.annotations
+    df_subset = df.iloc[subset.indices]
+    return df_subset
