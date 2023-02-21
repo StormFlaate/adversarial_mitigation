@@ -17,7 +17,7 @@ from config import (
     EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
 from customDataset import ISICDataset
 from misc_helper import save_model_and_parameters_to_file
-from run_helper import test_model, train_model
+from run_helper import get_category_counts, test_model, train_model
 
 if __name__ == '__main__':
     mp.freeze_support()
@@ -43,7 +43,9 @@ if __name__ == '__main__':
     
     print(f"Train dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(val_dataset)}")
-
+    get_category_counts(train_dataset)
+    get_category_counts(val_dataset)
+    sys.exit()
     test_dataset_full = ISICDataset(
         csv_file=TEST_DATASET_LABELS, 
         root_dir=TEST_DATASET_ROOT_DIR, 

@@ -101,12 +101,11 @@ def train_model(
 
     return model
 
-def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]], model_name: str=""):
+def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]], model_name: str="") -> None:
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
         model: The neural network model to test.
-        dataset: The dataset used for testing.
         data_loader: The data loader used for iterating over the dataset.
     """
     # Put the model in evaluation mode to turn off dropout and batch normalization
@@ -173,6 +172,26 @@ def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDatase
 
 
 
+def get_category_counts(data_loader: DataLoader[Subset[ISICDataset]]) -> Dict[str, int]:
+    """Get the counts of each category in the dataset.
+
+    Args:
+        data_loader: The data loader for the dataset.
+
+    Returns:
+        A dictionary containing the name and count of each category.
+    """
+    category_counts = {}
+
+    for _, labels in data_loader:
+        for label in labels:
+            category = data_loader.dataset.dataset.annotations.columns[label+1]
+            if category not in category_counts:
+                category_counts[category] = 1
+            else:
+                category_counts[category] += 1
+
+    return category_counts
 
 
 
