@@ -11,7 +11,7 @@ from config import GAMMA, NUM_WORKERS, RESNET18_MODEL_NAME, STEP_SIZE, TEST_DATA
 from config import BATCH_SIZE, EPOCH_COUNT, TRAIN_NROWS, TEST_NROWS, IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, RESNET18_PIXEL_SIZE, LEARNING_RATE, MOMENTUM
 from customDataset import ISICDataset
 from misc_helper import save_model_to_file
-from run_helper import test_model, train_model_finetuning
+from run_helper import test_model, train_model
 
 
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
 
     print("Start training model...")
-    model_resnet18 = train_model_finetuning(
+    model_resnet18 = train_model(
         model_resnet18, 
         train_dataset_resnet18, 
         data_loader_train,
