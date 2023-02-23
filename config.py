@@ -45,11 +45,13 @@ AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Inpu
 ######################################
 # ========== CHOOSE DATASET ==========
 ######################################
-TRAIN_DATASET_LABELS: str = AUGMENTED_TRAIN_2018_LABELS
-TRAIN_DATASET_ROOT_DIR: str = AUGMENTED_TRAIN_2018_ROOT_DIR
+TRAIN_DATASET_LABELS: str = DATASET_2019_LABELS
+TRAIN_DATASET_ROOT_DIR: str = DATASET_2019_ROOT_DIR
 
+# this should only be assigned when using the 2018 dataset
 TEST_DATASET_LABELS: str = TEST_2018_LABELS 
 TEST_DATASET_ROOT_DIR: str = TEST_2018_ROOT_DIR
+
 
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
@@ -85,9 +87,10 @@ SHUFFLE_VAL_DATALOADER: bool = True
 
 # PARAMETERS - Model Training
 EPOCH_COUNT: int = 80
-TRAIN_SPLIT_PERCENTAGE: float = 0.9
-VAL_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE
-TEST_SPLIT_PERCENTAGE: float = 0.1
+
+TRAIN_SPLIT_PERCENTAGE: float = 0.8
+VAL_SPLIT_PERCENTAGE: float = 0.1
+TEST_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE - VAL_SPLIT_PERCENTAGE
 
 
 # PARAMETERS - DATA AUGMENTATION
@@ -135,12 +138,12 @@ PREPROCESS_INCEPTIONV3 = transforms.Compose([
 PREPROCESS_TRANSFORM = PREPROCESS_RESNET18
 
 
+IS_2018_DATASET: bool = True
+if "2019" in TRAIN_DATASET_LABELS and "2019" in TRAIN_DATASET_ROOT_DIR:
+    IS_2018_DATASET = False
+    assert (TRAIN_SPLIT_PERCENTAGE + TEST_SPLIT_PERCENTAGE + VAL_SPLIT_PERCENTAGE) == 1.0, "The total of train, validation and test should be equal to 1.0"
+else:
+    assert (TRAIN_SPLIT_PERCENTAGE + VAL_SPLIT_PERCENTAGE) == 1.0, "The total of train and validation should be equal to 1.0"
 
-"""
-Network training was performed using two NVIDIA GTX 1080Ti cards and the Caffe [9] framework.
- As optimizer, SGD was chosen with learning rate starting at 0.01, weight decay and momentum equal to 0.0001 and 0.9 respectively.
-The maximum number of iterations has been set at 75000, decreasing the learning rate by a factor of 10 at each step of 20000 iterations. Finally, the 0.008 value was used for the 𝛾
- parameter in the Eq. 2. Regarding SVM classifier, an RBF kernel with 𝜆=0.01
- and 𝐶=10
- were used.
-"""
+
+
