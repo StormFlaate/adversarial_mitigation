@@ -15,7 +15,7 @@ from config import (AUGMENTED_TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_ROOT_DIR, 
                     TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR)
 from customDataset import ISICDataset
 from data_exploration_helper import dataset_overview
-from data_augmentation import augment_images_and_save_to_file
+from data_augmentation import augment_images_and_save_to_file_2018
 
 
 
@@ -29,9 +29,9 @@ augmentation_transform = transforms.Compose([
 ])
 
 
-augment_images_and_save_to_file(TRAIN_2018_ROOT_DIR, AUGMENTED_TRAIN_2018_ROOT_DIR, TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
+augment_images_and_save_to_file_2018(TRAIN_2018_ROOT_DIR, AUGMENTED_TRAIN_2018_ROOT_DIR, TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
 
 
-# augment_images_and_save_to_file(TEST_2018_ROOT_DIR, AUGMENTED_TEST_2018_ROOT_DIR, TEST_2018_LABELS, AUGMENTED_TEST_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
+#augment_images_and_save_to_file(TEST_2018_ROOT_DIR, AUGMENTED_TEST_2018_ROOT_DIR, TEST_2018_LABELS, AUGMENTED_TEST_2018_LABELS, augmentation_transform, min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS)
 
 
