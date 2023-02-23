@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 
 
-def augment_images_and_save_to_file(
+def augment_images_and_save_to_file_2018(
         root_dir: str, 
         new_root_dir: str, 
         csv_file: str, 
@@ -85,6 +85,7 @@ def augment_images_and_save_to_file(
     
     # Save the new DataFrame to a new CSV file
     df.to_csv(new_csv_file, index=False)
+
 
 
 
