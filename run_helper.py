@@ -1,4 +1,3 @@
-import sys
 from typing import Dict
 import pandas as pd
 import torch
@@ -8,17 +7,26 @@ from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from config import TRAIN_DATASET_ROOT_DIR
-from customDataset import ISICDataset # Import the Pytorch library
+from customDataset import ISICDataset
 from sklearn.metrics import accuracy_score, f1_score
-import bisect
+from config import (
+    GAMMA, IS_2018_DATASET, MODEL_NAME, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM, 
+    SHUFFLE_TRAIN_DATALOADER, 
+    STEP_SIZE, TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER, TEST_SPLIT_PERCENTAGE,
+    TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, IMAGE_FILE_TYPE,
+    TRAIN_NROWS, BATCH_SIZE, TEST_NROWS, LEARNING_RATE, MOMENTUM,
+    EPOCH_COUNT, TRAIN_SPLIT_PERCENTAGE, VAL_BATCH_SIZE, VAL_SPLIT_PERCENTAGE)
 import warnings
 import math
 from typing import (
     List,
     Sequence,
     Union,
-    TypeVar
+    TypeVar,
+    Tuple
 )
+import torch.utils.data as data
+from torch.utils.data import random_split, Subset
 from torch import randperm
 from torch._utils import _accumulate
 from misc_helper import save_model_and_parameters_to_file
@@ -260,6 +268,136 @@ def random_split(dataset: Dataset[T], lengths: Sequence[Union[int, float]]) -> L
 
     indices = randperm(sum(lengths)).tolist()  # type: ignore[call-overload]
     return [Subset(dataset, indices[offset - length : offset]) for offset, length in zip(_accumulate(lengths), lengths)]
+
+
+
+
+def get_data_loaders(
+    train_dataset_labels: str=TRAIN_DATASET_LABELS,
+    train_dataset_root_dir: str=TRAIN_DATASET_ROOT_DIR, 
+    train_nrows: int=TRAIN_NROWS,
+    test_dataset_labels: str=TEST_DATASET_LABELS, 
+    test_dataset_root_dir: str=TEST_DATASET_ROOT_DIR, 
+    test_nrows: int=TEST_NROWS,
+    image_file_type: str=IMAGE_FILE_TYPE, 
+    preprocess_transform=PREPROCESS_TRANSFORM,
+    train_split_percentage: float=TRAIN_SPLIT_PERCENTAGE, 
+    val_split_percentage: float=VAL_SPLIT_PERCENTAGE, 
+    test_split_percentage: float=TEST_SPLIT_PERCENTAGE,
+    batch_size: int=BATCH_SIZE, 
+    shuffle_train_dataloader: bool=SHUFFLE_TRAIN_DATALOADER, 
+    shuffle_val_dataloader: bool=SHUFFLE_VAL_DATALOADER,
+    num_workers: int=NUM_WORKERS, 
+    pin_memory_train_dataloader: bool=PIN_MEMORY_TRAIN_DATALOADER,
+    is_2018_dataset:bool or None=IS_2018_DATASET
+) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
+    """
+    Returns train_data_loader, val_data_loader, and test_data_loader based on the inputs.
+    Input is by default based on the configuration file, but can be manually changed in function input.
+    
+    Args:
+    - train_dataset_labels: str representing the filepath of the train dataset labels
+    - train_dataset_root_dir: str representing the filepath of the train dataset root directory
+    - train_nrows: int representing the number of rows to load for the train dataset
+    - test_dataset_labels: str representing the filepath of the test dataset labels
+    - test_dataset_root_dir: str representing the filepath of the test dataset root directory
+    - test_nrows: int representing the number of rows to load for the test dataset
+    - image_file_type: str representing the image file type, e.g. ".jpg"
+    - preprocess_transform: a callable function that applies preprocessing to the dataset
+    - train_split_percentage: float representing the percentage of the train dataset to use
+    - val_split_percentage: float representing the percentage of the validation dataset to use
+    - test_split_percentage: float representing the percentage of the test dataset to use
+    - batch_size: int representing the batch size
+    - shuffle_train_dataloader: bool representing whether to shuffle the train dataloader
+    - shuffle_val_dataloader: bool representing whether to shuffle the validation dataloader
+    - num_workers: int representing the number of workers to use
+    - pin_memory_train_dataloader: bool representing whether to pin memory for the train dataloader
+    - is_2018_dataset: bool representing whether the dataset is from 2018
+    
+    Returns:
+    - Tuple of train_data_loader, val_data_loader, and test_data_loader
+    """
+    
+    assert isinstance(is_2018_dataset, bool), "Need to define dataset as either 2018 or 2019 (True or False)"
+
+
+
+    # Load the datasets
+    print("Loading datasets...")
+    train_dataset_full = ISICDataset(
+        csv_file=train_dataset_labels, 
+        root_dir=train_dataset_root_dir, 
+        transform=preprocess_transform,
+        image_file_type=image_file_type,
+        nrows=train_nrows
+    )
+
+    # the 2018 and 2019 dataset has some configuration differences when it comes to train, validation and test datasets
+    if is_2018_dataset:
+        # Splits the dataset into train and validation
+        train_dataset, val_dataset = random_split(train_dataset_full, [train_split_percentage, val_split_percentage])    
+
+        test_dataset_full = ISICDataset(
+            csv_file=test_dataset_labels, 
+            root_dir=test_dataset_root_dir, 
+            transform=preprocess_transform,
+            image_file_type=image_file_type,
+            nrows=test_nrows
+        )
+        # added for consistency
+        test_dataset = Subset(test_dataset_full, indices=[x for x in range(len(test_dataset_full))])
+    else:
+        train_dataset, val_dataset, test_dataset = random_split(train_dataset_full, [train_split_percentage, val_split_percentage, test_split_percentage])
+
+
+    print(f"Train dataset length: {len(train_dataset)}")
+    print(f"Validation dataset length: {len(val_dataset)}")
+    print(f"Test dataset length: {len(test_dataset)}")
+
+    # Define train data loader
+    print("Defining train data loader...")
+    train_data_loader = data.DataLoader(
+        train_dataset, 
+        batch_size=batch_size, 
+        shuffle=shuffle_train_dataloader,
+        num_workers=num_workers,
+        pin_memory=pin_memory_train_dataloader
+    )
+
+    # Define validation data loader
+    print("Defining validation data loader...")
+    val_data_loader = data.DataLoader(
+        val_dataset, 
+        batch_size=batch_size, 
+        shuffle=shuffle_val_dataloader,
+        num_workers=num_workers,
+        pin_memory=pin_memory_train_dataloader
+    )
+
+    # Define test data loader
+    print("Defining test data loader...")
+    test_data_loader = data.DataLoader(
+        test_dataset, 
+        batch_size=1, 
+        shuffle=False,
+        pin_memory=True
+    )
+
+    # Print distribution of skin lesion categories
+    train_count_dict = get_category_counts(train_data_loader)
+    val_count_dict = get_category_counts(val_data_loader)
+    test_count_dict = get_category_counts(test_data_loader)
+    
+    print("Train data loader - distribution of the skin lesion categories")
+    print(train_count_dict)
+    print("Validation data loader - distribution of the skin lesion categories")
+    print(val_count_dict)
+    print("Test data loader - distribution of the skin lesion categories")
+    print(test_count_dict)
+    
+    return train_data_loader, val_data_loader, test_data_loader
+
+
 
 
 
