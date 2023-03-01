@@ -1,6 +1,11 @@
+import sys
+import os
 import torch
 import uuid
+import torch.hub
+import torch.nn as nn
 from datetime import date
+from config import MODEL_NAME
 
 def truncated_uuid4() -> str:
     """Generate a truncated UUID-4 string.
@@ -11,9 +16,37 @@ def truncated_uuid4() -> str:
     return str(uuid.uuid4())[:8]
 
 
+def get_model(model_file_name: str, models_dir: str = "models", model_name: str = MODEL_NAME) -> nn.Module:
+    """
+    Load a PyTorch model from a file if it exists, otherwise load the pretrained default model.
+
+    Args:
+        model_file_name (str): The name of the model file to load.
+        models_dir (str): The path to the directory containing the model file.
+        model_name (str): The name of the pretrained default model to load.
+
+    Returns:
+        A PyTorch nn.Module representing the loaded model.
+    """
+    # Generate the file path for the model file
+    filepath: str = _generate_filepath(model_file_name, models_dir)
+
+    # Check if the model file exists
+    if not file_exists(filepath):
+        # Load the pretrained default model 
+        print(f"Loading pretrained {model_file_name} model...")
+        model = torch.hub.load('pytorch/vision:v0.10.0', model_name, pretrained=True)
+    else:
+        # Load the model from the file
+        model = load_model_from_file(model_file_name, models_dir)
+
+    # Return the loaded model
+    return model
+
+    
 def save_model_and_parameters_to_file(
         model: torch.nn.Module, 
-        model_name: str, 
+        model_file_name: str, 
         train_dataset_root_dir: str, 
         models_dir: str = "models"
         ) -> str:
@@ -22,7 +55,7 @@ def save_model_and_parameters_to_file(
 
     Args:
         model: The PyTorch model to save.
-        model_name: The name of the model to save.
+        model_file_name: The name of the model to save.
         train_dataset_root_dir: The full path to the training dataset which was used for training
         models_dir: The directory to save the model file to.
 
@@ -39,7 +72,7 @@ def save_model_and_parameters_to_file(
 
 
     # Build the filename for the model file
-    filename = f"{model_name}_{train_set_name}_{today}__{model_id}"
+    filename = f"{model_file_name}_{train_set_name}_{today}__{model_id}"
     filepath = f"{models_dir}/{filename}.pt"
     # saving the parameters to file
     _save_config_to_file(filename, models_dir)
@@ -48,6 +81,51 @@ def save_model_and_parameters_to_file(
 
     return filename
 
+
+def load_model_from_file(model_file_name: str, models_dir: str = "models") -> torch.nn.Module:
+    """
+    Loads a PyTorch model from a file.
+
+    Args:
+        model_file_name: The name of the model to load.
+        models_dir: The directory containing the model file.
+
+    Returns:
+        The PyTorch model.
+    """
+    
+    filepath: str = _generate_filepath(model_file_name, models_dir)
+
+    # Load the model from the file
+    model = torch.load(filepath)
+
+    return model
+
+
+def file_exists(file_path: str) -> bool:
+    """
+    Check if a file exists at the given path.
+
+    Args:
+        file_path: A string representing the file path to check.
+
+    Returns:
+        A boolean value indicating if the file exists or not.
+    """
+    return os.path.isfile(file_path)
+
+
+def folder_exists(folder_path: str) -> bool:
+    """
+    Check if a folder exists at the given path.
+
+    Args:
+        folder_path: A string representing the folder path to check.
+
+    Returns:
+        A boolean value indicating if the folder exists or not.
+    """
+    return os.path.isdir(folder_path)
 
 
 ###################################################
@@ -73,3 +151,10 @@ def _save_config_to_file(filename: str, models_dir: str) -> None:
     with open(filepath, mode="w") as f:
         f.write(data)
         f.close()
+
+    
+def _generate_filepath(model_file_name: str, models_dir: str) -> str:
+    # Build the filename for the model file
+    filepath = f"{models_dir}/{model_file_name}.pt"
+
+    return filepath
