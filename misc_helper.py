@@ -16,7 +16,7 @@ def truncated_uuid4() -> str:
     return str(uuid.uuid4())[:8]
 
 
-def get_model(model_file_name: str, models_dir: str = "models", model_name: str = MODEL_NAME) -> nn.Module:
+def get_trained_or_default_model(model_file_name: str = "test_model", models_dir: str = "models", model_name: str = MODEL_NAME) -> nn.Module:
     """
     Load a PyTorch model from a file if it exists, otherwise load the pretrained default model.
 
@@ -32,7 +32,7 @@ def get_model(model_file_name: str, models_dir: str = "models", model_name: str 
     filepath: str = _generate_filepath(model_file_name, models_dir)
 
     # Check if the model file exists
-    if not file_exists(filepath):
+    if model_file_name == "test_model" or not file_exists(filepath):
         # Load the pretrained default model 
         print(f"Loading pretrained {model_file_name} model...")
         model = torch.hub.load('pytorch/vision:v0.10.0', model_name, pretrained=True)
