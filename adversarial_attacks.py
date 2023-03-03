@@ -13,6 +13,9 @@ for index, (input, true_label) in  enumerate(train_data_loader):
     label_arg = torch.argmax(true_label, 1)
     adv_input = attack(input, label_arg)
     predicted_label = model(adv_input)
-    print(predicted_label.shape)
-    print(torch.argmax(predicted_label.data), torch.argmax(true_label))
+
+    np_label = label_arg.cpu().numpy()
+    np_predicted = predicted_label.cpu().numpy()
+    print(f"True: {torch.argmax(np_label)}")
+    print(f"Pred: {torch.argmax(np_predicted)}")
     break
