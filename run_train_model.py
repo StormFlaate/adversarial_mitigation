@@ -40,7 +40,7 @@ if __name__ == '__main__':
     # Train the model
     print("Training model...")
     cnn_model = train_model(
-        cnn_model, 
+        cnn_model,
         train_data_loader,
         val_data_loader,
         criterion,

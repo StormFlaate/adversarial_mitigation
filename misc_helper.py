@@ -52,7 +52,8 @@ def save_model_and_parameters_to_file(
         model: torch.nn.Module, 
         model_file_name: str, 
         train_dataset_root_dir: str, 
-        models_dir: str = "models"
+        epoch: int,
+        models_dir: str = "models",
         ) -> str:
     """
     Saves a PyTorch model to a file.
@@ -66,6 +67,7 @@ def save_model_and_parameters_to_file(
     Returns:
         The filename of the saved model.
     """
+
     # Generate a unique ID to append to the model name
     model_id = str(uuid.uuid4().hex)[:3]
     
@@ -76,7 +78,7 @@ def save_model_and_parameters_to_file(
 
 
     # Build the filename for the model file
-    filename = f"{model_file_name}_{train_set_name}_{today}__{model_id}"
+    filename = f"{model_file_name}_{train_set_name}_{today}_{epoch}__{model_id}"
     filepath = f"{models_dir}/{filename}.pt"
     # saving the parameters to file
     _save_config_to_file(filename, models_dir)
