@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torchattacks
 from misc_helper import get_trained_or_default_model
@@ -16,6 +17,6 @@ for index, (input, true_label) in  enumerate(train_data_loader):
 
     np_label = label_arg.detach().cpu().numpy()
     np_predicted = predicted_label.detach().cpu().numpy()
-    print(f"True: {torch.argmax(np_label)}")
-    print(f"Pred: {torch.argmax(np_predicted)}")
+    print(f"True: {np.argmax(np_label)}")
+    print(f"Pred: {np.argmax(np_predicted)}")
     break
