@@ -158,6 +158,10 @@ def _save_config_to_file(filename: str, models_dir: str) -> None:
 
     
 def _generate_filepath(model_file_name: str, models_dir: str) -> str:
+
+    if model_file_name[-3:] == ".pt":
+        model_file_name = model_file_name.replace(".pt", "")
+    
     # Build the filename for the model file
     filepath = f"{models_dir}/{model_file_name}.pt"
 
