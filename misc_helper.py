@@ -40,7 +40,8 @@ def get_trained_or_default_model(model_file_name: str = "test_model", models_dir
         # Load the model from the file
         model = load_model_from_file(model_file_name, models_dir)
 
-    # Return the loaded model
+    # set mode to evaluation mode
+    model.eval()
     return model
 
     
