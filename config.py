@@ -1,18 +1,6 @@
 # Importing the required libraries
 from typing import Tuple
-import torch # Import the Pytorch library
-import torchvision # Import the torchvision library
-from torchvision import datasets, transforms # Import the transforms module from torchvision
-import numpy as np
-from PIL import Image # Import the Image module from the Python Imaging Library (PIL)
-import matplotlib.pyplot as plt
-import urllib # Import the urllib library for URL handling
-import sys
-from tqdm import tqdm
-from customDataset import ISICDataset
-# HELPER FUNCTIONS
-from data_exploration_helper import dataset_overview
-
+from torchvision import transforms # Import the transforms module from torchvision
 ##################################################################
 # ==================== DATASETS DEFINTION ========================
 ##################################################################
@@ -45,8 +33,8 @@ AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Inpu
 ######################################
 # ========== CHOOSE DATASET ==========
 ######################################
-TRAIN_DATASET_LABELS: str = TRAIN_2018_LABELS
-TRAIN_DATASET_ROOT_DIR: str = TRAIN_2018_ROOT_DIR
+TRAIN_DATASET_LABELS: str = AUGMENTED_TRAIN_2018_LABELS
+TRAIN_DATASET_ROOT_DIR: str = AUGMENTED_TRAIN_2018_ROOT_DIR
 
 # this should only be assigned when using the 2018 dataset
 TEST_DATASET_LABELS: str = TEST_2018_LABELS 
@@ -86,7 +74,7 @@ SHUFFLE_TRAIN_DATALOADER: bool = True
 SHUFFLE_VAL_DATALOADER: bool = True
 
 # PARAMETERS - Model Training
-EPOCH_COUNT: int = 1
+EPOCH_COUNT: int = 50
 
 TRAIN_SPLIT_PERCENTAGE: float = 0.8
 VAL_SPLIT_PERCENTAGE: float = 0.2
@@ -147,3 +135,5 @@ else:
 
 
 
+assert "2019" in TRAIN_DATASET_LABELS and "2019" not in TRAIN_DATASET_ROOT_DIR, "Need to have 2019 dataset to 2019 labels"
+assert "2018" in TRAIN_DATASET_LABELS and "2018" not in TRAIN_DATASET_ROOT_DIR, "Need to have 2018 dataset to 2018 labels"
