@@ -35,7 +35,6 @@ T = TypeVar('T')
 
 def train_model(
         model: Module,
-        train_dataset_subset: Subset[ISICDataset],
         train_data_loader: DataLoader,
         val_data_loader: DataLoader,
         criterion: Module, 
@@ -65,7 +64,7 @@ def train_model(
         param.requires_grad = requires_grad
 
     # Replace the final layer with a new layer that matches the number of classes in the train_dataset
-    train_dataset = train_dataset_subset.dataset
+    train_dataset = train_data_loader.dataset.dataset
     num_classes = len(train_dataset.annotations.columns)-1
     model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
