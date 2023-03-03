@@ -45,8 +45,8 @@ AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Inpu
 ######################################
 # ========== CHOOSE DATASET ==========
 ######################################
-TRAIN_DATASET_LABELS: str = DATASET_2019_LABELS
-TRAIN_DATASET_ROOT_DIR: str = DATASET_2019_ROOT_DIR
+TRAIN_DATASET_LABELS: str = TRAIN_2018_LABELS
+TRAIN_DATASET_ROOT_DIR: str = TRAIN_2018_ROOT_DIR
 
 # this should only be assigned when using the 2018 dataset
 TEST_DATASET_LABELS: str = TEST_2018_LABELS 
@@ -89,7 +89,7 @@ SHUFFLE_VAL_DATALOADER: bool = True
 EPOCH_COUNT: int = 80
 
 TRAIN_SPLIT_PERCENTAGE: float = 0.8
-VAL_SPLIT_PERCENTAGE: float = 0.1
+VAL_SPLIT_PERCENTAGE: float = 0.2
 TEST_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE - VAL_SPLIT_PERCENTAGE
 
 
