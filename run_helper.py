@@ -110,13 +110,13 @@ def train_model(
         optimizer.zero_grad()
         scheduler.step()
 
-        if epoch and epoch%10==0 or epoch == epoch_count-1:
+        if epoch and epoch%10==0:
             # check the accuracy of the model
             overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
             _print_test_results(overall_accuracy, overall_f1_score, accuracy_by_type_dict)
             
             # save the model to file
-            save_model_and_parameters_to_file(model, model_name, TRAIN_DATASET_ROOT_DIR, models_dir="models")
+            save_model_and_parameters_to_file(model, model_name, TRAIN_DATASET_ROOT_DIR, epoch, models_dir="models")
 
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))

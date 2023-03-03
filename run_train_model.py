@@ -51,7 +51,7 @@ if __name__ == '__main__':
     )
 
     # save the model to file
-    save_model_and_parameters_to_file(cnn_model, MODEL_NAME, TRAIN_DATASET_ROOT_DIR, models_dir="models")
+    save_model_and_parameters_to_file(cnn_model, MODEL_NAME, TRAIN_DATASET_ROOT_DIR, EPOCH_COUNT, models_dir="models")
 
 
     # Test the model's performance
