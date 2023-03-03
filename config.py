@@ -135,5 +135,7 @@ else:
 
 
 
-assert "2019" in TRAIN_DATASET_LABELS and "2019" not in TRAIN_DATASET_ROOT_DIR, "Need to have 2019 dataset to 2019 labels"
-assert "2018" in TRAIN_DATASET_LABELS and "2018" not in TRAIN_DATASET_ROOT_DIR, "Need to have 2018 dataset to 2018 labels"
+if "2019" in TRAIN_DATASET_LABELS:
+    assert "2019" in TRAIN_DATASET_ROOT_DIR, "Need to have 2019 dataset to 2019 labels"
+if "2018" in TRAIN_DATASET_LABELS:
+    assert "2018" in TRAIN_DATASET_ROOT_DIR, "Need to have 2018 dataset to 2018 labels"
