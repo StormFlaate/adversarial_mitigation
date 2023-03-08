@@ -10,7 +10,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 from customDataset import ISICDataset
 from misc_helper import save_model_and_parameters_to_file
-from run_helper import get_category_counts, get_data_loaders, test_model, train_model, random_split
+from train_model_helper import get_category_counts, get_data_loaders, test_model, train_model, random_split
 from config import (GAMMA, MODEL_NAME, STEP_SIZE, TRAIN_DATASET_ROOT_DIR, LEARNING_RATE, MOMENTUM, EPOCH_COUNT)
 
 if __name__ == '__main__':
