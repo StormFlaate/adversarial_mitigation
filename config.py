@@ -43,8 +43,8 @@ TEST_DATASET_ROOT_DIR: str = TEST_2018_ROOT_DIR
 
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
-TRAIN_NROWS: int = 100 # SET TO None if you want all samples
-TEST_NROWS: int = 50 # SET TO None if you want all samples
+TRAIN_NROWS: int = None # SET TO None if you want all samples
+TEST_NROWS: int = None # SET TO None if you want all samples
 
 
 
@@ -83,10 +83,6 @@ TEST_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE - VAL_SPLIT_PERCENTAGE
 
 # PARAMETERS - DATA AUGMENTATION
 MIN_NUMBER_OF_EACH_CLASS: int = 3000
-RAND_AUGMENT_NUM_OPS: int = 4
-RAND_AUGMENT_MAGNITUDE: int = 2
-RAND_AUGMENT_NUM_MAGNITUDE_BINS: int = 10
-
 RANDOM_VERTICAL_FLIP_PROBABILITY: float = 0.25
 RANDOM_HORIZONTAL_FLIP_PROBABILITY: float = 0.25
 MIN_MAX_ROTATION_RANGE: Tuple = (-90, 90)
@@ -101,7 +97,7 @@ MODEL_NAME: str = RESNET18_MODEL_NAME
 
 
 # PARAMETERS - GPU
-NUM_WORKERS: int = 0
+NUM_WORKERS: int = 10
 
 
 # TRANSFORMS FOR RESNET-18 and INCEPTION V3
@@ -111,7 +107,7 @@ PREPROCESS_RESNET18 = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(RESNET18_PIXEL_SIZE),
     transforms.ToTensor(),
-    transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    # transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
 ])
 
 # Define image pre-processing steps
@@ -120,7 +116,7 @@ PREPROCESS_INCEPTIONV3 = transforms.Compose([
     transforms.Resize(INCEPTIONV3_PIXEL_SIZE),
     transforms.CenterCrop(INCEPTIONV3_PIXEL_SIZE),
     transforms.ToTensor(),
-    transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    # transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
 ])
 
 PREPROCESS_TRANSFORM = PREPROCESS_RESNET18

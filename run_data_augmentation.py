@@ -13,8 +13,6 @@ from config import (AUGMENTED_TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_ROOT_DIR, 
                     MIN_NUMBER_OF_EACH_CLASS, RANDOM_HORIZONTAL_FLIP_PROBABILITY, 
                     RANDOM_VERTICAL_FLIP_PROBABILITY, 
                     TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR)
-from customDataset import ISICDataset
-from data_exploration_helper import dataset_overview
 from data_augmentation import augment_images_and_save_to_file_2018
 
 
