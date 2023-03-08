@@ -43,8 +43,8 @@ TEST_DATASET_ROOT_DIR: str = TEST_2018_ROOT_DIR
 
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
-TRAIN_NROWS: int = None # SET TO None if you want all samples
-TEST_NROWS: int = None # SET TO None if you want all samples
+TRAIN_NROWS: int = 100 # SET TO None if you want all samples
+TEST_NROWS: int = 50 # SET TO None if you want all samples
 
 
 
@@ -101,7 +101,7 @@ MODEL_NAME: str = RESNET18_MODEL_NAME
 
 
 # PARAMETERS - GPU
-NUM_WORKERS: int = 10
+NUM_WORKERS: int = 0
 
 
 # TRANSFORMS FOR RESNET-18 and INCEPTION V3
