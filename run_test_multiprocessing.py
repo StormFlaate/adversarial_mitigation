@@ -1,19 +1,11 @@
-import sys
-import torch
-import torchvision
 from tqdm import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
-import numpy as np
-from PIL import Image
 from tqdm import tqdm
 from time import time
 import multiprocessing as mp
 from config import (
-    IMAGE_FILE_TYPE, IMAGENET_MEAN, IMAGENET_STD, INCEPTIONV3_MODEL_NAME, INCEPTIONV3_PIXEL_SIZE, 
-    LEARNING_RATE, MOMENTUM, TEST_2018_LABELS, TEST_2018_ROOT_DIR, 
-    TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR, BATCH_SIZE, EPOCH_COUNT, 
-    TRAIN_NROWS, TEST_NROWS
+    IMAGE_FILE_TYPE, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR, BATCH_SIZE, TRAIN_NROWS
 )
 from customDataset import ISICDataset
 

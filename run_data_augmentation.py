@@ -1,12 +1,6 @@
 # Import necessary libraries
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from PIL import Image
 from torchvision import transforms
-import torch
-import torchvision
-from torchvision import datasets, transforms
+from torchvision import transforms
 
 # Import custom modules
 from config import (AUGMENTED_TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_ROOT_DIR, MIN_MAX_ROTATION_RANGE, 

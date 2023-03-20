@@ -35,7 +35,7 @@ def get_trained_or_default_model(model_file_name: str = "test_model", models_dir
     if model_file_name == "test_model" or not file_exists(filepath):
         
         # Load the pretrained default model 
-        print(f"Loading pretrained default model...")
+        print("Loading pretrained default model...")
         model = torch.hub.load('pytorch/vision:v0.10.0', model_name, pretrained=True)
     else:
         # Load the model from the file
