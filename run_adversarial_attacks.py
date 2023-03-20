@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
+import torch
 import torchattacks
 from tqdm import tqdm
 from adversarial_attacks_helper import generate_adversarial_input
@@ -24,6 +25,11 @@ predicted_adversarial_labels: list[int] = []
 
 
 for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input = input.to(device)
+    true_label = true_label.to(device)  
+
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
     
