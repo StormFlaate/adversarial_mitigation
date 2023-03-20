@@ -12,7 +12,7 @@ train_data_loader, val_data_loader, test_data_loader = get_data_loaders(
 
 print("get trained or deafult model...")
 model = get_trained_or_default_model(
-    model_file_name="resnet18_data_ISIC2018_Training_Input_2023-03-03__ff2.pt")
+    model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-03-08_50__bb6.pt")
 
 
 attack = torchattacks.FGSM(model, eps=2/255)
