@@ -1,19 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from customDataset import ISICDataset
-from torchvision import transforms
 import torch
-import pandas as pd
 from tqdm import tqdm
 from typing import Dict
-import seaborn as sns
+from pandas.core.indexes.base import Index
 
 def dataset_overview(
     dataset: ISICDataset, 
     title:str="Default title",
     xlabel:str="",
     ylabel:str="",
-    check_image_size:bool=False) -> Dict[str, torch.Size or int or pd.core.indexes.base.Index or np.ndarray]:
+    check_image_size:bool=False) -> Dict[str, torch.Size or int or Index or np.ndarray]:
     """
     Generates a bar plot that provides an overview of the ISICDataset,
     and provides some key statistics about the dataset.
@@ -44,7 +42,7 @@ def dataset_overview(
             if size not in sizes:
                 sizes.add(size)
         
-        print(f"Image size:", sizes)
+        print("Image size:", sizes)
 
     info["image_sizes"] = sizes
     info["dataset_len"] = len(dataset)
@@ -70,9 +68,9 @@ def dataset_overview(
 
     plt.show()
 
-    print(f"Dataset length:", info["dataset_len"])
-    print(f"Dataset labels:", info["dataset_labels"])
-    print(f"Dataset occurrences:", [*zip(iter(info["dataset_labels"]), iter(info["label_occurences"]))])
+    print("Dataset length:", info["dataset_len"])
+    print("Dataset labels:", info["dataset_labels"])
+    print("Dataset occurrences:", [*zip(iter(info["dataset_labels"]), iter(info["label_occurences"]))])
 
     return info
 

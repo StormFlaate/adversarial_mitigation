@@ -1,17 +1,11 @@
 # Import the required libraries
-import sys
 import torch
-import torchvision
-from torch.utils.data import Dataset, Subset, Dataset
-from torchvision import datasets, transforms
 import numpy as np
-from PIL import Image
-from tqdm import tqdm
 import multiprocessing as mp
-from customDataset import ISICDataset
 from misc_helper import save_model_and_parameters_to_file
-from train_model_helper import get_category_counts, get_data_loaders, test_model, train_model, random_split
-from config import (GAMMA, MODEL_NAME, STEP_SIZE, TRAIN_DATASET_ROOT_DIR, LEARNING_RATE, MOMENTUM, EPOCH_COUNT)
+from train_model_helper import get_data_loaders, test_model, train_model
+from config import (GAMMA, MODEL_NAME, STEP_SIZE, TRAIN_DATASET_ROOT_DIR, LEARNING_RATE,
+                     MOMENTUM, EPOCH_COUNT)
 
 if __name__ == '__main__':
     mp.freeze_support()

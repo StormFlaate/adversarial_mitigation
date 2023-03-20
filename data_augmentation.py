@@ -1,14 +1,9 @@
 import os
-import sys
 from typing import Any, Dict, List
-from matplotlib import pyplot as plt
-import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
-from torchvision import datasets, transforms
 from torchvision.io import read_image
-from torchvision.utils import save_image
 from tqdm import tqdm
 
 
@@ -22,8 +17,8 @@ def augment_images_and_save_to_file_2018(
         image_file_type: str = "jpg",
         random_seed: int = 42):
     """
-    Load images and annotations from a CSV file, augment the images using a given transform, and save the new images
-    and annotations to a new CSV file.
+    Load images and annotations from a CSV file, augment the images using a given
+    transform, and save the new images and annotations to a new CSV file.
 
     Args:
         root_dir: The root directory where the original images are stored.

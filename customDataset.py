@@ -1,12 +1,8 @@
 import os
-import random
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms # Import the transforms module from torchvision
-from skimage import io
 import numpy as np
-from PIL import Image
 from torchvision.io import read_image
 
 
@@ -20,7 +16,8 @@ class ISICDataset(Dataset):
                 [0]: name of the image
                 [1..n]: category value -> 1 for True, 0 for False
         root_dir (str): Directory with all the images.
-        nrows (int, optional): Number of rows to read from the csv file, defaults to None (all rows).
+        nrows (int, optional): Number of rows to read from the csv file, defaults to None
+        (all rows).
         transform (optional): Optional transform to be applied on an image sample.
         target_transform (optional): Optional transform to be applied on the labels.
         image_file_type (str, optional): File type of the images, defaults to "".
@@ -63,7 +60,8 @@ class ISICDataset(Dataset):
 
         Args:
             index (int): Index of the sample to retrieve.
-            radom_seed (int): Random seed for specific image, ensures that each image has its own transform
+            radom_seed (int): Random seed for specific image, ensures that each image has
+            its own transform
 
         Returns:
             Tuple: (image, label_tensor) where label_tensor is the class label.
@@ -76,7 +74,8 @@ class ISICDataset(Dataset):
         # reads in the image with torchvision.io read_image function
         image = read_image(img_path)
 
-        # sets the randomness for reproducability, but makes each image have its own random seed (for randomness in transforms)
+        # sets the randomness for reproducability, but makes each image have its own 
+        # random seed (for randomness in transforms)
         np.random.seed(self.random_seed)
         seed = np.random.randint(len(self.annotations)) 
         torch.manual_seed(seed)
@@ -84,13 +83,14 @@ class ISICDataset(Dataset):
         # reads in correct label -> format 2018 example: [MEL,NV,BCC,AKIEC,BKL,DF,VASC]
         label_tensor = torch.tensor(self.annotations.iloc[index, 1:])
 
-        # The transform is applied to the image to pre-process it. This can include data augmentation, normalization, etc.
+        # The transform is applied to the image to pre-process it. This can include data 
+        # augmentation, normalization, etc.
         if self.transform:
             image = self.transform(image)
 
         # The target_transform is applied to the label to pre-process it.
         if self.target_transform:
-            label = self.target_transform(label)
+            label_tensor = self.target_transform(label_tensor)
 
 
         return image, label_tensor

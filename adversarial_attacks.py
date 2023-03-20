@@ -6,9 +6,13 @@ from misc_helper import get_trained_or_default_model
 from train_model_helper import get_data_loaders
 
 print("get data loaders...")
-train_data_loader, val_data_loader, test_data_loader = get_data_loaders(batch_size=1, num_workers=1)
+train_data_loader, val_data_loader, test_data_loader = get_data_loaders(
+    batch_size=1, 
+    num_workers=1)
+
 print("get trained or deafult model...")
-model = get_trained_or_default_model(model_file_name="resnet18_data_ISIC2018_Training_Input_2023-03-03__ff2.pt")
+model = get_trained_or_default_model(
+    model_file_name="resnet18_data_ISIC2018_Training_Input_2023-03-03__ff2.pt")
 
 
 attack = torchattacks.FGSM(model, eps=2/255)

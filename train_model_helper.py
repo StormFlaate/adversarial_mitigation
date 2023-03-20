@@ -1,20 +1,19 @@
 from typing import Dict
 import pandas as pd
 import torch
-import numpy as np
-from torch.utils.data import Dataset, Subset, Dataset
+import torch.utils.data as data
+from torch.utils.data import Dataset, Subset, random_split
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from config import TRAIN_DATASET_ROOT_DIR
 from customDataset import ISICDataset
 from sklearn.metrics import accuracy_score, f1_score
 from config import (
-    IS_2018_DATASET, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM, 
+    IS_2018_DATASET, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM,
     SHUFFLE_TRAIN_DATALOADER, TRAIN_NROWS, BATCH_SIZE, TEST_NROWS,
-    TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER, TEST_SPLIT_PERCENTAGE,
-    TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR, IMAGE_FILE_TYPE,
-    TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
+    TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
+    TEST_SPLIT_PERCENTAGE, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR,
+    IMAGE_FILE_TYPE, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
 import warnings
 import math
 from typing import (
@@ -24,8 +23,6 @@ from typing import (
     TypeVar,
     Tuple
 )
-import torch.utils.data as data
-from torch.utils.data import random_split, Subset
 from torch import randperm
 from torch._utils import _accumulate
 from misc_helper import save_model_and_parameters_to_file
@@ -42,7 +39,8 @@ def train_model(
         model_name: str = "",
         epoch_count: int = 20,
         requires_grad: bool = True) -> Module:
-    """Trains a neural network model by retraining a model with already existing weights form Image Net.
+    """Trains a neural network model by retraining a model with already existing weights
+        form Image Net.
 
     Args:
         model: The neural network model to train.
