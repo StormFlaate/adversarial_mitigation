@@ -1,7 +1,7 @@
 import numpy as np
-import torch
 import torchattacks
 from tqdm import tqdm
+from adversarial_attacks_helper import generate_adversarial_input
 from misc_helper import get_trained_or_default_model
 from train_model_helper import get_data_loaders
 
@@ -19,24 +19,16 @@ attack = torchattacks.FGSM(model, eps=2/255)
 
 for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
-    # Move inputs and labels to the specified device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    input = input.to(device)
-    true_label = true_label.to(device)
+    adversarial_input = generate_adversarial_input(input, true_label, attack)
 
-    # turns 1-dimensional list into 0-dimensional scalar
-    true_label_argmax = torch.argmax(true_label, 1)
-
-    # runs the optimzation on the input given the true label
-    adversarial_input = attack(input, true_label_argmax)
     predicted_label = model(adversarial_input)
 
 
-    np_true_label = true_label_argmax.detach().cpu().numpy()
+    np_true_label = true_label.detach().cpu().numpy()
     np_predicted_label = predicted_label.detach().cpu().numpy()
     
 
-    print("true_label_argmax", true_label_argmax)
+    print("true_label_argmax", true_label)
     print("predicted_label", predicted_label)
     print("np_true_label", np_true_label)
     print("np_predicted_label", np_predicted_label)
