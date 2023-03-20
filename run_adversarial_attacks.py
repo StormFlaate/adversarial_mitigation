@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
 import torchattacks
 from tqdm import tqdm
 from adversarial_attacks_helper import generate_adversarial_input
@@ -17,6 +18,9 @@ model = get_trained_or_default_model(
 
 attack = torchattacks.FGSM(model, eps=2/255)
 
+correct_labels: list[int] = []
+predicted_labels: list[int] = []
+
 for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
@@ -28,11 +32,20 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     np_predicted_label = predicted_label.detach().cpu().numpy()
     
 
-    print("true_label_argmax", true_label)
-    print("predicted_label", predicted_label)
-    print("np_true_label", np_true_label)
-    print("np_predicted_label", np_predicted_label)
+    # print("true_label_argmax", true_label)
+    # print("predicted_label", predicted_label)
+    # print("np_true_label", np_true_label)
+    # print("np_predicted_label", np_predicted_label)
+    correct_argmax_label = np.argmax(np_true_label)
+    predicted_argmax_label = np.argmax(np_predicted_label)
 
-    print(f"True: {np.argmax(np_true_label)}")
-    print(f"Pred: {np.argmax(np_predicted_label)}")
-    break
+
+    print(f"True: {correct_argmax_label}")
+    print(f"Pred: {predicted_argmax_label}")
+
+    correct_labels.append(correct_argmax_label)
+    predicted_labels.append(predicted_argmax_label)
+
+
+
+overall_accuracy = accuracy_score(correct_labels, predicted_labels)
