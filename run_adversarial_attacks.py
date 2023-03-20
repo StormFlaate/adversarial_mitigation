@@ -39,13 +39,10 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     correct_argmax_label = np.argmax(np_true_label)
     predicted_argmax_label = np.argmax(np_predicted_label)
 
-
-    print(f"True: {correct_argmax_label}")
-    print(f"Pred: {predicted_argmax_label}")
-
     correct_labels.append(correct_argmax_label)
     predicted_labels.append(predicted_argmax_label)
 
 
 
 overall_accuracy = accuracy_score(correct_labels, predicted_labels)
+print(overall_accuracy)
