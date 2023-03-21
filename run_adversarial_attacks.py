@@ -44,7 +44,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     predicted_adversarial_label = model(adversarial_input)
 
     model_weights, model_children = extract_kernels_from_resnet_architecture(
-        model.children(), model_weights, conv_layers
+        list(model.children()), model_weights, conv_layers
     )
     print(model_weights)
     print(model_children)
