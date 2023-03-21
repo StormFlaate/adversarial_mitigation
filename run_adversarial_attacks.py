@@ -32,20 +32,18 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
-    
+
+    # predicting with adversarial and benign input    
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
 
+    print(model)
+    break
 
     np_true_label = true_label.detach().cpu().numpy()
     np_predicted_label = predicted_label.detach().cpu().numpy()
     np_predicted_adversarial_label = predicted_adversarial_label.detach().cpu().numpy()
     
-
-    # print("true_label_argmax", true_label)
-    # print("predicted_adversarial_label", predicted_adversarial_label)
-    # print("np_true_label", np_true_label)
-    # print("np_predicted_label", np_predicted_label)
     correct_argmax_label = np.argmax(np_true_label)
     predicted_argmax_label = np.argmax(np_predicted_label)
     predicted_adversarial_argmax_label = np.argmax(np_predicted_adversarial_label)
