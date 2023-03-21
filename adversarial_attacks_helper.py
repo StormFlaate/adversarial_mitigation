@@ -34,7 +34,7 @@ def generate_adversarial_input(
 
 
 def extract_kernels_from_resnet_architecture(
-        model_children:Iterator[nn.Module],
+        model_children:list,
         model_weights:list,
         conv_layers:list
     ) -> tuple[list,list]:
