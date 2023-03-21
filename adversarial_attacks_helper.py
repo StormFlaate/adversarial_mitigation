@@ -1,4 +1,6 @@
+from typing import Iterator
 import torch
+import torch.nn as nn
 
 
 def generate_adversarial_input(
@@ -30,3 +32,27 @@ def generate_adversarial_input(
     
     return adversarial_input
 
+
+def extract_kernels_from_resnet_architecture(
+        model_children:Iterator[nn.Module],
+        model_weights:list,
+        conv_layers:list
+    ) -> tuple[list,list]:
+    # counter to keep count of the conv layers
+    counter = 0 
+    # append all the conv layers and their respective weights to the list
+    for i in range(len(model_children)):
+        if type(model_children[i]) == nn.Conv2d:
+            counter += 1
+            model_weights.append(model_children[i].weight)
+            conv_layers.append(model_children[i])
+        elif type(model_children[i]) == nn.Sequential:
+            for j in range(len(model_children[i])):
+                for child in model_children[i][j].children():
+                    if type(child) == nn.Conv2d:
+                        counter += 1
+                        model_weights.append(child.weight)
+                        conv_layers.append(child)
+    print(f"Total convolutional layers: {counter}")
+
+    return model_weights, model_children

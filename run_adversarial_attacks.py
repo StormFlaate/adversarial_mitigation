@@ -3,7 +3,10 @@ from sklearn.metrics import accuracy_score
 import torch
 import torchattacks
 from tqdm import tqdm
-from adversarial_attacks_helper import generate_adversarial_input
+from adversarial_attacks_helper import (
+    extract_kernels_from_resnet_architecture,
+    generate_adversarial_input
+)
 from misc_helper import get_trained_or_default_model
 from train_model_helper import get_data_loaders
 
@@ -22,6 +25,9 @@ attack = torchattacks.FGSM(model, eps=2/255)
 correct_labels: list[int] = []
 predicted_labels: list[int] = []
 predicted_adversarial_labels: list[int] = []
+model_weights: list = [] # we will save the conv layer weights in this list
+conv_layers: list = [] # we will save the 49 conv layers in this list
+model_children: list = list(model.children()) # get all the model children as list
 
 
 for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
@@ -37,7 +43,11 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
 
-    print(model)
+    model_weights, model_children = extract_kernels_from_resnet_architecture(
+        model.children(), model_weights, conv_layers
+    )
+    print(model_weights)
+    print(model_children)
     break
 
     np_true_label = true_label.detach().cpu().numpy()
