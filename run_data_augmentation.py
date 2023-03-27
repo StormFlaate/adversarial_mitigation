@@ -3,7 +3,8 @@ import argparse
 from torchvision import transforms
 
 # Import custom modules
-from config import (AUGMENTED_DATASET_2019_LABELS, AUGMENTED_TRAIN_2018_LABELS,
+from config import (AUGMENTED_DATASET_2019_LABELS, AUGMENTED_TEST_2018_ROOT_DIR,
+                    AUGMENTED_TRAIN_2018_LABELS,
                     AUGMENTED_TRAIN_2018_ROOT_DIR, DATASET_2019_LABELS,
                     DATASET_2019_ROOT_DIR,
                     MIN_MAX_ROTATION_RANGE, MIN_NUMBER_OF_EACH_CLASS_2018,
@@ -11,7 +12,7 @@ from config import (AUGMENTED_DATASET_2019_LABELS, AUGMENTED_TRAIN_2018_LABELS,
                     RANDOM_HORIZONTAL_FLIP_PROBABILITY, 
                     RANDOM_VERTICAL_FLIP_PROBABILITY, 
                     TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR)
-from data_augmentation import augment_images_and_save_to_file
+from helper_functions.data_augmentation_helper import augment_images_and_save_to_file
 
 
 
@@ -38,7 +39,7 @@ def main(year):
         # 2019 has an extra class "UNK" (unknown) - which we remove
         augment_images_and_save_to_file(
             DATASET_2019_ROOT_DIR,
-            AUGMENTED_DATASET_2019_LABELS,
+            AUGMENTED_TEST_2018_ROOT_DIR,
             DATASET_2019_LABELS,
             AUGMENTED_DATASET_2019_LABELS,
             augmentation_transform, 
