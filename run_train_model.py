@@ -4,16 +4,16 @@ import numpy as np
 import multiprocessing as mp
 from misc_helper import save_model_and_parameters_to_file
 from train_model_helper import get_data_loaders, test_model, train_model
-from config import (GAMMA, MODEL_NAME, STEP_SIZE, TRAIN_DATASET_ROOT_DIR, LEARNING_RATE,
-                     MOMENTUM, EPOCH_COUNT)
+from config import (GAMMA, MODEL_NAME, RANDOM_SEED, STEP_SIZE, TRAIN_DATASET_ROOT_DIR,
+                    LEARNING_RATE, MOMENTUM, EPOCH_COUNT)
 
 if __name__ == '__main__':
     mp.freeze_support()
     mp.set_start_method('spawn')
 
     # Set the randomness seeds
-    torch.manual_seed(42)
-    np.random.seed(42)
+    torch.manual_seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
 
 
     # collect the 3 data loaders based on CONFIG.PY file
@@ -27,9 +27,13 @@ if __name__ == '__main__':
     # Define criterion and optimizer
     print("Defining criterion and optimizer...")
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
+    optimizer = torch.optim.SGD(
+        cnn_model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM
+        )
     # optimizer = torch.optim.Adam(cnn_model.parameters(), lr=LEARNING_RATE)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=STEP_SIZE, gamma=GAMMA
+        )
 
     # Train the model
     print("Training model...")
@@ -45,7 +49,9 @@ if __name__ == '__main__':
     )
 
     # save the model to file
-    save_model_and_parameters_to_file(cnn_model, MODEL_NAME, TRAIN_DATASET_ROOT_DIR, EPOCH_COUNT, models_dir="models")
+    save_model_and_parameters_to_file(
+        cnn_model, MODEL_NAME, TRAIN_DATASET_ROOT_DIR, EPOCH_COUNT, models_dir="models"
+        )
 
 
     # Test the model's performance

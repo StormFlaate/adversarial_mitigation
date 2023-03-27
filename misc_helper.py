@@ -15,7 +15,11 @@ def truncated_uuid4() -> str:
     return str(uuid.uuid4())[:8]
 
 
-def get_trained_or_default_model(model_file_name: str = "test_model", models_dir: str = "models", model_name: str = MODEL_NAME) -> nn.Module:
+def get_trained_or_default_model(
+        model_file_name: str = "test_model", 
+        models_dir: str = "models", 
+        model_name: str = MODEL_NAME
+        ) -> nn.Module:
     """
     Load a PyTorch model from a file if it exists, otherwise load the pretrained default model.
 

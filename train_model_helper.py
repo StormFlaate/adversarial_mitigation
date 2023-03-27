@@ -2,7 +2,7 @@ from typing import Dict
 import pandas as pd
 import torch
 import torch.utils.data as data
-from torch.utils.data import Dataset, Subset, random_split
+from torch.utils.data import Dataset, Subset
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -60,7 +60,7 @@ def train_model(
     for param in model.parameters():
         param.requires_grad = requires_grad
 
-    # Replace the final layer with a new layer that matches the number of classes in the train_dataset
+    # Replace final layer with new layer that matches the number of classes in dataset
     train_dataset = train_data_loader.dataset.dataset
     num_classes = len(train_dataset.annotations.columns)-1
     model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
@@ -76,9 +76,9 @@ def train_model(
         # Initialize the running loss for this epoch
         running_loss = 0.0
         # Loop over the data in the data loader
-        for i, data in tqdm(enumerate(train_data_loader, 0)):
-            # Get the inputs and labels from the data
-            inputs, labels = data
+        for i, train_data in tqdm(enumerate(train_data_loader, 0)):
+            # Get the inputs and labels from the train_data
+            inputs, labels = train_data
             inputs, labels = inputs.to(device), labels.to(device)
             
             # Convert labels to a tensor of type float
@@ -110,10 +110,14 @@ def train_model(
         if epoch and epoch%10==0:
             # check the accuracy of the model
             overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
-            _print_test_results(overall_accuracy, overall_f1_score, accuracy_by_type_dict)
+            _print_test_results(
+                overall_accuracy, overall_f1_score, accuracy_by_type_dict
+                )
             
             # save the model to file
-            save_model_and_parameters_to_file(model, model_name, TRAIN_DATASET_ROOT_DIR, epoch, models_dir="models")
+            save_model_and_parameters_to_file(
+                model, model_name, TRAIN_DATASET_ROOT_DIR, epoch, models_dir="models"
+                )
 
         # Print the average loss for this epoch
         print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
@@ -124,7 +128,11 @@ def train_model(
 
     return model
 
-def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]], model_name: str="") -> None:
+def test_model(
+        model: torch.nn.Module,
+        data_loader: DataLoader[Subset[ISICDataset]],
+        model_name: str=""
+        ) -> None:
     """Tests a neural network model on a dataset and prints the accuracy and F1 score.
 
     Args:
@@ -144,9 +152,9 @@ def test_model(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDatase
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, data in tqdm(enumerate(data_loader, 0)):
-        # Get the inputs and labels from the data
-        inputs, labels = data
+    for i, test_data in tqdm(enumerate(data_loader, 0)):
+        # Get the inputs and labels from the test_data
+        inputs, labels = test_data
 
         # Move inputs and labels to the specified device
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -343,7 +351,11 @@ def get_data_loaders(
         # added for consistency
         test_dataset = Subset(test_dataset_full, indices=[x for x in range(len(test_dataset_full))])
     else:
-        train_dataset, val_dataset, test_dataset = random_split(train_dataset_full, [train_split_percentage, val_split_percentage, test_split_percentage])
+        train_dataset, val_dataset, test_dataset = random_split(
+            train_dataset_full, [
+                train_split_percentage, val_split_percentage, test_split_percentage
+                ]
+            )
 
 
     print(f"Train dataset length: {len(train_dataset)}")
