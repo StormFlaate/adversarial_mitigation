@@ -25,7 +25,7 @@ from typing import (
 )
 from torch import randperm
 from torch._utils import _accumulate
-from misc_helper import save_model_and_parameters_to_file
+from helper_functions.misc_helper import save_model_and_parameters_to_file
 T_co = TypeVar('T_co', covariant=True)
 T = TypeVar('T')
 
@@ -109,11 +109,7 @@ def train_model(
 
         if epoch and epoch%10==0:
             # check the accuracy of the model
-            model_validation = _validate_model_during_training(model, val_data_loader)
-            overall_accuracy, overall_f1_score, accuracy_by_type_dict = model_validation
-            _print_test_results(
-                overall_accuracy, overall_f1_score, accuracy_by_type_dict
-                )
+            _print_test_results(*_validate_model_during_training(model, val_data_loader))
             
             # save the model to file
             save_model_and_parameters_to_file(
