@@ -2,8 +2,8 @@
 import torch
 import numpy as np
 import multiprocessing as mp
-from misc_helper import save_model_and_parameters_to_file
-from train_model_helper import get_data_loaders, test_model, train_model
+from helper_functions.misc_helper import save_model_and_parameters_to_file
+from helper_functions.train_model_helper import get_data_loaders, test_model, train_model
 from config import (GAMMA, MODEL_NAME, RANDOM_SEED, STEP_SIZE, TRAIN_DATASET_ROOT_DIR,
                     LEARNING_RATE, MOMENTUM, EPOCH_COUNT)
 

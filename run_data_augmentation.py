@@ -28,14 +28,20 @@ augmentation_transform = transforms.Compose([
 def main(year):
     if year == '2018':
         augment_images_and_save_to_file(
-            TRAIN_2018_ROOT_DIR, AUGMENTED_TRAIN_2018_ROOT_DIR, TRAIN_2018_LABELS,
-            AUGMENTED_TRAIN_2018_LABELS, augmentation_transform, 
+            TRAIN_2018_ROOT_DIR,
+            AUGMENTED_TRAIN_2018_ROOT_DIR,
+            TRAIN_2018_LABELS,
+            AUGMENTED_TRAIN_2018_LABELS,
+            augmentation_transform, 
             min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS_2018)
     elif year == '2019':
         # 2019 has an extra class "UNK" (unknown) - which we remove
         augment_images_and_save_to_file(
-            DATASET_2019_ROOT_DIR, AUGMENTED_DATASET_2019_LABELS, DATASET_2019_LABELS,
-            AUGMENTED_DATASET_2019_LABELS, augmentation_transform, 
+            DATASET_2019_ROOT_DIR,
+            AUGMENTED_DATASET_2019_LABELS,
+            DATASET_2019_LABELS,
+            AUGMENTED_DATASET_2019_LABELS,
+            augmentation_transform, 
             min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS_2019,
             exclude_last_class=True)
     else:

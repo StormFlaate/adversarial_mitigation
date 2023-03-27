@@ -1,0 +1,87 @@
+from typing import Iterator
+import torch
+import torch.nn as nn
+
+
+def generate_adversarial_input(
+        input,
+        label, 
+        attack
+        ) -> tuple[torch.tensor, torch.tensor]:
+    """
+        Applies adversarial attack to the input, creating an adversarial example.
+
+        Args:
+            input: input image or tensor
+            label: correct label, 1-dimensional format [0,1,0,...]
+            attack: specific attack form torchattacks
+
+        Returns:
+            (adversarial_input, label): attack applied to input and the correct label
+    """
+    # Move inputs and labels to the specified device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input = input.to(device)
+    label = label.to(device)    
+
+    # turns 1-dimensional list into 0-dimensional scalar, needed for attack
+    label_argmax = torch.argmax(label, 1)
+
+    # generate the adver
+    adversarial_input = attack(input, label_argmax)
+    
+    return adversarial_input
+
+
+def extract_kernels_from_resnet_architecture(
+    model_children: list[nn.Module],
+    model_weights: list[torch.Tensor],
+    conv_layers: list[nn.Conv2d]
+) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
+    """
+    Extracts the kernel weights and convolutional layers from a ResNet architecture.
+
+        Args:
+        model_children (List[nn.Module]): A list of child modules from the ResNet model.
+        model_weights (List[torch.Tensor]): A list to store the weights of the
+            convolutional layers.
+        conv_layers (List[nn.Conv2d]): A list to store the convolutional layers.
+
+    Returns:
+        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
+            1. The weights of the extracted convolutional layers.
+            2. The extracted convolutional layers themselves.
+    """
+    # Initialize a counter to keep track of the number of convolutional layers
+    counter = 0 
+
+    # Iterate through the model's child modules
+    for i in range(len(model_children)):
+        # Check if the current child module is a convolutional layer
+        if type(model_children[i]) == nn.Conv2d:
+            # Increment the counter for each convolutional layer found
+            counter += 1
+            # Append the current layer's weights to the model_weights list
+            model_weights.append(model_children[i].weight)
+            # Append the current convolutional layer to the conv_layers list
+            conv_layers.append(model_children[i])
+
+        # Check if the current child module is a sequential layer
+        elif type(model_children[i]) == nn.Sequential:
+            # Iterate through the sub-modules within the sequential layer
+            for j in range(len(model_children[i])):
+                # Iterate through the children of each sub-module
+                for child in model_children[i][j].children():
+                    # Check if the current child is a convolutional layer
+                    if type(child) == nn.Conv2d:
+                        counter += 1
+                        # Append the current layer's weights to the model_weights list
+                        model_weights.append(child.weight)
+                        # Append the current convolutional layer to the conv_layers list
+                        conv_layers.append(child)
+
+    # Print the total number of convolutional layers found
+    print(f"Total convolutional layers: {counter}")
+
+    # Return the updated model_weights and conv_layers lists as a tuple
+    return model_weights, conv_layers

@@ -3,12 +3,12 @@ from sklearn.metrics import accuracy_score
 import torch
 import torchattacks
 from tqdm import tqdm
-from adversarial_attacks_helper import (
+from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_resnet_architecture,
     generate_adversarial_input
 )
-from misc_helper import get_trained_or_default_model
-from train_model_helper import get_data_loaders
+from helper_functions.misc_helper import get_trained_or_default_model
+from helper_functions.train_model_helper import get_data_loaders
 
 print("get data loaders...")
 train_data_loader, val_data_loader, test_data_loader = get_data_loaders(
@@ -43,9 +43,18 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
 
-    model_weights, model_children = extract_kernels_from_resnet_architecture(
+    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
         list(model.children()), model_weights, conv_layers
     )
+
+    # pass the image through all the layers
+    results = [conv_layers[0](img)]
+    for i in range(1, len(conv_layers)):
+        # pass the result from the last layer to the next layer
+        results.append(conv_layers[i](results[-1]))
+    # make a copy of the `results`
+    outputs = results
+
     print(model_weights)
     print(model_children)
     break

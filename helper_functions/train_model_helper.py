@@ -109,7 +109,8 @@ def train_model(
 
         if epoch and epoch%10==0:
             # check the accuracy of the model
-            overall_accuracy, overall_f1_score, accuracy_by_type_dict = _validate_model_during_training(model, val_data_loader)
+            model_validation = _validate_model_during_training(model, val_data_loader)
+            overall_accuracy, overall_f1_score, accuracy_by_type_dict = model_validation
             _print_test_results(
                 overall_accuracy, overall_f1_score, accuracy_by_type_dict
                 )
