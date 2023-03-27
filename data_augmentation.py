@@ -6,16 +6,19 @@ from PIL import Image
 from torchvision.io import read_image
 from tqdm import tqdm
 
+from config import RANDOM_SEED
 
-def augment_images_and_save_to_file_2018(
-        root_dir: str, 
-        new_root_dir: str, 
-        csv_file: str, 
+
+def augment_images_and_save_to_file(
+        root_dir: str,
+        new_root_dir: str,
+        csv_file: str,
         new_csv_file: str,
         transform,
         min_number_of_each_class: int = 1000,
         image_file_type: str = "jpg",
-        random_seed: int = 42):
+        random_seed: int = RANDOM_SEED,
+        exclude_last_class: bool = False):
     """
     Load images and annotations from a CSV file, augment the images using a given
     transform, and save the new images and annotations to a new CSV file.
@@ -23,14 +26,15 @@ def augment_images_and_save_to_file_2018(
     Args:
         root_dir: The root directory where the original images are stored.
         new_root_dir: The root directory where the new images will be saved.
-        csv_file: The path to the CSV file containing the annotations for the original images.
+        csv_file: Path to CSV file containing the annotations for the original images.
         new_csv_file: The name of the new CSV file to be saved.
         transform: A transform to be applied to the images.
-        min_number_of_each_class: The minimum number of images of each class to be generated.
+        min_number_of_each_class: Minimum number of images of each class.
         image_file_type: The file type of the images.
         random_seed: A random seed to be used for reproducibility.
+        exclude_last_class: Whether to exclude the last class from the annotations.
     """
-    
+
     # Make the new root directory if it doesn't exist
     if not os.path.exists(new_root_dir):
         os.makedirs(new_root_dir)
@@ -42,7 +46,11 @@ def augment_images_and_save_to_file_2018(
     annotations = pd.read_csv(csv_file)
 
     # Get the names of all the different classes
-    class_names = annotations.columns[1:]
+    if exclude_last_class:
+        class_names = annotations.columns[1:-1]
+    else:
+        class_names = annotations.columns[1:]
+    
     images = annotations.iloc[:, 0]
 
     # Create a dictionary mapping each class name to a list of image names
@@ -64,22 +72,28 @@ def augment_images_and_save_to_file_2018(
             img_path = f"{os.path.join(root_dir, image_name)}.{image_file_type}"
             # Read in the image with torchvision.io read_image function
             image = read_image(img_path)
-            
-            # Apply the transform to the image
-            image_variant:Image.Image = transform(image)
 
-            # Generate a new padded image name and add it to the DataFrame with the appropriate class label
+            # Apply the transform to the image
+            image_variant: Image.Image = transform(image)
+
+            # Generate a new padded image name and add it to the DataFrame with the
+            # appropriate class label
             new_image_name = f"ISIC_{str(total_image_counter).zfill(8)}"
-            full_image_path = os.path.join(new_root_dir, f"{new_image_name}.{image_file_type}")
+            full_image_path = os.path.join(
+                new_root_dir, f"{new_image_name}.{image_file_type}"
+                )
 
             image_variant.save(full_image_path)
 
-            df.loc[len(df)] = [new_image_name] + _generate_list_with_1_at_index(len(class_names), class_index)
+            df.loc[len(df)] = [new_image_name] + _generate_list_with_1_at_index(
+                           len(class_names), class_index
+                            )
 
-            total_image_counter += 1
-    
+        total_image_counter += 1
+
     # Save the new DataFrame to a new CSV file
     df.to_csv(new_csv_file, index=False)
+
 
 
 
@@ -89,14 +103,15 @@ def augment_images_and_save_to_file_2018(
 ###################################################
 def _instantiate_skinlesion_dataframe(columns: List[str]) -> pd.DataFrame:
     """
-    Create a new DataFrame with columns and default value of 0.0 for each column except the first one.
+    Create a new DataFrame with columns and default value of 0.0 for each column except
+    the first one.
 
     Args:
         columns: A list of strings representing the names of the columns.
 
     Returns:
-        A new DataFrame with columns and default value of 0.0 for each column except the first one.
-        The first one will contain the image-name
+        A new DataFrame with columns and default value of 0.0 for each column except the
+        first one. The first one will contain the image-name
     """
     df = pd.DataFrame(columns=columns)
     # Set the default value of each column to 0.0
