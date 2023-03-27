@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Sequence, Union, Tuple, TypeVar
 import pandas as pd
 import torch
 import torch.utils.data as data
@@ -14,18 +14,12 @@ from config import (
     TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
     TEST_SPLIT_PERCENTAGE, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR,
     IMAGE_FILE_TYPE, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
-import warnings
-import math
-from typing import (
-    List,
-    Sequence,
-    Union,
-    TypeVar,
-    Tuple
-)
 from torch import randperm
 from torch._utils import _accumulate
 from helper_functions.misc_helper import save_model_and_parameters_to_file
+import warnings
+import math
+
 T_co = TypeVar('T_co', covariant=True)
 T = TypeVar('T')
 
@@ -38,7 +32,7 @@ def train_model(
         scheduler: torch.optim.lr_scheduler,
         model_name: str = "",
         epoch_count: int = 20,
-        requires_grad: bool = True) -> Module:
+        freeze_layers: bool = True) -> Module:
     """Trains a neural network model by retraining a model with already existing weights
         form Image Net.
 
@@ -58,7 +52,7 @@ def train_model(
     
     # Freeze the model parameters to prevent backpropagation
     for param in model.parameters():
-        param.requires_grad = requires_grad
+        param.requires_grad = not freeze_layers
 
     # Replace final layer with new layer that matches the number of classes in dataset
     train_dataset = train_data_loader.dataset.dataset
@@ -82,7 +76,8 @@ def train_model(
             inputs, labels = inputs.to(device), labels.to(device)
             
             # Convert labels to a tensor of type float
-            labels = torch.tensor(labels, dtype=torch.float).clone().detach()
+            labels = labels.to(dtype=torch.float)
+            labels.requires_grad = False
 
             # If the model type is "inceptionv3", pass inputs through the model and get two outputs
             if model_name == "inceptionv3":
@@ -117,7 +112,7 @@ def train_model(
                 )
 
         # Print the average loss for this epoch
-        print('Epoch {} loss: {:.4f}'.format(epoch + 1, running_loss / (i + 1)))
+        print(f'Epoch {epoch + 1} loss: {running_loss / (i + 1):.4f}')
 
     # Print a message indicating that training has finished
     print('Finished training')
@@ -268,7 +263,9 @@ def random_split(dataset: Dataset[T], lengths: Sequence[Union[int, float]]) -> L
         raise ValueError("Sum of input lengths does not equal the length of the input dataset!")
 
     indices = randperm(sum(lengths)).tolist()  # type: ignore[call-overload]
-    return [Subset(dataset, indices[offset - length : offset]) for offset, length in zip(_accumulate(lengths), lengths)]
+    return [
+        Subset(dataset, indices[offset - length : offset]) for offset, length in zip(_accumulate(lengths), lengths)
+        ]
 
 
 
