@@ -7,7 +7,8 @@ from tqdm import tqdm
 from helper_functions.adversarial_attacks_helper import (
     extract_feature_map_of_convolutional_layers,
     extract_kernels_from_resnet_architecture,
-    generate_adversarial_input
+    generate_adversarial_input,
+    visualize_feature_map_of_convolutional_layers
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders
@@ -44,6 +45,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     
     before_attack: list = extract_feature_map_of_convolutional_layers(
         input, conv_layers)
+    visualize_feature_map_of_convolutional_layers(before_attack, "before")
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
 
@@ -58,6 +60,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
     after_attack: list = extract_feature_map_of_convolutional_layers(
         input, conv_layers)
+    visualize_feature_map_of_convolutional_layers(after_attack, "after")
 
     logarithmic_distances = []
 
