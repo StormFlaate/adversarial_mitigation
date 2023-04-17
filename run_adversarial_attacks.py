@@ -41,7 +41,10 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
 
+    print("Before adversarial attack")
+    print("Model weights")
     print(model_weights[0])
+    print("Conv layers")
     print(conv_layers[0])
     adversarial_input = generate_adversarial_input(input, true_label, attack)
 
@@ -52,11 +55,16 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
         list(model.children()), model_weights, conv_layers
     )
+    print("After adversarial attack")
+    print("Model weights")
+    print(model_weights[0])
+    print("Conv layers")
+    print(conv_layers[0])
 
     # take a look at the conv layers and the respective weights
-    for weight, conv in zip(model_weights, conv_layers):
-        # print(f"WEIGHT: {weight} \nSHAPE: {weight.shape}")
-        print(f"CONV: {conv} ====> SHAPE: {weight.shape}")
+    # for weight, conv in zip(model_weights, conv_layers):
+    #     # print(f"WEIGHT: {weight} \nSHAPE: {weight.shape}")
+    #     print(f"CONV: {conv} ====> SHAPE: {weight.shape}")
 
 
     np_true_label = true_label.detach().cpu().numpy()
