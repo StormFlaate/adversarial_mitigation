@@ -66,12 +66,16 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
         # Calculate element-wise difference
         difference = flat_weights_after_attack - flat_weights_before_attack
+        print(difference)
 
         # Calculate logarithmic distance
         logarithmic_distance = torch.mean(torch.log(torch.abs(difference) + 1e-8))
         logarithmic_distances.append(logarithmic_distance.item())
 
-    print("Logarithmic distances between model weights before and after adversarial attack for each index:", logarithmic_distances)
+    print(
+        "Logarithmic distances between model weights before and after adversarial attack for each index:",
+        logarithmic_distances
+    )
 
     # take a look at the conv layers and the respective weights
     # for weight, conv in zip(model_weights, conv_layers):
