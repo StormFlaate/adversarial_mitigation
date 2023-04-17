@@ -1,3 +1,4 @@
+import math
 from typing import Iterator
 from matplotlib import pyplot as plt
 import torch
@@ -92,6 +93,23 @@ def extract_feature_map_of_convolutional_layers(
         input_tensor: torch.Tensor,
         conv_layers: list[nn.Conv2d]
     ) -> list[torch.Tensor]:
+    """
+    Extracts the feature maps of a list of convolutional layers applied to an input
+    tensor.
+
+    Args:
+        input_tensor: The input tensor to pass through the convolutional layers.
+        conv_layers: A list of convolutional layers to apply to the input tensor.
+
+    Returns:
+        A list containing the feature maps of each convolutional layer applied to the
+            input tensor.
+
+    Raises:
+        TypeError: If the input_tensor is not a torch.Tensor, or if conv_layers is not a
+            list of nn.Conv2d layers.
+
+    """
         # pass the image through all the layers
     results = [conv_layers[0](input_tensor)]
 
@@ -104,23 +122,41 @@ def extract_feature_map_of_convolutional_layers(
 
 def visualize_feature_map_of_convolutional_layers(
         convolutional_outputs: list[torch.Tensor],
-        file_name: str
+        file_name_prefix: str
     ) -> None:
-    # visualize 64 features from each layer 
-# (although there are more feature maps in the upper layers)
+    """Visualizes the feature maps of a list of convolutional layers.
+
+    Args:
+        convolutional_outputs: A list containing the feature maps of each convolutional
+            layer.
+        file_name_prefix: The base name to use when saving the visualizations of the
+            feature maps.
+
+    Returns:
+        None
+
+    Raises:
+        TypeError: If the convolutional_outputs is not a list of torch.Tensor objects, 
+            or if file_name_prefix is not a string.
+    """
+    # visualize features from each layer
     for num_layer in range(len(convolutional_outputs)):
-        plt.figure(figsize=(30, 30))
         layer_viz = convolutional_outputs[num_layer][0, :, :, :]
         layer_viz = layer_viz.data
-        print(layer_viz.size())
+        num_filters = layer_viz.size(0)
+
+        # Calculate the dimensions of the grid based on the number of filters
+        grid_size = int(math.ceil(math.sqrt(num_filters)))
+
+        plt.figure(figsize=(grid_size * 3, grid_size * 3))
+
         for i, filter in enumerate(layer_viz):
-            if i == 64: # we will visualize only 8x8 blocks from each layer
-                break
             filter = filter.cpu()
-            plt.subplot(8, 8, i + 1)
+            plt.subplot(grid_size, grid_size, i + 1)
             plt.imshow(filter)
             plt.axis("off")
+        
         print(f"Saving layer {num_layer} feature maps...")
-        plt.savefig(f"./{file_name}_layer_{num_layer}.png")
+        plt.savefig(f"./{file_name_prefix}_layer_{num_layer}.png")
         # plt.show()
         plt.close()
