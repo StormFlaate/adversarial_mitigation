@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from helper_functions.adversarial_attacks_helper import (
     extract_feature_map_of_convolutional_layers,
+    extract_kernels_from_resnet_architecture,
     generate_adversarial_input
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -51,7 +52,8 @@ def _process_batch(
         device: torch.device,
         input: torch.Tensor,
         true_label: torch.Tensor,
-        attack: torchattacks.attack
+        attack: torchattacks.attack, 
+        conv_layers: list[torch.nn.Conv2d]
     ) -> tuple:
     """
     Process a single batch of data.
@@ -62,6 +64,7 @@ def _process_batch(
         input (torch.Tensor): The input tensor.
         true_label (torch.Tensor): The true label tensor.
         attack (torchattacks.Attack): The attack method object.
+        conv_layers: The convolutional layers for the current model.
 
     Returns:
         tuple: The true label, predicted label, and predicted adversarial label.
@@ -69,7 +72,8 @@ def _process_batch(
     input = input.to(device)
     true_label = true_label.to(device)
 
-    feature_map_before_attack = extract_feature_map_of_convolutional_layers(input, model)
+    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
+        input, conv_layers)
     
     # perform adversarial attack on the input
     adversarial_input = generate_adversarial_input(input, true_label, attack)
@@ -78,7 +82,7 @@ def _process_batch(
     predicted_adversarial_label = model(adversarial_input)
 
     feature_map_after_attack = extract_feature_map_of_convolutional_layers(
-        adversarial_input, model)
+        adversarial_input, conv_layers)
 
     logarithmic_distances = _calculate_logarithmic_distances(
         feature_map_before_attack, feature_map_after_attack)
@@ -123,19 +127,24 @@ def main():
     type(attack)
     device = _initialize_device()
 
+    model_children: list = list(model.children()) # get all the model children as list
+    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
+            model_children)
     correct_labels = []
     predicted_labels = []
     predicted_adversarial_labels = []
 
     for _, (input, true_label) in tqdm(enumerate(train_data_loader)):
+        
         correct_label, predicted_label, predicted_adversarial_label = _process_batch(
-            model, device, input, true_label, attack
+            model, device, input, true_label, attack, conv_layers
         )
+
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(predicted_adversarial_label)
-
         break
+        
 
     overall_accuracy = accuracy_score(correct_labels, predicted_labels)
     overall_adversarial_accuracy = accuracy_score(
