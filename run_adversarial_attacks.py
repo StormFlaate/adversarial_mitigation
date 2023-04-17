@@ -40,12 +40,8 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
         list(model.children()), model_weights, conv_layers
     )
+    weights_before_attack = model_weights[0]
 
-    print("Before adversarial attack")
-    print("Model weights")
-    print(model_weights[0])
-    print("Conv layers")
-    print(conv_layers[0])
     adversarial_input = generate_adversarial_input(input, true_label, attack)
 
     # predicting with adversarial and benign input    
@@ -55,11 +51,23 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
         list(model.children()), model_weights, conv_layers
     )
-    print("After adversarial attack")
-    print("Model weights")
-    print(model_weights[0])
-    print("Conv layers")
-    print(conv_layers[0])
+    weights_after_attack = model_weights[0]
+
+    # Flatten tensors
+    flat_weights_before_attack = weights_before_attack.view(-1)
+    flat_weights_after_attack = weights_after_attack.view(-1)
+
+    # Calculate element-wise difference
+    difference = flat_weights_after_attack - flat_weights_before_attack
+
+    # Calculate logarithmic distance
+    logarithmic_distance = torch.mean(torch.log(torch.abs(difference) + 1e-8))
+
+    print(
+        "Logarithmic distance between model weights before and after adversarial attack:",
+        logarithmic_distance.item()
+    )
+
 
     # take a look at the conv layers and the respective weights
     # for weight, conv in zip(model_weights, conv_layers):
