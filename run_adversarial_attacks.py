@@ -60,12 +60,13 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         plt.subplot(8, 8, i+1)
         plt.imshow(filter[0, :, :].cpu().detach(), cmap='gray')
         plt.axis('off')
-        plt.savefig('../filter.png')
+        plt.savefig(f'./filter{index}.png')
     plt.show()
 
     print(model_weights)
     print(model_children)
-    break
+    if index == 3:
+        break
 
     np_true_label = true_label.detach().cpu().numpy()
     np_predicted_label = predicted_label.detach().cpu().numpy()
