@@ -51,7 +51,7 @@ def _process_batch(
         device: torch.device,
         input: torch.Tensor,
         true_label: torch.Tensor,
-        attack: torchattacks.Attack
+        attack: torchattacks.attack
     ) -> tuple:
     """
     Process a single batch of data.
