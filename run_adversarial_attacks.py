@@ -59,7 +59,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     )
 
     after_attack: list = extract_feature_map_of_convolutional_layers(
-        input, conv_layers)
+        adversarial_input, conv_layers)
     visualize_feature_map_of_convolutional_layers(after_attack, "after")
 
     logarithmic_distances = []
