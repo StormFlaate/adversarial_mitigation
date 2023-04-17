@@ -6,43 +6,82 @@ from tqdm import tqdm
 
 from helper_functions.adversarial_attacks_helper import (
     extract_feature_map_of_convolutional_layers,
-    generate_adversarial_input,
-    visualize_feature_map_of_convolutional_layers
+    generate_adversarial_input
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders
 
-def _initialize_data_loaders():
+
+def _initialize_data_loaders() -> tuple:
+    """
+    Initialize data loaders.
+
+    Returns:
+        tuple: Train, validation and test data loaders.
+    """
     print("get data loaders...")
     return get_data_loaders(batch_size=1, num_workers=1)
 
-def _initialize_model():
+
+def _initialize_model() -> torch.nn.Module:
+    """
+    Initialize the model.
+
+    Returns:
+        torch.nn.Module: Trained or default model.
+    """
     print("get trained or default model...")
     return get_trained_or_default_model(
         model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-03-08_50__bb6.pt"
     )
 
-def _initialize_attack(model):
-    return torchattacks.FGSM(model, eps=2/255)
 
-def _initialize_device():
+def _initialize_device() -> torch.device:
+    """
+    Initialize the device.
+
+    Returns:
+        torch.device: The device to be used (CPU or GPU).
+    """
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def _process_batch(model, device, input, true_label, attack):
+
+def _process_batch(
+        model: torch.nn.Module,
+        device: torch.device,
+        input: torch.Tensor,
+        true_label: torch.Tensor,
+        attack: torchattacks.Attack
+    ) -> tuple:
+    """
+    Process a single batch of data.
+
+    Args:
+        model (torch.nn.Module): The target model.
+        device (torch.device): The device to be used.
+        input (torch.Tensor): The input tensor.
+        true_label (torch.Tensor): The true label tensor.
+        attack (torchattacks.Attack): The attack method object.
+
+    Returns:
+        tuple: The true label, predicted label, and predicted adversarial label.
+    """
     input = input.to(device)
     true_label = true_label.to(device)
 
-    before_attack = extract_feature_map_of_convolutional_layers(input, model)
-    visualize_feature_map_of_convolutional_layers(before_attack, "before")
-
+    feature_map_before_attack = extract_feature_map_of_convolutional_layers(input, model)
+    
+    # perform adversarial attack on the input
     adversarial_input = generate_adversarial_input(input, true_label, attack)
+    # evaluates the input using the trained model
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
+    
+    feature_map_after_attack = extract_feature_map_of_convolutional_layers(
+        adversarial_input, model)
 
-    after_attack = extract_feature_map_of_convolutional_layers(adversarial_input, model)
-    visualize_feature_map_of_convolutional_layers(after_attack, "after")
-
-    logarithmic_distances = _calculate_logarithmic_distances(before_attack, after_attack)
+    logarithmic_distances = _calculate_logarithmic_distances(
+        feature_map_before_attack, feature_map_after_attack)
     print(
         "Logarithmic distances between feature map before and after adversarial attack:"
         , logarithmic_distances
@@ -55,21 +94,32 @@ def _process_batch(model, device, input, true_label, attack):
     )
 
 def _calculate_logarithmic_distances(before_attack, after_attack):
+    """
+    Calculate logarithmic distances between the feature maps before and after the attack.
+
+    Args:
+        before_attack (torch.Tensor): The feature map before the attack.
+        after_attack (torch.Tensor): The feature map after the attack.
+    
+    Returns:
+        A list of logarithmic distances for each layer.
+    """
     distances = []
 
     for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
         flat_weights_before_attack = weights_before_attack.view(-1)
         flat_weights_after_attack = weights_after_attack.view(-1)
         difference = flat_weights_after_attack - flat_weights_before_attack
-        logarithmic_distance = torch.mean(torch.log(torch.abs(difference) + 1e-8))
+        logarithmic_distance = torch.mean(torch.log(torch.abs(difference)))
         distances.append(logarithmic_distance.item())
 
     return distances
 
+
 def main():
     train_data_loader, _, _ = _initialize_data_loaders()
     model = _initialize_model()
-    attack = _initialize_attack(model)
+    attack = torchattacks.FGSM(model, eps=2/255)
     device = _initialize_device()
 
     correct_labels = []
@@ -93,3 +143,7 @@ def main():
 
     print("Overall accuracy: ", overall_accuracy)
     print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
+
+
+    if __name__ == '__main__':
+        main()
