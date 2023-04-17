@@ -41,7 +41,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
 
-    print(f"model_weights: {model_weights.shape}")
+    
     weights_before_attack = model_weights[0]
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
@@ -53,7 +53,8 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
         list(model.children()), model_weights, conv_layers
     )
-    print(f"model_weights: {model_weights.shape}")
+
+    print(f"model_weights: {len(model_weights)}")
     weights_after_attack = model_weights[0]
 
     # Flatten tensors
