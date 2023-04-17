@@ -116,6 +116,7 @@ def visualize_feature_map_of_convolutional_layers(
         for i, filter in enumerate(layer_viz):
             if i == 64: # we will visualize only 8x8 blocks from each layer
                 break
+            filter = filter.cpu()
             plt.subplot(8, 8, i + 1)
             plt.imshow(filter)
             plt.axis("off")
