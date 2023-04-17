@@ -37,7 +37,12 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     input = input.to(device)
     true_label = true_label.to(device)  
 
+    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
+        list(model.children()), model_weights, conv_layers
+    )
 
+    print(model_weights[0])
+    print(conv_layers[0])
     adversarial_input = generate_adversarial_input(input, true_label, attack)
 
     # predicting with adversarial and benign input    
@@ -53,20 +58,6 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         # print(f"WEIGHT: {weight} \nSHAPE: {weight.shape}")
         print(f"CONV: {conv} ====> SHAPE: {weight.shape}")
 
-    # visualize the first conv layer filters
-    plt.figure(figsize=(20, 17))
-    for i, filter in enumerate(model_weights[0]):
-        # (8,8) because in conv0 we have 7x7 filters and total 64 (see printed shapes)
-        plt.subplot(8, 8, i+1)
-        plt.imshow(filter[0, :, :].cpu().detach(), cmap='gray')
-        plt.axis('off')
-        plt.savefig(f'./filter{index}.png')
-    plt.show()
-
-    print(model_weights)
-    print(model_children)
-    if index == 3:
-        break
 
     np_true_label = true_label.detach().cpu().numpy()
     np_predicted_label = predicted_label.detach().cpu().numpy()
@@ -79,6 +70,10 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     correct_labels.append(correct_argmax_label)
     predicted_labels.append(predicted_argmax_label)
     predicted_adversarial_labels.append(predicted_adversarial_argmax_label)
+
+    
+    break
+
 
 
 
