@@ -37,7 +37,7 @@ def extract_kernels_from_resnet_architecture(
     model_children: list[nn.Module],
     model_weights: list[torch.Tensor],
     conv_layers: list[nn.Conv2d]
-) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
+    ) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
     """
     Extracts the kernel weights and convolutional layers from a ResNet architecture.
 
@@ -85,3 +85,17 @@ def extract_kernels_from_resnet_architecture(
 
     # Return the updated model_weights and conv_layers lists as a tuple
     return model_weights, conv_layers
+
+def extract_feature_map_of_convolutional_layers(
+        input_tensor: torch.Tensor,
+        conv_layers: list[nn.Conv2d]
+    ) -> list[torch.Tensor]:
+        # pass the image through all the layers
+    results = [conv_layers[0](input_tensor)]
+
+    for i in range(1, len(conv_layers)):
+        # pass the result from the last layer to the next layer
+        results.append(conv_layers[i](results[-1]))
+    # make a copy of the `results`
+    
+    return results

@@ -5,6 +5,7 @@ import torch
 import torchattacks
 from tqdm import tqdm
 from helper_functions.adversarial_attacks_helper import (
+    extract_feature_map_of_convolutional_layers,
     extract_kernels_from_resnet_architecture,
     generate_adversarial_input
 )
@@ -41,7 +42,8 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
     
-    model_weights_before_attack: list = model_weights
+    before_attack: list = extract_feature_map_of_convolutional_layers(
+        input, conv_layers)
 
     adversarial_input = generate_adversarial_input(input, true_label, attack)
 
@@ -54,12 +56,12 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
 
-    model_weights_after_attack: list = model_weights
+    after_attack: list = extract_feature_map_of_convolutional_layers(
+        input, conv_layers)
 
     logarithmic_distances = []
 
-    for weights_before_attack, weights_after_attack in zip(
-        model_weights_before_attack, model_weights_after_attack):
+    for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
         # Flatten tensors
         flat_weights_before_attack = weights_before_attack.view(-1)
         flat_weights_after_attack = weights_after_attack.view(-1)
@@ -73,7 +75,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         logarithmic_distances.append(logarithmic_distance.item())
 
     print(
-        "Logarithmic distances between model weights before and after adversarial attack for each index:",
+        "Logarithmic distances between feature map before and after adversarial attack:",
         logarithmic_distances
     )
 
