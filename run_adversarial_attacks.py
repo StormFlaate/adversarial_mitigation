@@ -146,5 +146,5 @@ def main():
     print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
 
 
-    if __name__ == '__main__':
-        main()
+if __name__ == '__main__':
+    main()
