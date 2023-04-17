@@ -115,10 +115,14 @@ def _calculate_logarithmic_distances(before_attack, after_attack):
         flat_weights_after_attack = weights_after_attack.view(-1)
         difference = flat_weights_after_attack - flat_weights_before_attack
         logarithmic_distance = torch.log(torch.abs(difference))
+        print(logarithmic_distance)
         finite_mask = torch.isfinite(logarithmic_distance)
         logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
+        print(logarithmic_distance)
         mean_logarithmic_distance = torch.mean(logarithmic_distance)
+        print(logarithmic_distance)
         distances.append(mean_logarithmic_distance.item())
+        print(logarithmic_distance)
 
     return distances
 
