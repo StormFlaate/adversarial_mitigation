@@ -47,8 +47,9 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
 
+
     # pass the image through all the layers
-    results = [conv_layers[0](img)]
+    results = [conv_layers[0](input)]
     for i in range(1, len(conv_layers)):
         # pass the result from the last layer to the next layer
         results.append(conv_layers[i](results[-1]))
