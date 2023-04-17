@@ -76,7 +76,7 @@ def _process_batch(
     # evaluates the input using the trained model
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
-    
+
     feature_map_after_attack = extract_feature_map_of_convolutional_layers(
         adversarial_input, model)
 
@@ -120,6 +120,7 @@ def main():
     train_data_loader, _, _ = _initialize_data_loaders()
     model = _initialize_model()
     attack = torchattacks.FGSM(model, eps=2/255)
+    type(attack)
     device = _initialize_device()
 
     correct_labels = []
