@@ -86,6 +86,7 @@ def extract_kernels_from_resnet_architecture(
     # Return the updated model_weights and conv_layers lists as a tuple
     return model_weights, conv_layers
 
+
 def extract_feature_map_of_convolutional_layers(
         input_tensor: torch.Tensor,
         conv_layers: list[nn.Conv2d]

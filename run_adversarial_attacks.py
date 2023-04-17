@@ -39,7 +39,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
     true_label = true_label.to(device)  
 
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
-        list(model.children()), model_weights, conv_layers
+        list(model.children()), [], []
     )
     
     before_attack: list = extract_feature_map_of_convolutional_layers(
@@ -53,7 +53,7 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
 
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
-        list(model.children()), model_weights, conv_layers
+        list(model.children()), [], []
     )
 
     after_attack: list = extract_feature_map_of_convolutional_layers(
