@@ -3,6 +3,7 @@ import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
+from config import RANDOM_SEED
 
 from helper_functions.adversarial_attacks_helper import (
     extract_feature_map_of_convolutional_layers,
@@ -115,32 +116,35 @@ def _calculate_logarithmic_distances(before_attack, after_attack):
         flat_weights_after_attack = weights_after_attack.view(-1)
         difference = flat_weights_after_attack - flat_weights_before_attack
         logarithmic_distance = torch.log(torch.abs(difference))
-        print(logarithmic_distance)
         finite_mask = torch.isfinite(logarithmic_distance)
         logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
-        print(logarithmic_distance)
         mean_logarithmic_distance = torch.mean(logarithmic_distance)
-        print(logarithmic_distance)
         distances.append(mean_logarithmic_distance.item())
-        print(logarithmic_distance)
 
     return distances
 
 
 
 def main():
-    train_data_loader, _, _ = _initialize_data_loaders()
-    model = _initialize_model()
-    attack = torchattacks.FGSM(model, eps=2/255)
-    type(attack)
-    device = _initialize_device()
+    # Set the randomness seeds
+    torch.manual_seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
 
-    model_children: list = list(model.children()) # get all the model children as list
-    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
-            model_children)
+    # Initialize empty lists
     correct_labels = []
     predicted_labels = []
     predicted_adversarial_labels = []
+    
+    # Initialize setup
+    train_data_loader, _, _ = _initialize_data_loaders()
+    model = _initialize_model()
+    attack = torchattacks.FGSM(model, eps=2/255)
+    device = _initialize_device()
+
+    # Initialize variables
+    model_children: list = list(model.children()) # get all the model children as list
+    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
+            model_children)
 
     for _, (input, true_label) in tqdm(enumerate(train_data_loader)):
         
