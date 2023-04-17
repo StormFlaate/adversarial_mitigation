@@ -146,7 +146,7 @@ def main():
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
             model_children)
 
-    for _, (input, true_label) in tqdm(enumerate(train_data_loader[:3])):
+    for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
         
         correct_label, predicted_label, predicted_adversarial_label = _process_batch(
             model, device, input, true_label, attack, conv_layers
@@ -156,6 +156,8 @@ def main():
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(predicted_adversarial_label)
         
+        if i >= 3:
+            break
 
         
 
