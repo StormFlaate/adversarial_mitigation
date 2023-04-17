@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.metrics import accuracy_score
 import torch
@@ -47,14 +48,20 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
         list(model.children()), model_weights, conv_layers
     )
 
+    # take a look at the conv layers and the respective weights
+    for weight, conv in zip(model_weights, conv_layers):
+        # print(f"WEIGHT: {weight} \nSHAPE: {weight.shape}")
+        print(f"CONV: {conv} ====> SHAPE: {weight.shape}")
 
-    # pass the image through all the layers
-    results = [conv_layers[0](input)]
-    for i in range(1, len(conv_layers)):
-        # pass the result from the last layer to the next layer
-        results.append(conv_layers[i](results[-1]))
-    # make a copy of the `results`
-    outputs = results
+    # visualize the first conv layer filters
+    plt.figure(figsize=(20, 17))
+    for i, filter in enumerate(model_weights[0]):
+        # (8,8) because in conv0 we have 7x7 filters and total 64 (see printed shapes)
+        plt.subplot(8, 8, i+1)
+        plt.imshow(filter[0, :, :].detach(), cmap='gray')
+        plt.axis('off')
+        plt.savefig('../filter.png')
+    plt.show()
 
     print(model_weights)
     print(model_children)
@@ -76,7 +83,10 @@ for index, (input, true_label) in  tqdm(enumerate(train_data_loader)):
 
 overall_accuracy = accuracy_score(correct_labels, predicted_labels)
 
-overall_adversarial_accuracy = accuracy_score(correct_labels, predicted_adversarial_labels)
+overall_adversarial_accuracy = accuracy_score(
+    correct_labels,
+    predicted_adversarial_labels
+)
 
 print("Overall accuracy: ", overall_accuracy)
 print("Overall adversarial accuracy: ", overall_adversarial_accuracy)

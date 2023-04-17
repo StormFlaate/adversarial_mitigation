@@ -41,7 +41,7 @@ def extract_kernels_from_resnet_architecture(
     """
     Extracts the kernel weights and convolutional layers from a ResNet architecture.
 
-        Args:
+    Args:
         model_children (List[nn.Module]): A list of child modules from the ResNet model.
         model_weights (List[torch.Tensor]): A list to store the weights of the
             convolutional layers.
