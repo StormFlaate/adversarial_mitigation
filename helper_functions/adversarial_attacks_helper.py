@@ -266,8 +266,8 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
     fig, ax = plt.subplots(figsize=(max_ncols, nrows))
 
     # Normalize the data to map colors in the color map
-    min_value = min(np.concatenate(data).ravel())
-    max_value = min(np.concatenate(data).ravel())
+    min_value = min(_flatten_list(data))
+    max_value = max(_flatten_list(data))
     norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
 
     # Get the colormap object from the colormap name
@@ -300,3 +300,14 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
     plt.savefig("./test_images/colored_grid.png")
     plt.close()
 
+
+
+def _flatten_list(list_of_arrays: list[np.array]
+    ) -> np.array:
+    # Stack the arrays in the list horizontally
+    stacked_array = np.hstack(list_of_arrays)
+    
+    # Flatten the stacked array into a 1D array
+    flattened_array = stacked_array.flatten()
+    
+    return flattened_array
