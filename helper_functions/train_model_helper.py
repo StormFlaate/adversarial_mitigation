@@ -79,10 +79,10 @@ def train_model(
             labels = labels.to(dtype=torch.float)
             labels.requires_grad = False
 
-            # If the model type is "inceptionv3", pass inputs through the model and get two outputs
+            # If the model type is "inceptionv3": two outputs
             if model_name == "inceptionv3":
                 outputs, x = model(inputs)
-            # Otherwise, pass inputs through the model and get one output
+            # Otherwise: one output
             else: 
                 outputs = model(inputs)
             
@@ -217,7 +217,10 @@ def get_category_counts(data_loader: DataLoader[Subset[ISICDataset]]) -> Dict[st
     return count_dict
     
 
-def random_split(dataset: Dataset[T], lengths: Sequence[Union[int, float]]) -> List[Subset[T]]:
+def random_split(
+        dataset: Dataset[T],
+        lengths: Sequence[Union[int, float]]
+    ) -> List[Subset[T]]:
     r"""
     Randomly split a dataset into non-overlapping new datasets of given lengths.
 
@@ -260,11 +263,14 @@ def random_split(dataset: Dataset[T], lengths: Sequence[Union[int, float]]) -> L
     # Cannot verify that dataset is Sized
     if sum(lengths) != len(dataset):    # type: ignore[arg-type]
         print(sum(lengths), len(dataset))
-        raise ValueError("Sum of input lengths does not equal the length of the input dataset!")
+        raise ValueError(
+            "Sum of input lengths does not equal the length of the input dataset!"
+        )
 
     indices = randperm(sum(lengths)).tolist()  # type: ignore[call-overload]
     return [
-        Subset(dataset, indices[offset - length : offset]) for offset, length in zip(_accumulate(lengths), lengths)
+        Subset(dataset, indices[offset - length : offset]) 
+            for offset, length in zip(_accumulate(lengths), lengths)
         ]
 
 
@@ -290,33 +296,33 @@ def get_data_loaders(
     is_2018_dataset:bool or None=IS_2018_DATASET
 ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
     """
-    Returns train_data_loader, val_data_loader, and test_data_loader based on the inputs.
-    Input is by default based on the configuration file, but can be manually changed in function input.
+    Returns train_data_loader, val_data_loader, and test_data_loader
+    Input is by default based on the configuration file, but can be manually.
     
     Args:
-    - train_dataset_labels: str representing the filepath of the train dataset labels
-    - train_dataset_root_dir: str representing the filepath of the train dataset root directory
-    - train_nrows: int representing the number of rows to load for the train dataset
-    - test_dataset_labels: str representing the filepath of the test dataset labels
-    - test_dataset_root_dir: str representing the filepath of the test dataset root directory
-    - test_nrows: int representing the number of rows to load for the test dataset
-    - image_file_type: str representing the image file type, e.g. ".jpg"
-    - preprocess_transform: a callable function that applies preprocessing to the dataset
-    - train_split_percentage: float representing the percentage of the train dataset to use
-    - val_split_percentage: float representing the percentage of the validation dataset to use
-    - test_split_percentage: float representing the percentage of the test dataset to use
-    - batch_size: int representing the batch size
-    - shuffle_train_dataloader: bool representing whether to shuffle the train dataloader
-    - shuffle_val_dataloader: bool representing whether to shuffle the validation dataloader
-    - num_workers: int representing the number of workers to use
-    - pin_memory_train_dataloader: bool representing whether to pin memory for the train dataloader
-    - is_2018_dataset: bool representing whether the dataset is from 2018
+    - train_dataset_labels: the filepath of the train dataset labels
+    - train_dataset_root_dir: the filepath of the train dataset root directory
+    - train_nrows: the number of rows to load for the train dataset
+    - test_dataset_labels: the filepath of the test dataset labels
+    - test_dataset_root_dir: the filepath of the test dataset root directory
+    - test_nrows: the number of rows to load for the test dataset
+    - image_file_type: the image file type, e.g. ".jpg"
+    - preprocess_transform: a function that applies preprocessing to the dataset
+    - train_split_percentage: the percentage of the train dataset to use
+    - val_split_percentage: the percentage of the validation dataset to use
+    - test_split_percentage: the percentage of the test dataset to use
+    - batch_size: the batch size
+    - shuffle_train_dataloader: whether to shuffle the train dataloader
+    - shuffle_val_dataloader: whether to shuffle the validation dataloader
+    - num_workers: the number of workers to use
+    - pin_memory_train_dataloader: whether to pin memory for the train dataloader
+    - is_2018_dataset: whether the dataset is from 2018
     
     Returns:
     - Tuple of train_data_loader, val_data_loader, and test_data_loader
     """
     
-    assert isinstance(is_2018_dataset, bool), "Need to define dataset as either 2018 or 2019 (True or False)"
+    assert isinstance(is_2018_dataset, bool), "Need to define dataset as either 2018 or 2019 (True or False)"  # noqa: E501
 
 
 
@@ -330,10 +336,13 @@ def get_data_loaders(
         nrows=train_nrows
     )
 
-    # the 2018 and 2019 dataset has some configuration differences when it comes to train, validation and test datasets
+    # the 2018 and 2019 dataset has some configuration differences when it comes to
+    # train, validation and test datasets
     if is_2018_dataset:
         # Splits the dataset into train and validation
-        train_dataset, val_dataset = random_split(train_dataset_full, [train_split_percentage, val_split_percentage])    
+        train_dataset, val_dataset = random_split(
+            train_dataset_full, [train_split_percentage, val_split_percentage]
+        )    
 
         test_dataset_full = ISICDataset(
             csv_file=test_dataset_labels, 
@@ -343,7 +352,9 @@ def get_data_loaders(
             nrows=test_nrows
         )
         # added for consistency
-        test_dataset = Subset(test_dataset_full, indices=[x for x in range(len(test_dataset_full))])
+        test_dataset = Subset(
+            test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
+        )
     else:
         train_dataset, val_dataset, test_dataset = random_split(
             train_dataset_full, [
@@ -406,7 +417,10 @@ def get_data_loaders(
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoader[Subset[ISICDataset]]) -> tuple:
+def _validate_model_during_training(
+        model: torch.nn.Module,
+        data_loader: DataLoader[Subset[ISICDataset]]
+    ) -> tuple:
     """Tests the accuracy of a trained neural network model.
 
     Args:
@@ -414,7 +428,8 @@ def _validate_model_during_training(model: torch.nn.Module, data_loader: DataLoa
         data_loader: The data loader used for iterating over the dataset.
 
     Returns:
-        A tuple containing the overall accuracy and F1 score of the model, and the accuracy of each of the categories of the model.
+        A tuple containing the overall accuracy and F1 score of the model, and the
+            accuracy of each of the categories of the model.
     """
     model.eval()
 
@@ -485,12 +500,13 @@ def _print_test_results(
     overall_accuracy: float,
     overall_f1_score: float,
     accuracy_by_type_dict: Dict[str, float]) -> None:
-    """Prints the results of testing a trained neural network model.
+    """
+    Prints the results of testing a trained neural network model.
 
     Args:
         overall_accuracy: The overall accuracy of the model.
         overall_f1_score: The overall F1 score of the model.
-        accuracy_by_type_dict: A dictionary containing the accuracy for each category of the model.
+        accuracy_by_type_dict: The accuracy for each category of the model.
     """
     
     print(f"Overall accuracy: {overall_accuracy:.4f}")
@@ -500,14 +516,18 @@ def _print_test_results(
         print(f" {category}: {acc:.4f}")
 
 
-def _get_annotations_subset(data_loader: DataLoader[Subset[ISICDataset]]) -> pd.DataFrame:
-    """Extracts the annotations subset corresponding to the indices in the given data loader.
+def _get_annotations_subset(
+        data_loader: DataLoader[Subset[ISICDataset]]
+    ) -> pd.DataFrame:
+    """
+    Extracts the annotations subset to the indices in the given dataloader.
 
     Args:
         data_loader: The data loader for the dataset.
 
     Returns:
-        A pandas DataFrame containing the annotations subset, which corresponds to the respective indices.
+        A pandas DataFrame containing the annotations subset, which corresponds to the
+            respective indices.
     """
     subset: Subset = data_loader.dataset
     df: pd.DataFrame = subset.dataset.annotations
