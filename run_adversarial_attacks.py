@@ -79,7 +79,7 @@ def main():
     np.random.seed(RANDOM_SEED)
 
     # Initialize empty lists
-    log_distances: np.array = []
+    log_distances: list = []
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
@@ -110,7 +110,8 @@ def main():
             [tensor.cpu().detach().numpy() for tensor in log_distance]
         )
 
-        np.append(log_distances, log_distance_array)
+
+        log_distances.append(log_distance_array)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
@@ -122,8 +123,9 @@ def main():
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
 
-    print(log_distances)
-    print(log_distances.shape)
+    log_distances_np = np.concatenate(log_distances, axis=0)
+    print(log_distances_np)
+    print(log_distances_np.shape)
 
 
 if __name__ == '__main__':
