@@ -1,4 +1,5 @@
 import math
+import os
 from typing import Iterator
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
@@ -260,50 +261,58 @@ def calculate_logarithmic_distances(
     return distances
 
 
+
 def plot_colored_grid(data: list[np.array], color_map='viridis'):
     nrows = len(data)
-    max_ncols = max(arr.shape[1] for arr in data)
-    print("max_ncols", max_ncols)
-    fig, ax = plt.subplots(figsize=(max_ncols, nrows))
+    
+    # Group rows by the number of columns
+    grouped_data = {}
+    for arr in data:
+        ncols = arr.shape[1]
+        if ncols in grouped_data:
+            grouped_data[ncols].append(arr)
+        else:
+            grouped_data[ncols] = [arr]
 
-    # Normalize the data to map colors in the color map
-    min_value = min(_flatten_list(data))
-    max_value = max(_flatten_list(data))
-    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
+    for ncols, grouped_rows in grouped_data.items():
+        nrows = len(grouped_rows)
+        fig, ax = plt.subplots(figsize=(ncols, nrows))
 
-    # Get the colormap object from the colormap name
-    cmap = cm.get_cmap(color_map)
+        # Get the colormap object from the colormap name
+        cmap = cm.get_cmap(color_map)
 
-    for i in range(nrows):
-        ncols = data[i].shape[1]
-        current_row = data[i].flatten()
-        print("current_row", current_row)
-        print("data[i]",data[i])
-        print("ncols", ncols)
-        for j in range(ncols):
-            rect = plt.Rectangle(
-                (j, i), 1, 1, facecolor=cmap(norm(current_row[j])), edgecolor='k'
-            )
-            ax.add_patch(rect)
+        for i in range(nrows):
+            current_row = grouped_rows[i].flatten()
+            norm = _get_normalize_function(current_row)
 
-    ax.set_xticks(np.arange(max_ncols + 1) - 0.5, minor=True)
-    ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
+            for j in range(ncols):
+                rect = plt.Rectangle(
+                    (j, i), 1, 1, facecolor=cmap(norm(current_row[j])), edgecolor='k'
+                )
+                ax.add_patch(rect)
 
-    # Remove the major gridlines
-    ax.grid(which='major', visible=False)
+        ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
+        ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
 
-    # Set axis limits
-    ax.set_xlim(0, max_ncols)
-    ax.set_ylim(0, nrows)
+        # Remove the major gridlines
+        ax.grid(which='major', visible=False)
 
-    # Remove axis labels and ticks
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-    ax.set_xticks([])
-    ax.set_yticks([])
+        # Set axis limits
+        ax.set_xlim(0, ncols)
+        ax.set_ylim(0, nrows)
 
-    plt.savefig("./test_images/colored_grid.png")
-    plt.close()
+        # Remove axis labels and ticks
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # Save the images with different names based on the number of columns
+        output_dir = "./test_images/"
+        os.makedirs(output_dir, exist_ok=True)
+        plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
+        plt.close()
+
 
 def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
     # Stack the arrays in the list horizontally
@@ -314,3 +323,10 @@ def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
     
     return flattened_array
 
+def _get_normalize_function(row):
+    # Normalize the data to map colors in the color map
+    min_value = min(row)
+    max_value = max(row)
+    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
+
+    return norm
