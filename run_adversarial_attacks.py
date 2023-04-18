@@ -8,7 +8,8 @@ from config import RANDOM_SEED
 
 from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_resnet_architecture,
-    assess_attack_and_log_distances
+    assess_attack_and_log_distances,
+    plot_colored_grid
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders
@@ -126,11 +127,18 @@ def main():
     log_distances_np = np.array(log_distances)
 
 
-    print(log_distances_np[0][0][:10])
-    print(log_distances_np[0][1][:10])
+    
     print(log_distances_np)
     print(log_distances_np.shape)
+    plot_colored_grid(log_distances_np[0])
 
 
 if __name__ == '__main__':
+    # Example usage:
+    # data = np.array([
+    #     [-4.4240346, -3.85995, -3.863896,-4.4341908,-4.6712766,-4.1185102, -3.4920495, -3.7436595, -3.451645, -3.0995665],
+    #     [-2.4328566, -2.2482922, -2.2400074, -2.3119617, -2.7472174, -4.0555816, -5.8380814, -6.6805916, -3.9911015, -2.6688745]
+    # ])
+
+    # plot_colored_grid(data)
     main()

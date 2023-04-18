@@ -1,6 +1,8 @@
 import math
 from typing import Iterator
 from matplotlib import pyplot as plt
+import matplotlib.colors as mcolors
+import matplotlib.cm as cm
 import numpy as np
 import torch
 import torch.nn as nn
@@ -249,3 +251,43 @@ def calculate_logarithmic_distances(
         #                           reverse=True)[:k]
 
     return distances
+
+
+def plot_colored_grid(data, color_map='viridis'):
+    nrows, ncols = data.shape
+    print(f"nrows: {nrows}")
+    print(f"ncols: {ncols}")
+    fig, ax = plt.subplots(figsize=(ncols, nrows))
+
+    # Normalize the data to map colors in the color map
+    norm = mcolors.Normalize(vmin=data.min(), vmax=data.max())
+
+    # Get the colormap object from the colormap name
+    cmap = cm.get_cmap(color_map)
+
+    for i in range(nrows):
+        for j in range(ncols):
+            rect = plt.Rectangle(
+                (j, i), 1, 1, facecolor=cmap(norm(data[i, j])), edgecolor='k'
+            )
+            ax.add_patch(rect)
+
+    ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
+
+    # Remove the major gridlines
+    ax.grid(which='major', visible=False)
+
+    # Set axis limits
+    ax.set_xlim(0, ncols)
+    ax.set_ylim(0, nrows)
+
+    # Remove axis labels and ticks
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    plt.savefig("./test_images/colored_grid.png")
+    plt.close()
+
