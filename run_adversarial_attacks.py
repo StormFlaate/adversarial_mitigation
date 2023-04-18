@@ -6,9 +6,8 @@ from tqdm import tqdm
 from config import RANDOM_SEED
 
 from helper_functions.adversarial_attacks_helper import (
-    extract_feature_map_of_convolutional_layers,
     extract_kernels_from_resnet_architecture,
-    generate_adversarial_input
+    assess_attack_and_log_distances
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders
@@ -47,92 +46,29 @@ def _initialize_device() -> torch.device:
     """
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-def _process_batch(
-        model: torch.nn.Module,
-        device: torch.device,
-        input: torch.Tensor,
-        true_label: torch.Tensor,
-        attack: torchattacks.attack, 
-        conv_layers: list[torch.nn.Conv2d]
-    ) -> tuple:
+def _print_overall_accuracy(
+        correct_labels: np.ndarray | list,
+        predicted_labels: np.ndarray | list,
+        predicted_adversarial_labels: np.ndarray | list
+    ) -> None:
     """
-    Process a single batch of data.
+    Calculates and prints the overall accuracy and overall adversarial accuracy.
 
     Args:
-        model (torch.nn.Module): The target model.
-        device (torch.device): The device to be used.
-        input (torch.Tensor): The input tensor.
-        true_label (torch.Tensor): The true label tensor.
-        attack (torchattacks.Attack): The attack method object.
-        conv_layers: The convolutional layers for the current model.
+        correct_labels (np.ndarray): The correct labels.
+        predicted_labels (np.ndarray): The predicted labels.
+        predicted_adversarial_labels (np.ndarray): The predicted adversarial labels.
 
     Returns:
-        tuple: The true label, predicted label, and predicted adversarial label.
+        None
     """
-    input = input.to(device)
-    true_label = true_label.to(device)
-
-    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-        input, conv_layers)
-    
-    # perform adversarial attack on the input
-    adversarial_input = generate_adversarial_input(input, true_label, attack)
-    # evaluates the input using the trained model
-    predicted_label = model(input)
-    predicted_adversarial_label = model(adversarial_input)
-
-    feature_map_after_attack = extract_feature_map_of_convolutional_layers(
-        adversarial_input, conv_layers)
-
-    logarithmic_distances = _calculate_logarithmic_distances(
-        feature_map_before_attack, feature_map_after_attack)
-    print(
-        "Logarithmic distances between feature map before and after adversarial attack:"
-        , logarithmic_distances
+    overall_accuracy = accuracy_score(correct_labels, predicted_labels)
+    overall_adversarial_accuracy = accuracy_score(
+        correct_labels, predicted_adversarial_labels
     )
 
-    return (
-        np.argmax(true_label.detach().cpu().numpy()),
-        np.argmax(predicted_label.detach().cpu().numpy()),
-        np.argmax(predicted_adversarial_label.detach().cpu().numpy())
-    )
-
-def _calculate_logarithmic_distances(before_attack, after_attack):
-    """
-    Calculate logarithmic distances between the feature maps before and after the attack.
-
-    Args:
-        before_attack (torch.Tensor): The feature map before the attack.
-        after_attack (torch.Tensor): The feature map after the attack.
-    
-    Returns:
-        A list of logarithmic distances for each layer.
-    """
-    distances = []
-
-    for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
-        flat_weights_before_attack = weights_before_attack.view(-1)
-        flat_weights_after_attack = weights_after_attack.view(-1)
-
-        difference = flat_weights_after_attack - flat_weights_before_attack
-
-        logarithmic_distance = torch.log(torch.abs(difference))
-
-        # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
-        finite_mask = torch.isfinite(logarithmic_distance)
-        logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
-
-        mean_logarithmic_distance = torch.mean(logarithmic_distance)
-        distances.append(mean_logarithmic_distance.item())
-
-
-        # # Find the indices of the k feature maps with the greatest mean logarithmic distance
-        # most_changed_indices = sorted(range(len(mean_logarithmic_distances)),
-        #                           key=lambda i: mean_logarithmic_distances[i],
-        #                           reverse=True)[:k]
-
-    return distances
+    print("Overall accuracy: ", overall_accuracy)
+    print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
 
 
 
@@ -142,43 +78,45 @@ def main():
     np.random.seed(RANDOM_SEED)
 
     # Initialize empty lists
-    correct_labels = []
-    predicted_labels = []
-    predicted_adversarial_labels = []
+    log_distances: list = []
+    correct_labels: list = []
+    predicted_labels: list = []
+    predicted_adversarial_labels: list = []
     
     # Initialize setup
     train_data_loader, _, _ = _initialize_data_loaders()
     model = _initialize_model()
-    attack = torchattacks.FGSM(model, eps=2/255)
     device = _initialize_device()
+    attack = torchattacks.FGSM(model, eps=2/255)
 
     # Initialize variables
     model_children: list = list(model.children()) # get all the model children as list
-    model_weights, conv_layers = extract_kernels_from_resnet_architecture(
+    _, conv_layers = extract_kernels_from_resnet_architecture(
             model_children)
     
+    print("Length of convolutional layers: ", len(conv_layers))
     print(conv_layers)
-
+    
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
-        
-        correct_label, predicted_label, predicted_adversarial_label = _process_batch(
+
+        label_results = assess_attack_and_log_distances(
             model, device, input, true_label, attack, conv_layers
         )
+        log_distance, correct_label, predicted_label, adv_label = label_results
 
+        log_distances.append(log_distance)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
-        predicted_adversarial_labels.append(predicted_adversarial_label)
+        predicted_adversarial_labels.append(adv_label)
         
         if i >= 3:
             break
 
-    overall_accuracy = accuracy_score(correct_labels, predicted_labels)
-    overall_adversarial_accuracy = accuracy_score(
-        correct_labels, predicted_adversarial_labels
+    _print_overall_accuracy(
+        correct_labels, predicted_labels, predicted_adversarial_labels
     )
 
-    print("Overall accuracy: ", overall_accuracy)
-    print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
+    print(log_distances)
 
 
 if __name__ == '__main__':

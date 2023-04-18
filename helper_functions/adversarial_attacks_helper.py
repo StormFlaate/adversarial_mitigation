@@ -1,8 +1,10 @@
 import math
 from typing import Iterator
 from matplotlib import pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
+import torchattacks
 
 
 def generate_adversarial_input(
@@ -158,3 +160,90 @@ def visualize_feature_map_of_convolutional_layers(
         plt.savefig(f"./{file_name_prefix}_layer_{num_layer}.png")
         # plt.show()
         plt.close()
+
+
+def assess_attack_and_log_distances(
+        model: torch.nn.Module,
+        device: torch.device,
+        input: torch.Tensor,
+        true_label: torch.Tensor,
+        attack: torchattacks.attack, 
+        conv_layers: list[torch.nn.Conv2d]
+    ) -> tuple:
+    """
+    Assesses the attack before and after the pertubation of the input image, calculating
+    log distance and what the model evaluates clean and pertubated input as.
+
+    Args:
+        model (torch.nn.Module): The target model.
+        device (torch.device): The device to be used.
+        input (torch.Tensor): The input tensor.
+        true_label (torch.Tensor): The true label tensor.
+        attack (torchattacks.Attack): The attack method object.
+        conv_layers: The convolutional layers for the current model.
+
+    Returns:
+        The logarithmic distances between feature maps, true label, predicted label,
+            and predicted adversarial label.
+    """
+    input = input.to(device)
+    true_label = true_label.to(device)
+
+    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
+        input, conv_layers)
+    
+    # perform adversarial attack on the input
+    adversarial_input = generate_adversarial_input(input, true_label, attack)
+    # evaluates the input using the trained model
+    predicted_label = model(input)
+    predicted_adversarial_label = model(adversarial_input)
+
+    feature_map_after_attack = extract_feature_map_of_convolutional_layers(
+        adversarial_input, conv_layers)
+
+    logarithmic_distances = calculate_logarithmic_distances(
+        feature_map_before_attack, feature_map_after_attack)
+
+    return (
+        logarithmic_distances,
+        np.argmax(true_label.detach().cpu().numpy()),
+        np.argmax(predicted_label.detach().cpu().numpy()),
+        np.argmax(predicted_adversarial_label.detach().cpu().numpy())
+    )
+
+
+def calculate_logarithmic_distances(before_attack, after_attack):
+    """
+    Calculate logarithmic distances between the feature maps before and after the attack.
+
+    Args:
+        before_attack (torch.Tensor): The feature map before the attack.
+        after_attack (torch.Tensor): The feature map after the attack.
+    
+    Returns:
+        A list of logarithmic distances for each layer.
+    """
+    distances = []
+
+    for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
+        flat_weights_before_attack = weights_before_attack.view(-1)
+        flat_weights_after_attack = weights_after_attack.view(-1)
+
+        difference = flat_weights_after_attack - flat_weights_before_attack
+
+        logarithmic_distance = torch.log(torch.abs(difference))
+
+        # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
+        finite_mask = torch.isfinite(logarithmic_distance)
+        logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
+
+        mean_logarithmic_distance = torch.mean(logarithmic_distance)
+        distances.append(mean_logarithmic_distance.item())
+
+
+        # # Find the indices of the k feature maps with the greatest mean logarithmic distance
+        # most_changed_indices = sorted(range(len(mean_logarithmic_distances)),
+        #                           key=lambda i: mean_logarithmic_distances[i],
+        #                           reverse=True)[:k]
+
+    return distances
