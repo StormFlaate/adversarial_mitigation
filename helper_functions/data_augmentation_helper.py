@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List
+from typing import Any
 import pandas as pd
 import torch
 from PIL import Image
@@ -54,7 +54,7 @@ def augment_images_and_save_to_file(
     images = annotations.iloc[:, 0]
 
     # Create a dictionary mapping each class name to a list of image names
-    class_images: Dict[str, Any] = _create_class_images_dict(annotations, class_names)
+    class_images: dict[str, Any] = _create_class_images_dict(annotations, class_names)
 
     # Define the column names for the new CSV file
     columns = ["image"] + list(class_names)
@@ -101,7 +101,7 @@ def augment_images_and_save_to_file(
 ###################################################
 # ============== PRIVATE FUNCTIONS ============== #
 ###################################################
-def _instantiate_skinlesion_dataframe(columns: List[str]) -> pd.DataFrame:
+def _instantiate_skinlesion_dataframe(columns: list[str]) -> pd.DataFrame:
     """
     Create a new DataFrame with columns and default value of 0.0 for each column except
     the first one.
