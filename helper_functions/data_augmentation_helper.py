@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import Any
 import pandas as pd
 import torch
@@ -8,9 +7,48 @@ from torchvision.io import read_image
 from tqdm import tqdm
 
 from config import RANDOM_SEED
+# Import custom modules
+from config import (
+    AUGMENTED_DATASET_2019_LABELS,
+    AUGMENTED_DATASET_2019_ROOT_DIR,
+    AUGMENTED_TRAIN_2018_LABELS,
+    AUGMENTED_TRAIN_2018_ROOT_DIR,
+    DATASET_2019_LABELS,
+    DATASET_2019_ROOT_DIR,
+    MIN_NUMBER_OF_EACH_CLASS_2018,
+    MIN_NUMBER_OF_EACH_CLASS_2019,
+    TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR
+)
 
 
-def augment_images_and_save_to_file(
+def augment_2018_images_and_save_to_file(augmentation_transform):
+    _augment_images_and_save_to_file(
+        TRAIN_2018_ROOT_DIR,
+        AUGMENTED_TRAIN_2018_ROOT_DIR,
+        TRAIN_2018_LABELS,
+        AUGMENTED_TRAIN_2018_LABELS,
+        augmentation_transform, 
+        min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS_2018
+    )
+
+
+def augment_2019_images_and_save_to_file(augmentation_transform):
+    _augment_images_and_save_to_file(
+        DATASET_2019_ROOT_DIR,
+        AUGMENTED_DATASET_2019_ROOT_DIR,
+        DATASET_2019_LABELS,
+        AUGMENTED_DATASET_2019_LABELS,
+        augmentation_transform, 
+        min_number_of_each_class=MIN_NUMBER_OF_EACH_CLASS_2019,
+        exclude_last_class=True
+    )
+
+
+###################################################
+# ============== PRIVATE FUNCTIONS ============== #
+###################################################
+
+def _augment_images_and_save_to_file(
         root_dir: str,
         new_root_dir: str,
         csv_file: str,
@@ -86,8 +124,6 @@ def augment_images_and_save_to_file(
                 f"{new_image_name}.{image_file_type}"
             )
 
-            print("full_image_path", full_image_path)
-            sys.exit()
             image_variant.save(full_image_path)
 
             df.loc[len(df)] = [new_image_name] + _generate_list_with_1_at_index(
@@ -99,13 +135,6 @@ def augment_images_and_save_to_file(
     # Save the new DataFrame to a new CSV file
     df.to_csv(new_csv_file, index=False)
 
-
-
-
-
-###################################################
-# ============== PRIVATE FUNCTIONS ============== #
-###################################################
 def _instantiate_skinlesion_dataframe(columns: list[str]) -> pd.DataFrame:
     """
     Create a new DataFrame with columns and default value of 0.0 for each column except
