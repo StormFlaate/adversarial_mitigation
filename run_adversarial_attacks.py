@@ -106,6 +106,7 @@ def main():
         )
         log_distance, correct_label, predicted_label, adv_label = label_results
 
+        [print(tensor.size()) for tensor in log_distance]
         # gets the tensors over to the cpu and then over to numpy
         log_distance_array: np.array = np.array(
             [tensor.cpu().detach().numpy() for tensor in log_distance]
