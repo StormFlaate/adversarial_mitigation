@@ -110,7 +110,9 @@ def train_model(
 
         if epoch and epoch%10==0:
             # check the accuracy of the model
-            _print_test_results(*_validate_model_during_training(model, val_data_loader))
+            _print_test_results(
+                *_validate_model_during_training(model, val_data_loader)
+            )
             
             # save the model to file
             save_model_and_parameters_to_file(
@@ -217,7 +219,8 @@ def get_category_counts(data_loader: DataLoader[Subset[ISICDataset]]) -> Dict[st
     count_dict = {}
     # Loop over the columns of the DataFrame
     for col in df.columns[1:]:
-        # Count the number of occurrences of '1' in the column and add it to the dictionary
+        # Count the number of occurrences of '1' in the column
+        # and add it to the dictionary
         count_dict[col] = df[col].sum()
 
     return count_dict
@@ -420,9 +423,7 @@ def _validate_model_during_training(
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, data in tqdm(enumerate(data_loader, 0)):
-        # Get the inputs and labels from the data
-        inputs, labels = data
+    for i, (inputs, labels) in tqdm(enumerate(data_loader, 0)):
 
         # Move inputs and labels to the specified device
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
