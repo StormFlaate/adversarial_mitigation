@@ -26,7 +26,9 @@ AUGMENTED_TEST_2018_LABELS: str = "./augmented_data/ISIC2018_Validation_GroundTr
 AUGMENTED_TEST_2018_ROOT_DIR: str = "./augmented_data/ISIC2018_Validation_Input"
 
 # Dataset 2019 - has not been split into train and test
-AUGMENTED_DATASET_2019_LABELS: str = "./augmented_data/ISIC_2019_Training_GroundTruth.csv"
+AUGMENTED_DATASET_2019_LABELS: str = (
+    "./augmented_data/ISIC_2019_Training_GroundTruth.csv"
+)
 AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Input"
 
 
@@ -121,18 +123,3 @@ PREPROCESS_INCEPTIONV3 = transforms.Compose([
 ])
 
 PREPROCESS_TRANSFORM = PREPROCESS_RESNET18
-
-
-IS_2018_DATASET: bool = True
-if "2019" in TRAIN_DATASET_LABELS and "2019" in TRAIN_DATASET_ROOT_DIR:
-    IS_2018_DATASET = False
-    assert (TRAIN_SPLIT_PERCENTAGE + TEST_SPLIT_PERCENTAGE + VAL_SPLIT_PERCENTAGE) == 1.0, "The total of train, validation and test should be equal to 1.0"
-else:
-    assert (TRAIN_SPLIT_PERCENTAGE + VAL_SPLIT_PERCENTAGE) == 1.0, "The total of train and validation should be equal to 1.0"
-
-
-
-if "2019" in TRAIN_DATASET_LABELS:
-    assert "2019" in TRAIN_DATASET_ROOT_DIR, "Need to have 2019 dataset to 2019 labels"
-if "2018" in TRAIN_DATASET_LABELS:
-    assert "2018" in TRAIN_DATASET_ROOT_DIR, "Need to have 2018 dataset to 2018 labels"
