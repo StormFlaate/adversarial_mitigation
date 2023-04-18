@@ -263,6 +263,7 @@ def calculate_logarithmic_distances(
 def plot_colored_grid(data: list[np.array], color_map='viridis'):
     nrows = len(data)
     max_ncols = max(arr.ndim for arr in data)
+    print("max_ncols", max_ncols)
     fig, ax = plt.subplots(figsize=(max_ncols, nrows))
 
     # Normalize the data to map colors in the color map
