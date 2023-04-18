@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torchattacks
@@ -120,6 +121,23 @@ def main():
     )
 
     print(log_distances)
+
+    # Transpose data to separate the series
+    transposed_data = list(map(list, zip(*log_distances)))
+
+    # Plot the series
+    for series in transposed_data:
+        plt.plot(series)
+
+    plt.xlabel("Index")
+    plt.ylabel("Value")
+    plt.title("Visual Analysis of Data")
+    plt.legend(
+        ["Series 1", "Series 2", "Series 3", "Series 4", "Series 5", "Series 6"],
+        loc="upper left"
+    )
+    plt.savefig("./test_images/visual_analysis.png")
+    plt.close()
 
 
 if __name__ == '__main__':

@@ -21,7 +21,8 @@ def get_trained_or_default_model(
         model_name: str = MODEL_NAME
         ) -> nn.Module:
     """
-    Load a PyTorch model from a file if it exists, otherwise load the pretrained default model.
+    Load a PyTorch model from a file if it exists, otherwise load the pretrained default
+    model. The model will be set to evaluation mode before returning the model.
 
     Args:
         model_file_name (str): The name of the model file to load.
