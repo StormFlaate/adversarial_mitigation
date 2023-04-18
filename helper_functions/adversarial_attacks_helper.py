@@ -228,6 +228,9 @@ def calculate_logarithmic_distances(
     Returns:
         A list of logarithmic distances for each layer.
     """
+    for tensor in before_attack:
+        print(tensor.shape)
+
     distances = []
 
     for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
