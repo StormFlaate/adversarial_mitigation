@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Any
 import pandas as pd
 import torch
@@ -37,6 +38,7 @@ def augment_images_and_save_to_file(
 
     # Make the new root directory if it doesn't exist
     if not os.path.exists(new_root_dir):
+        print(f"Creating {new_root_dir}")
         os.makedirs(new_root_dir)
 
     # Set the random seed
@@ -65,7 +67,7 @@ def augment_images_and_save_to_file(
     # Loop through each class and display transformed images in the subplots
     total_image_counter: int = 1
     for class_name, (class_index, images) in class_images.items():
-        # takes the maximum of the minimum required images and total images for specific class
+        # max of the minimum required images and total images for specific class
         for img_num in tqdm(range(max(min_number_of_each_class, len(images)))):
             # Choose an image from the class images
             image_name = images[img_num % len(images)]
@@ -74,20 +76,22 @@ def augment_images_and_save_to_file(
             image = read_image(img_path)
 
             # Apply the transform to the image
-            image_variant: Image.Image = transform(image)
-
+            image_variant: Image = transform(image)
+            print(type(image_variant))
+            sys.exit()
             # Generate a new padded image name and add it to the DataFrame with the
             # appropriate class label
             new_image_name = f"ISIC_{str(total_image_counter).zfill(8)}"
             full_image_path = os.path.join(
-                new_root_dir, f"{new_image_name}.{image_file_type}"
-                )
+                new_root_dir,
+                f"{new_image_name}.{image_file_type}"
+            )
 
             image_variant.save(full_image_path)
 
             df.loc[len(df)] = [new_image_name] + _generate_list_with_1_at_index(
-                           len(class_names), class_index
-                            )
+                len(class_names), class_index
+            )
 
         total_image_counter += 1
 
