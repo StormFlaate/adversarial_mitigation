@@ -276,6 +276,7 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
 
     for i in range(nrows):
         ncols = data[i].shape[1]
+        print("data[i]",data[i])
         print("ncols", ncols)
         for j in range(ncols):
             rect = plt.Rectangle(
