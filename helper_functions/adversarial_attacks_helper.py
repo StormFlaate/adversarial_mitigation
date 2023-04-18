@@ -169,7 +169,7 @@ def assess_attack_and_log_distances(
         true_label: torch.Tensor,
         attack: torchattacks.attack, 
         conv_layers: list[torch.nn.Conv2d]
-    ) -> tuple:
+    ) -> tuple[list[torch.Tensor], np.intp, np.intp, np.intp]:
     """
     Assesses the attack before and after the pertubation of the input image, calculating
     log distance and what the model evaluates clean and pertubated input as.
@@ -212,7 +212,10 @@ def assess_attack_and_log_distances(
     )
 
 
-def calculate_logarithmic_distances(before_attack, after_attack):
+def calculate_logarithmic_distances(
+        before_attack: list[torch.Tensor],
+        after_attack: list[torch.Tensor]
+    ) -> list[torch.Tensor]:
     """
     Calculate logarithmic distances between the feature maps before and after the attack.
 

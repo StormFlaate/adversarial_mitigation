@@ -96,7 +96,7 @@ def main():
     
     print("Length of convolutional layers: ", len(conv_layers))
     print(conv_layers)
-    
+
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
         label_results = assess_attack_and_log_distances(
@@ -104,7 +104,10 @@ def main():
         )
         log_distance, correct_label, predicted_label, adv_label = label_results
 
-        log_distances.append(log_distance)
+        # gets the tensors over to the cpu before appending to the list
+        cpu_tensor_list = [tensor.cpu() for tensor in log_distance]
+
+        log_distances.append(cpu_tensor_list)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
