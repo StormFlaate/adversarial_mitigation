@@ -237,8 +237,7 @@ def calculate_logarithmic_distances(before_attack, after_attack):
         finite_mask = torch.isfinite(logarithmic_distance)
         logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
 
-        mean_logarithmic_distance = torch.mean(logarithmic_distance)
-        distances.append(mean_logarithmic_distance.item())
+        distances.append(logarithmic_distance)
 
 
         # # Find the indices of the k feature maps with the greatest mean logarithmic distance
