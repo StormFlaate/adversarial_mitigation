@@ -130,7 +130,7 @@ def main():
     
     print(log_distances_np[0])
     print(log_distances_np.shape)
-    plot_colored_grid(log_distances_np)
+    plot_colored_grid(log_distances_np[0])
 
 
 if __name__ == '__main__':
