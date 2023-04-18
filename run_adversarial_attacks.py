@@ -123,7 +123,8 @@ def main():
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
 
-    log_distances_np = np.concatenate(log_distances, axis=0)
+    log_distances_np = np.array(log_distances)
+
     print(log_distances_np)
     print(log_distances_np.shape)
 
