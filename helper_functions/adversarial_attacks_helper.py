@@ -262,8 +262,7 @@ def calculate_logarithmic_distances(
 
 def plot_colored_grid(data: list[np.array], color_map='viridis'):
     nrows = len(data)
-    max_ncols = max(arr.ndim for arr in data)
-    print("max_ncols", max_ncols)
+    max_ncols = max(arr.shape[1] for arr in data)  # Fixed this line
     fig, ax = plt.subplots(figsize=(max_ncols, nrows))
 
     # Normalize the data to map colors in the color map
@@ -275,21 +274,21 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
     cmap = cm.get_cmap(color_map)
 
     for i in range(nrows):
-        ncols = data[i].ndim
+        ncols = data[i].shape[1]  # Fixed this line
         for j in range(ncols):
             rect = plt.Rectangle(
                 (j, i), 1, 1, facecolor=cmap(norm(data[i][j])), edgecolor='k'
             )
             ax.add_patch(rect)
 
-    ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
+    ax.set_xticks(np.arange(max_ncols + 1) - 0.5, minor=True)
     ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
 
     # Remove the major gridlines
     ax.grid(which='major', visible=False)
 
     # Set axis limits
-    ax.set_xlim(0, ncols)
+    ax.set_xlim(0, max_ncols)
     ax.set_ylim(0, nrows)
 
     # Remove axis labels and ticks
@@ -301,10 +300,7 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
     plt.savefig("./test_images/colored_grid.png")
     plt.close()
 
-
-
-def _flatten_list(list_of_arrays: list[np.array]
-    ) -> np.array:
+def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
     # Stack the arrays in the list horizontally
     stacked_array = np.hstack(list_of_arrays)
     
@@ -312,3 +308,4 @@ def _flatten_list(list_of_arrays: list[np.array]
     flattened_array = stacked_array.flatten()
     
     return flattened_array
+
