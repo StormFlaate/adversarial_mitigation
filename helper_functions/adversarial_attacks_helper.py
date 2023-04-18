@@ -264,15 +264,15 @@ def calculate_logarithmic_distances(
 
 def plot_colored_grid(data: list[np.array], color_map='viridis'):
     nrows = len(data)
-    
+
     # Group rows by the number of columns
     grouped_data = {}
-    for arr in data:
+    for filter_index, arr in enumerate(data):
         ncols = arr.shape[1]
         if ncols in grouped_data:
-            grouped_data[ncols].append(arr)
+            grouped_data[ncols].append((filter_index, arr))
         else:
-            grouped_data[ncols] = [arr]
+            grouped_data[ncols] = [(filter_index, arr)]
 
     for ncols, grouped_rows in grouped_data.items():
         nrows = len(grouped_rows)
@@ -281,8 +281,8 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
         # Get the colormap object from the colormap name
         cmap = cm.get_cmap(color_map)
 
-        for i in range(nrows):
-            current_row = grouped_rows[i].flatten()
+        for i, (filter_index, arr) in enumerate(grouped_rows):
+            current_row = arr.flatten()
             norm = _get_normalize_function(current_row)
 
             for j in range(ncols):
@@ -290,6 +290,9 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
                     (j, i), 1, 1, facecolor=cmap(norm(current_row[j])), edgecolor='k'
                 )
                 ax.add_patch(rect)
+
+            # Add filter index as a tick label to the left of the row
+            ax.text(-0.5, i+0.5, str(filter_index), ha='right', va='center')
 
         ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
         ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
@@ -312,6 +315,7 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
         os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
         plt.close()
+
 
 
 def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
