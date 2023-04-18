@@ -228,25 +228,29 @@ def calculate_logarithmic_distances(
     Returns:
         A list of logarithmic distances for each layer.
     """
-    for tensor in before_attack:
-        print(tensor.shape)
-
     distances = []
 
-    for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
-        flat_weights_before_attack = weights_before_attack.view(-1)
-        flat_weights_after_attack = weights_after_attack.view(-1)
+    for filters_before_attack, filters_after_attack in zip(before_attack, after_attack):
+        assert filters_before_attack.shape == filters_after_attack.shape
+        
+        original_shape: torch.Size = filters_before_attack.shape
 
-        difference = flat_weights_after_attack - flat_weights_before_attack
-
-        logarithmic_distance = torch.log(torch.abs(difference))
+        difference = filters_after_attack.view(-1) - filters_before_attack.view(-1)
+        logarithmic_distance_1_dim = torch.log(torch.abs(difference))
 
         # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
-        finite_mask = torch.isfinite(logarithmic_distance)
-        logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
+        finite_mask = torch.isfinite(logarithmic_distance_1_dim)
+        logarithmic_distance_1_dim[~finite_mask] = 0  # Set non-real values to 0
 
-        distances.append(logarithmic_distance)
+        logarithmic_distance_reshaped = logarithmic_distance_1_dim.reshape(
+            original_shape
+        )
 
+        mean_logarithmic_distance = torch.mean(
+            logarithmic_distance_reshaped, dim=(2, 3))
+
+        print(mean_logarithmic_distance.shape)
+        distances.append(mean_logarithmic_distance)
 
         # # Find the indices of the k feature maps with the greatest mean logarithmic distance
         # most_changed_indices = sorted(range(len(mean_logarithmic_distances)),
