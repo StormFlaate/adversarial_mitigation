@@ -114,12 +114,23 @@ def _calculate_logarithmic_distances(before_attack, after_attack):
     for weights_before_attack, weights_after_attack in zip(before_attack, after_attack):
         flat_weights_before_attack = weights_before_attack.view(-1)
         flat_weights_after_attack = weights_after_attack.view(-1)
+
         difference = flat_weights_after_attack - flat_weights_before_attack
+
         logarithmic_distance = torch.log(torch.abs(difference))
+
+        # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
         finite_mask = torch.isfinite(logarithmic_distance)
         logarithmic_distance[~finite_mask] = 0  # Set non-real values to 0
+
         mean_logarithmic_distance = torch.mean(logarithmic_distance)
         distances.append(mean_logarithmic_distance.item())
+
+
+        # # Find the indices of the k feature maps with the greatest mean logarithmic distance
+        # most_changed_indices = sorted(range(len(mean_logarithmic_distances)),
+        #                           key=lambda i: mean_logarithmic_distances[i],
+        #                           reverse=True)[:k]
 
     return distances
 
@@ -145,6 +156,8 @@ def main():
     model_children: list = list(model.children()) # get all the model children as list
     model_weights, conv_layers = extract_kernels_from_resnet_architecture(
             model_children)
+    
+    print(conv_layers)
 
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
         
@@ -158,8 +171,6 @@ def main():
         
         if i >= 3:
             break
-
-        
 
     overall_accuracy = accuracy_score(correct_labels, predicted_labels)
     overall_adversarial_accuracy = accuracy_score(
