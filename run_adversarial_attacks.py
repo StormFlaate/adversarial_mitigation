@@ -106,7 +106,7 @@ def main():
         log_distance, correct_label, predicted_label, adv_label = label_results
 
         # gets the tensors over to the cpu before appending to the list
-        cpu_tensor_list = [tensor.cpu() for tensor in log_distance]
+        cpu_tensor_list = [tensor.cpu().detach().numpy() for tensor in log_distance]
 
         log_distances.append(cpu_tensor_list)
         correct_labels.append(correct_label)
@@ -121,6 +121,7 @@ def main():
     )
 
     print(log_distances)
+
 
     # Transpose data to separate the series
     transposed_data = list(map(list, zip(*log_distances)))
