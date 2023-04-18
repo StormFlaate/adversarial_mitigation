@@ -9,11 +9,16 @@ from tqdm import tqdm
 from customDataset import ISICDataset
 from sklearn.metrics import accuracy_score, f1_score
 from config import (
-    IS_2018_DATASET, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER, PREPROCESS_TRANSFORM,
-    SHUFFLE_TRAIN_DATALOADER, TRAIN_NROWS, BATCH_SIZE, TEST_NROWS,
-    TEST_DATASET_LABELS, TEST_DATASET_ROOT_DIR, SHUFFLE_VAL_DATALOADER,
-    TEST_SPLIT_PERCENTAGE, TRAIN_DATASET_LABELS, TRAIN_DATASET_ROOT_DIR,
-    IMAGE_FILE_TYPE, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE)
+    AUGMENTED_DATASET_2019_LABELS, AUGMENTED_DATASET_2019_ROOT_DIR,
+    AUGMENTED_TEST_2018_LABELS, AUGMENTED_TEST_2018_ROOT_DIR,
+    AUGMENTED_TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_ROOT_DIR, DATASET_2019_LABELS,
+    DATASET_2019_ROOT_DIR, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER,
+    PREPROCESS_TRANSFORM, SHUFFLE_TRAIN_DATALOADER, TEST_2018_LABELS,
+    TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR, TRAIN_NROWS, BATCH_SIZE,
+    TEST_NROWS, SHUFFLE_VAL_DATALOADER,
+    TEST_SPLIT_PERCENTAGE, TRAIN_DATASET_ROOT_DIR,
+    IMAGE_FILE_TYPE, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE
+)
 from torch import randperm
 from torch._utils import _accumulate
 from helper_functions.misc_helper import save_model_and_parameters_to_file
@@ -41,7 +46,8 @@ def train_model(
         train_dataset: The train_dataset used for training.
         train_data_loader: The data loader used for iterating over the train_dataset.
         val_data_loader: The data loader used for validating the training
-        criterion: The loss function used for calculating the loss between model output and labels.
+        criterion: The loss function used for calculating the loss between model output
+            and labels.
         optimizer: The optimizer used for updating the model parameters.
         model_name: The type of the model being used (if applicable).
         epoch_count: The number of epochs to train the model.
@@ -274,95 +280,66 @@ def random_split(
         ]
 
 
+def get_data_loaders_2018(
+        is_augmented_dataset: bool
+    ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
+    
+    _validate_split_percentages_2018()
+
+    labels_train = TRAIN_2018_LABELS
+    root_dir_train = TRAIN_2018_ROOT_DIR
+    labels_test = TEST_2018_LABELS
+    root_dir_test = TEST_2018_ROOT_DIR
+    if is_augmented_dataset:
+        labels_train = AUGMENTED_TRAIN_2018_LABELS
+        root_dir_train = AUGMENTED_TRAIN_2018_ROOT_DIR
+        labels_test = AUGMENTED_TEST_2018_LABELS
+        root_dir_test = AUGMENTED_TEST_2018_ROOT_DIR
+    
+    data_loaders = get_data_loaders(*_generate_and_split_dataset_2018(
+        labels_train,
+        root_dir_train,
+        labels_test,
+        root_dir_test
+    ))
+    
+    return (*data_loaders, root_dir_train)
+
+def get_data_loaders_2019(
+        is_augmented_dataset: bool
+    ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
+    
+    _validate_split_percentages_2019()
+
+    labels = DATASET_2019_LABELS
+    root_dir = DATASET_2019_ROOT_DIR
+    if is_augmented_dataset:
+        labels = AUGMENTED_DATASET_2019_LABELS
+        root_dir = AUGMENTED_DATASET_2019_ROOT_DIR
+
+    data_loaders = get_data_loaders(*_generate_and_split_dataset_2019(labels, root_dir))
+
+    return (*data_loaders, root_dir)
 
 
 def get_data_loaders(
-    train_dataset_labels: str=TRAIN_DATASET_LABELS,
-    train_dataset_root_dir: str=TRAIN_DATASET_ROOT_DIR, 
-    train_nrows: int=TRAIN_NROWS,
-    test_dataset_labels: str=TEST_DATASET_LABELS, 
-    test_dataset_root_dir: str=TEST_DATASET_ROOT_DIR, 
-    test_nrows: int=TEST_NROWS,
-    image_file_type: str=IMAGE_FILE_TYPE, 
-    preprocess_transform=PREPROCESS_TRANSFORM,
-    train_split_percentage: float=TRAIN_SPLIT_PERCENTAGE, 
-    val_split_percentage: float=VAL_SPLIT_PERCENTAGE, 
-    test_split_percentage: float=TEST_SPLIT_PERCENTAGE,
-    batch_size: int=BATCH_SIZE, 
-    shuffle_train_dataloader: bool=SHUFFLE_TRAIN_DATALOADER, 
-    shuffle_val_dataloader: bool=SHUFFLE_VAL_DATALOADER,
-    num_workers: int=NUM_WORKERS, 
-    pin_memory_train_dataloader: bool=PIN_MEMORY_TRAIN_DATALOADER,
-    is_2018_dataset:bool or None=IS_2018_DATASET
+    train_dataset: data.Dataset,
+    val_dataset: data.Dataset,
+    test_dataset: data.Dataset,
 ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
     """
-    Returns train_data_loader, val_data_loader, and test_data_loader
-    Input is by default based on the configuration file, but can be manually.
-    
+    Returns train_data_loader, val_data_loader, and test_data_loader.
+
     Args:
-    - train_dataset_labels: the filepath of the train dataset labels
-    - train_dataset_root_dir: the filepath of the train dataset root directory
-    - train_nrows: the number of rows to load for the train dataset
-    - test_dataset_labels: the filepath of the test dataset labels
-    - test_dataset_root_dir: the filepath of the test dataset root directory
-    - test_nrows: the number of rows to load for the test dataset
-    - image_file_type: the image file type, e.g. ".jpg"
-    - preprocess_transform: a function that applies preprocessing to the dataset
-    - train_split_percentage: the percentage of the train dataset to use
-    - val_split_percentage: the percentage of the validation dataset to use
-    - test_split_percentage: the percentage of the test dataset to use
-    - batch_size: the batch size
-    - shuffle_train_dataloader: whether to shuffle the train dataloader
-    - shuffle_val_dataloader: whether to shuffle the validation dataloader
-    - num_workers: the number of workers to use
-    - pin_memory_train_dataloader: whether to pin memory for the train dataloader
-    - is_2018_dataset: whether the dataset is from 2018
-    
+        train_dataset: A PyTorch dataset containing the training data.
+        val_dataset: A PyTorch dataset containing the validation data.
+        test_dataset: A PyTorch dataset containing the test data.
+
     Returns:
-    - Tuple of train_data_loader, val_data_loader, and test_data_loader
+        A tuple containing three PyTorch data loaders:
+            train_data_loader, val_data_loader, and test_data_loader.
     """
     
-    assert isinstance(is_2018_dataset, bool), "Need to define dataset as either 2018 or 2019 (True or False)"  # noqa: E501
-
-
-
-    # Load the datasets
-    print("Loading datasets...")
-    train_dataset_full = ISICDataset(
-        csv_file=train_dataset_labels, 
-        root_dir=train_dataset_root_dir, 
-        transform=preprocess_transform,
-        image_file_type=image_file_type,
-        nrows=train_nrows
-    )
-
-    # the 2018 and 2019 dataset has some configuration differences when it comes to
-    # train, validation and test datasets
-    if is_2018_dataset:
-        # Splits the dataset into train and validation
-        train_dataset, val_dataset = random_split(
-            train_dataset_full, [train_split_percentage, val_split_percentage]
-        )    
-
-        test_dataset_full = ISICDataset(
-            csv_file=test_dataset_labels, 
-            root_dir=test_dataset_root_dir, 
-            transform=preprocess_transform,
-            image_file_type=image_file_type,
-            nrows=test_nrows
-        )
-        # added for consistency
-        test_dataset = Subset(
-            test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
-        )
-    else:
-        train_dataset, val_dataset, test_dataset = random_split(
-            train_dataset_full, [
-                train_split_percentage, val_split_percentage, test_split_percentage
-                ]
-            )
-
-
     print(f"Train dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(val_dataset)}")
     print(f"Test dataset length: {len(test_dataset)}")
@@ -371,20 +348,20 @@ def get_data_loaders(
     print("Defining train data loader...")
     train_data_loader = data.DataLoader(
         train_dataset, 
-        batch_size=batch_size, 
-        shuffle=shuffle_train_dataloader,
-        num_workers=num_workers,
-        pin_memory=pin_memory_train_dataloader
+        batch_size=BATCH_SIZE, 
+        shuffle=SHUFFLE_TRAIN_DATALOADER,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
     # Define validation data loader
     print("Defining validation data loader...")
     val_data_loader = data.DataLoader(
         val_dataset, 
-        batch_size=batch_size, 
-        shuffle=shuffle_val_dataloader,
-        num_workers=num_workers,
-        pin_memory=pin_memory_train_dataloader
+        batch_size=BATCH_SIZE, 
+        shuffle=SHUFFLE_VAL_DATALOADER,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
 
     # Define test data loader
@@ -533,3 +510,108 @@ def _get_annotations_subset(
     df: pd.DataFrame = subset.dataset.annotations
     df_subset = df.iloc[subset.indices]
     return df_subset
+
+def _validate_split_percentages_2019() -> None:
+    """
+    Validates that the sum of train, validation, and test split percentages equals 1.0.
+
+    Raises:
+        AssertionError: If the sum of the percentages is not equal to 1.0.
+
+    Returns:
+        None.
+    """
+    assertion_message: str = (
+        "The total of train, validation and test percentage should be equal to 1.0"
+    )
+    split_percentage_sum = sum([
+        TRAIN_SPLIT_PERCENTAGE,
+        TEST_SPLIT_PERCENTAGE,
+        VAL_SPLIT_PERCENTAGE
+    ])
+    assert split_percentage_sum == 1.0, assertion_message
+
+def _validate_split_percentages_2018() -> None:
+    """
+    Validates that the sum of train and validation split percentages equals 1.0.
+    the 2018 dataset already has a test dataset generated for them.
+
+    Raises:
+        AssertionError: If the sum of the percentages is not equal to 1.0.
+
+    Returns:
+        None.
+    """
+    assertion_message: str = (
+        "The total of train and validation percentage should be equal to 1.0"
+    )
+    split_percentage_sum = sum([
+        TRAIN_SPLIT_PERCENTAGE,
+        VAL_SPLIT_PERCENTAGE
+    ])
+    assert split_percentage_sum == 1.0, assertion_message
+
+
+def _generate_and_split_dataset_2018(
+        labels_train: str,
+        root_dir_train: str,
+        labels_test: str,
+        root_dir_test: str
+    ) -> Tuple[Subset, Subset, Subset]:
+    """
+    Splits the dataset into train, validation and test based on the provided split
+        percentages.
+    """
+
+    _validate_split_percentages_2018()
+
+    print("Loading datasets...")
+    train_dataset_full = ISICDataset(
+        csv_file=labels_train, 
+        root_dir=root_dir_train, 
+        transform=PREPROCESS_TRANSFORM,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TRAIN_NROWS
+    )
+
+    test_dataset_full = ISICDataset(
+        csv_file=labels_test, 
+        root_dir=root_dir_test, 
+        transform=PREPROCESS_TRANSFORM,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TEST_NROWS
+    )
+
+    # splits the dataset
+    train_dataset, val_dataset = random_split(
+        train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE]
+    )
+    test_dataset = Subset(
+        test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
+    )
+    
+    return train_dataset, val_dataset, test_dataset
+
+def _generate_and_split_dataset_2019(
+        labels: str,
+        root_dir: str
+    ) -> Tuple[Subset, Subset, Subset]:
+
+    _validate_split_percentages_2019()
+    
+    print("Loading datasets...")
+    train_dataset_full = ISICDataset(
+        csv_file=labels, 
+        root_dir=root_dir, 
+        transform=PREPROCESS_TRANSFORM,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TRAIN_NROWS
+    )
+
+    # splits the dataset
+    train_validation_test_dataset: tuple = random_split(
+        train_dataset_full, [
+            TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE, TEST_SPLIT_PERCENTAGE
+        ]
+    )
+    return train_validation_test_dataset
