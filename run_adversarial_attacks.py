@@ -109,7 +109,7 @@ def main():
         [print(tensor.size()) for tensor in log_distance]
 
         # gets the tensors over to the cpu and then over to numpy
-        log_distance: list = [tensor.cpu().numpy() for tensor in log_distance]
+        log_distance: list = [tensor.detach().numpy() for tensor in log_distance]
         log_distance_array = np.array(log_distance)
         
         print(log_distance_array.shape)
