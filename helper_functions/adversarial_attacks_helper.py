@@ -266,7 +266,9 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
     fig, ax = plt.subplots(figsize=(max_ncols, nrows))
 
     # Normalize the data to map colors in the color map
-    norm = mcolors.Normalize(vmin=data.min(), vmax=data.max())
+    min_value = min(np.concatenate(data).ravel())
+    max_value = min(np.concatenate(data).ravel())
+    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
 
     # Get the colormap object from the colormap name
     cmap = cm.get_cmap(color_map)
