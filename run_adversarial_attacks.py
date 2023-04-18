@@ -116,7 +116,7 @@ def main():
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
         
-        if i >= 3:
+        if i >= 0:
             break
 
     _print_overall_accuracy(
@@ -125,6 +125,9 @@ def main():
 
     log_distances_np = np.array(log_distances)
 
+
+    print(log_distances_np[0][0][:10])
+    print(log_distances_np[0][1][:10])
     print(log_distances_np)
     print(log_distances_np.shape)
 
