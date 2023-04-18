@@ -110,12 +110,8 @@ def main():
 
         # gets the tensors over to the cpu and then over to numpy
         log_distance: list = [tensor.detach().cpu().numpy() for tensor in log_distance]
-        log_distance_array = np.array(log_distance)
         
-        print(log_distance_array.shape)
-
-
-        log_distances.append(log_distance_array)
+        log_distances.append(log_distance)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
