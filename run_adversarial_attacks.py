@@ -79,7 +79,7 @@ def main():
     np.random.seed(RANDOM_SEED)
 
     # Initialize empty lists
-    log_distances: list = []
+    log_distances: np.array = []
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
@@ -105,10 +105,12 @@ def main():
         )
         log_distance, correct_label, predicted_label, adv_label = label_results
 
-        # gets the tensors over to the cpu before appending to the list
-        cpu_tensor_list = [tensor.cpu().detach().numpy() for tensor in log_distance]
+        # gets the tensors over to the cpu and then over to numpy
+        log_distance_array: np.array = np.array(
+            [tensor.cpu().detach().numpy() for tensor in log_distance]
+        )
 
-        log_distances.append(cpu_tensor_list)
+        np.append(log_distances, log_distance_array)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
@@ -121,24 +123,7 @@ def main():
     )
 
     print(log_distances)
-
-
-    # Transpose data to separate the series
-    transposed_data = list(map(list, zip(*log_distances)))
-
-    # Plot the series
-    for series in transposed_data:
-        plt.plot(series)
-
-    plt.xlabel("Index")
-    plt.ylabel("Value")
-    plt.title("Visual Analysis of Data")
-    plt.legend(
-        ["Series 1", "Series 2", "Series 3", "Series 4", "Series 5", "Series 6"],
-        loc="upper left"
-    )
-    plt.savefig("./test_images/visual_analysis.png")
-    plt.close()
+    print(log_distances.shape)
 
 
 if __name__ == '__main__':
