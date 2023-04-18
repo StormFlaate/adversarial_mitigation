@@ -76,9 +76,8 @@ def augment_images_and_save_to_file(
             image = read_image(img_path)
 
             # Apply the transform to the image
-            image_variant: Image = transform(image)
-            print(type(image_variant))
-            sys.exit()
+            image_variant: Image.Image = transform(image)
+
             # Generate a new padded image name and add it to the DataFrame with the
             # appropriate class label
             new_image_name = f"ISIC_{str(total_image_counter).zfill(8)}"
@@ -87,6 +86,8 @@ def augment_images_and_save_to_file(
                 f"{new_image_name}.{image_file_type}"
             )
 
+            print("full_image_path", full_image_path)
+            sys.exit()
             image_variant.save(full_image_path)
 
             df.loc[len(df)] = [new_image_name] + _generate_list_with_1_at_index(
