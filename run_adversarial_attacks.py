@@ -122,14 +122,9 @@ def main():
     _print_overall_accuracy(
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
-
-    log_distances_np = np.array(log_distances)
-
-
     
-    print(log_distances_np[0])
-    print(log_distances_np.shape)
-    plot_colored_grid(log_distances_np[0])
+    print(log_distances[0])
+    plot_colored_grid(log_distances[0])
 
 
 if __name__ == '__main__':
