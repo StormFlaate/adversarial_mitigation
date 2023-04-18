@@ -112,7 +112,7 @@ def main():
         )
 
         
-        print(len(log_distance_array[0]))
+        print(log_distance_array[0].shape)
 
 
         log_distances.append(log_distance_array)
