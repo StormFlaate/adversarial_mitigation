@@ -291,6 +291,10 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
                 )
                 ax.add_patch(rect)
 
+                # Add column index as a tick label at the bottom of the grid
+                if i == nrows - 1:  # Only add labels for the last row
+                    ax.text(j+0.5, -0.5, str(j), ha='center', va='top')
+
             # Add filter index as a tick label to the left of the row
             ax.text(-0.5, i+0.5, str(filter_index), ha='right', va='center')
 
@@ -315,6 +319,7 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
         os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
         plt.close()
+
 
 
 
