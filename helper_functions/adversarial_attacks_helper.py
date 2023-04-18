@@ -277,7 +277,7 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
         ncols = data[i].ndim
         for j in range(ncols):
             rect = plt.Rectangle(
-                (j, i), 1, 1, facecolor=cmap(norm(data[i, j])), edgecolor='k'
+                (j, i), 1, 1, facecolor=cmap(norm(data[i][j])), edgecolor='k'
             )
             ax.add_patch(rect)
 
