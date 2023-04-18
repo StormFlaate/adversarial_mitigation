@@ -254,9 +254,8 @@ def calculate_logarithmic_distances(
 
 
 def plot_colored_grid(data, color_map='viridis'):
+    print(f"data.shape: {data.shape}")
     nrows, ncols = data.shape
-    print(f"nrows: {nrows}")
-    print(f"ncols: {ncols}")
     fig, ax = plt.subplots(figsize=(ncols, nrows))
 
     # Normalize the data to map colors in the color map
