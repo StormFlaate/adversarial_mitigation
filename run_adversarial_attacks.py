@@ -111,7 +111,8 @@ def main():
             [tensor.cpu().detach().numpy() for tensor in log_distance]
         )
 
-        print(log_distance_array.shape)
+        
+        print(len(log_distance_array[0]))
 
 
         log_distances.append(log_distance_array)
