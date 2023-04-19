@@ -131,6 +131,7 @@ if __name__ == "__main__":
         )
     )
 
+    # the default value is to use the augmented dataset
     parser.add_argument(
         "--not-augment",
         action="store_true",
