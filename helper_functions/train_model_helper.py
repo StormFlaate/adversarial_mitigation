@@ -313,7 +313,8 @@ def get_data_loaders_2018(
         labels_train,
         root_dir_train,
         TEST_2018_LABELS,
-        TEST_2018_ROOT_DIR
+        TEST_2018_ROOT_DIR,
+        transform
     ))
     
     return (*data_loaders, root_dir_train)
@@ -331,7 +332,11 @@ def get_data_loaders_2019(
         labels = AUGMENTED_DATASET_2019_LABELS
         root_dir = AUGMENTED_DATASET_2019_ROOT_DIR
 
-    data_loaders = get_data_loaders(*_generate_and_split_dataset_2019(labels, root_dir))
+    data_loaders = get_data_loaders(*_generate_and_split_dataset_2019(
+        labels,
+        root_dir,
+        transform
+    ))
 
     return (*data_loaders, root_dir)
 
