@@ -130,7 +130,7 @@ def _augment_images_and_save_to_file(
                 len(class_names), class_index
             )
 
-        total_image_counter += 1
+            total_image_counter += 1
 
     # Save the new DataFrame to a new CSV file
     df.to_csv(new_csv_file, index=False)
