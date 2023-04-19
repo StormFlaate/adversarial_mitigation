@@ -79,6 +79,9 @@ def save_model_and_parameters_to_file(
 
     today = date.today()
 
+    if not folder_exists(models_dir):
+        os.makedirs(models_dir)
+        print(f"New directory: {models_dir} is created!")
 
     # Build the filename for the model file
     filename = f"{model_file_name}_{train_set_name}_{today}_{epoch}__{model_id}"
