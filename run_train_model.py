@@ -13,6 +13,8 @@ from helper_functions.train_model_helper import (
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
+    PREPROCESS_INCEPTIONV3,
+    PREPROCESS_RESNET18,
     RANDOM_SEED,
     RESNET18_MODEL_NAME,
     STEP_SIZE,
@@ -27,19 +29,25 @@ def set_random_seeds():
     np.random.seed(RANDOM_SEED)
 
 
-
-
-def load_pretrained_model_inceptionv3():
+def load_pretrained_model_inceptionv3_and_transform():
     print(f"Loading pretrained {INCEPTIONV3_MODEL_NAME} model...")
-    return torch.hub.load(
-        'pytorch/vision:v0.10.0', INCEPTIONV3_MODEL_NAME, pretrained=True
+    return (
+        torch.hub.load(
+            'pytorch/vision:v0.10.0', INCEPTIONV3_MODEL_NAME, pretrained=True
+        ),
+        PREPROCESS_INCEPTIONV3
     )
 
-def load_pretrained_model_resnet18():
+
+def load_pretrained_model_resnet18_and_transform():
     print(f"Loading pretrained {RESNET18_MODEL_NAME} model...")
-    return torch.hub.load(
-        'pytorch/vision:v0.10.0', RESNET18_MODEL_NAME, pretrained=True
+    return (
+        torch.hub.load(
+            'pytorch/vision:v0.10.0', RESNET18_MODEL_NAME, pretrained=True
+        ),
+        PREPROCESS_RESNET18
     )
+
 
 def define_criterion_and_optimizer(model):
     print("Defining criterion and optimizer...")
@@ -65,19 +73,21 @@ def main(year, model_name, use_augmented_data):
         print("Using the NON augmented dataset...")
 
     if model_name == INCEPTIONV3_MODEL_NAME:
-        cnn_model = load_pretrained_model_inceptionv3()
+        cnn_model, transform = load_pretrained_model_inceptionv3_and_transform()
     elif model_name == RESNET18_MODEL_NAME:
-        cnn_model = load_pretrained_model_resnet18()
+        cnn_model, transform = load_pretrained_model_resnet18_and_transform()
     else:
         raise Exception("Need to choose a model architecture...")
 
     if year == "2018":
         *data_loaders, train_dataset_root_dir = get_data_loaders_2018(
+            transform=transform,
             is_augmented_dataset=use_augmented_data
         )
         train_data_loader, validation_data_loader, test_data_loader = data_loaders
     elif year == "2019":
         *data_loaders, train_dataset_root_dir = get_data_loaders_2019(
+            transform=transform,
             is_augmented_dataset=use_augmented_data
         )
         train_data_loader, validation_data_loader, test_data_loader = data_loaders

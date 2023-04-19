@@ -22,9 +22,6 @@ DATASET_2019_ROOT_DIR: str = "./data/ISIC_2019_Training_Input"
 AUGMENTED_TRAIN_2018_LABELS: str = "./augmented_data/ISIC2018_Training_GroundTruth.csv"
 AUGMENTED_TRAIN_2018_ROOT_DIR: str = "./augmented_data/ISIC2018_Training_Input"
 
-AUGMENTED_TEST_2018_LABELS: str = "./augmented_data/ISIC2018_Validation_GroundTruth.csv"
-AUGMENTED_TEST_2018_ROOT_DIR: str = "./augmented_data/ISIC2018_Validation_Input"
-
 # Dataset 2019 - has not been split into train and test
 AUGMENTED_DATASET_2019_LABELS: str = (
     "./augmented_data/ISIC_2019_Training_GroundTruth.csv"
@@ -84,7 +81,6 @@ IMAGE_FILE_TYPE: str = "jpg"
 INCEPTIONV3_MODEL_NAME: str = "inception_v3"
 RESNET18_MODEL_NAME: str = "resnet18"
 RANDOM_SEED: int = 42
-MODEL_NAME: str = RESNET18_MODEL_NAME
 
 
 # PARAMETERS - GPU
@@ -109,5 +105,3 @@ PREPROCESS_INCEPTIONV3 = transforms.Compose([
     transforms.ToTensor(),
     # transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
 ])
-
-PREPROCESS_TRANSFORM = PREPROCESS_RESNET18

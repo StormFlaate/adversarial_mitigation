@@ -4,7 +4,7 @@ import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from config import RANDOM_SEED
+from config import RANDOM_SEED, RESNET18_MODEL_NAME
 
 from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_resnet_architecture,
@@ -26,7 +26,7 @@ def _initialize_data_loaders() -> tuple:
     return get_data_loaders(batch_size=1, num_workers=1)
 
 
-def _initialize_model() -> torch.nn.Module:
+def _initialize_model(model_name: str) -> torch.nn.Module:
     """
     Initialize the model.
 
@@ -35,6 +35,7 @@ def _initialize_model() -> torch.nn.Module:
     """
     print("get trained or default model...")
     return get_trained_or_default_model(
+        model_name,
         model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-03-08_50__bb6.pt"
     )
 
@@ -87,7 +88,7 @@ def main():
     
     # Initialize setup
     train_data_loader, _, _ = _initialize_data_loaders()
-    model = _initialize_model()
+    model = _initialize_model(RESNET18_MODEL_NAME)
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
 

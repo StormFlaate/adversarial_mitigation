@@ -11,15 +11,12 @@ from sklearn.metrics import accuracy_score, f1_score
 from config import (
     AUGMENTED_DATASET_2019_LABELS,
     AUGMENTED_DATASET_2019_ROOT_DIR,
-    AUGMENTED_TEST_2018_LABELS,
-    AUGMENTED_TEST_2018_ROOT_DIR,
     AUGMENTED_TRAIN_2018_LABELS,
     AUGMENTED_TRAIN_2018_ROOT_DIR,
     DATASET_2019_LABELS,
     DATASET_2019_ROOT_DIR,
     NUM_WORKERS,
     PIN_MEMORY_TRAIN_DATALOADER,
-    PREPROCESS_TRANSFORM,
     SHUFFLE_TRAIN_DATALOADER,
     TEST_2018_LABELS,
     TEST_2018_ROOT_DIR,
@@ -300,6 +297,7 @@ def random_split(
 
 
 def get_data_loaders_2018(
+        transform,
         is_augmented_dataset: bool
     ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
@@ -321,6 +319,7 @@ def get_data_loaders_2018(
     return (*data_loaders, root_dir_train)
 
 def get_data_loaders_2019(
+        transform,
         is_augmented_dataset: bool
     ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
@@ -569,7 +568,8 @@ def _generate_and_split_dataset_2018(
         labels_train: str,
         root_dir_train: str,
         labels_test: str,
-        root_dir_test: str
+        root_dir_test: str,
+        transform
     ) -> Tuple[Subset, Subset, Subset]:
     """
     Splits the dataset into train, validation and test based on the provided split
@@ -582,7 +582,7 @@ def _generate_and_split_dataset_2018(
     train_dataset_full = ISICDataset(
         csv_file=labels_train, 
         root_dir=root_dir_train, 
-        transform=PREPROCESS_TRANSFORM,
+        transform=transform,
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TRAIN_NROWS
     )
@@ -590,7 +590,7 @@ def _generate_and_split_dataset_2018(
     test_dataset_full = ISICDataset(
         csv_file=labels_test, 
         root_dir=root_dir_test, 
-        transform=PREPROCESS_TRANSFORM,
+        transform=transform,
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TEST_NROWS
     )
@@ -607,7 +607,8 @@ def _generate_and_split_dataset_2018(
 
 def _generate_and_split_dataset_2019(
         labels: str,
-        root_dir: str
+        root_dir: str,
+        transform
     ) -> Tuple[Subset, Subset, Subset]:
 
     _validate_split_percentages_2019()
@@ -616,7 +617,7 @@ def _generate_and_split_dataset_2019(
     train_dataset_full = ISICDataset(
         csv_file=labels, 
         root_dir=root_dir, 
-        transform=PREPROCESS_TRANSFORM,
+        transform=transform,
         image_file_type=IMAGE_FILE_TYPE,
         nrows=TRAIN_NROWS
     )

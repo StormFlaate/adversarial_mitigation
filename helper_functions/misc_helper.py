@@ -4,7 +4,6 @@ import uuid
 import torch.hub
 import torch.nn as nn
 from datetime import date
-from config import MODEL_NAME
 
 def truncated_uuid4() -> str:
     """Generate a truncated UUID-4 string.
@@ -16,9 +15,9 @@ def truncated_uuid4() -> str:
 
 
 def get_trained_or_default_model(
+        model_name: str,
         model_file_name: str = "test_model", 
         models_dir: str = "models", 
-        model_name: str = MODEL_NAME
         ) -> nn.Module:
     """
     Load a PyTorch model from a file if it exists, otherwise load the pretrained default
