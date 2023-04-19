@@ -15,6 +15,7 @@ from config import (
     AUGMENTED_TRAIN_2018_ROOT_DIR,
     DATASET_2019_LABELS,
     DATASET_2019_ROOT_DIR,
+    INCEPTIONV3_MODEL_NAME,
     NUM_WORKERS,
     PIN_MEMORY_TRAIN_DATALOADER,
     SHUFFLE_TRAIN_DATALOADER,
@@ -98,12 +99,12 @@ def train_model(
             labels = labels.to(dtype=torch.float)
             labels.requires_grad = False
 
-            # If the model type is "inceptionv3": two outputs
-            if model_name == "inceptionv3":
-                outputs, x = model(inputs)
-            # Otherwise: one output
-            else: 
-                outputs = model(inputs)
+            # If the model type is "inception_v3": two outputs
+            # if model_name == INCEPTIONV3_MODEL_NAME:
+            #     outputs, x = model(inputs)
+            # # Otherwise: one output
+            # else: 
+            outputs = model(inputs)
             
             # Calculate the loss between the model output and the labels
             loss = criterion(outputs, labels)

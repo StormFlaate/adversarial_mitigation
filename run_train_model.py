@@ -31,12 +31,12 @@ def set_random_seeds():
 
 def load_pretrained_model_inceptionv3_and_transform():
     print(f"Loading pretrained {INCEPTIONV3_MODEL_NAME} model...")
-    return (
-        torch.hub.load(
-            'pytorch/vision:v0.10.0', INCEPTIONV3_MODEL_NAME, pretrained=True
-        ),
-        PREPROCESS_INCEPTIONV3
+    model = torch.hub.load(
+        'pytorch/vision:v0.10.0', INCEPTIONV3_MODEL_NAME, pretrained=True
     )
+    model.aux_logits = False
+    
+    return (model,PREPROCESS_INCEPTIONV3)
 
 
 def load_pretrained_model_resnet18_and_transform():
