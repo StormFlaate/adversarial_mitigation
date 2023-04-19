@@ -99,11 +99,6 @@ def train_model(
             labels = labels.to(dtype=torch.float)
             labels.requires_grad = False
 
-            # If the model type is "inception_v3": two outputs
-            # if model_name == INCEPTIONV3_MODEL_NAME:
-            #     outputs, x = model(inputs)
-            # # Otherwise: one output
-            # else: 
             outputs = model(inputs)
             
             # Calculate the loss between the model output and the labels
