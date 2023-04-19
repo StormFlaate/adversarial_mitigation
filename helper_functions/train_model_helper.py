@@ -9,15 +9,30 @@ from tqdm import tqdm
 from customDataset import ISICDataset
 from sklearn.metrics import accuracy_score, f1_score
 from config import (
-    AUGMENTED_DATASET_2019_LABELS, AUGMENTED_DATASET_2019_ROOT_DIR,
-    AUGMENTED_TEST_2018_LABELS, AUGMENTED_TEST_2018_ROOT_DIR,
-    AUGMENTED_TRAIN_2018_LABELS, AUGMENTED_TRAIN_2018_ROOT_DIR, DATASET_2019_LABELS,
-    DATASET_2019_ROOT_DIR, NUM_WORKERS, PIN_MEMORY_TRAIN_DATALOADER,
-    PREPROCESS_TRANSFORM, SHUFFLE_TRAIN_DATALOADER, TEST_2018_LABELS,
-    TEST_2018_ROOT_DIR, TRAIN_2018_LABELS, TRAIN_2018_ROOT_DIR, TRAIN_NROWS, BATCH_SIZE,
-    TEST_NROWS, SHUFFLE_VAL_DATALOADER,
-    TEST_SPLIT_PERCENTAGE, TRAIN_DATASET_ROOT_DIR,
-    IMAGE_FILE_TYPE, TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE
+    AUGMENTED_DATASET_2019_LABELS,
+    AUGMENTED_DATASET_2019_ROOT_DIR,
+    AUGMENTED_TEST_2018_LABELS,
+    AUGMENTED_TEST_2018_ROOT_DIR,
+    AUGMENTED_TRAIN_2018_LABELS,
+    AUGMENTED_TRAIN_2018_ROOT_DIR,
+    DATASET_2019_LABELS,
+    DATASET_2019_ROOT_DIR,
+    NUM_WORKERS,
+    PIN_MEMORY_TRAIN_DATALOADER,
+    PREPROCESS_TRANSFORM,
+    SHUFFLE_TRAIN_DATALOADER,
+    TEST_2018_LABELS,
+    TEST_2018_ROOT_DIR,
+    TRAIN_2018_LABELS,
+    TRAIN_2018_ROOT_DIR,
+    TRAIN_NROWS,
+    BATCH_SIZE,
+    TEST_NROWS,
+    SHUFFLE_VAL_DATALOADER,
+    TEST_SPLIT_PERCENTAGE,
+    IMAGE_FILE_TYPE,
+    TRAIN_SPLIT_PERCENTAGE,
+    VAL_SPLIT_PERCENTAGE
 )
 from torch import randperm
 from torch._utils import _accumulate
@@ -35,6 +50,7 @@ def train_model(
         criterion: Module, 
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
+        root_dir: str,
         model_name: str = "",
         epoch_count: int = 20,
         freeze_layers: bool = True) -> Module:
@@ -116,8 +132,8 @@ def train_model(
             
             # save the model to file
             save_model_and_parameters_to_file(
-                model, model_name, TRAIN_DATASET_ROOT_DIR, epoch, models_dir="models"
-                )
+                model, model_name, root_dir, epoch, models_dir="models"
+            )
 
         # Print the average loss for this epoch
         print(f'Epoch {epoch + 1} loss: {running_loss / (i + 1):.4f}')

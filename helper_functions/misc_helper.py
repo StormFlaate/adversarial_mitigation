@@ -55,7 +55,7 @@ def get_trained_or_default_model(
 def save_model_and_parameters_to_file(
         model: torch.nn.Module, 
         model_file_name: str, 
-        train_dataset_root_dir: str, 
+        root_dir: str, 
         epoch: int,
         models_dir: str = "models",
         ) -> str:
@@ -65,7 +65,7 @@ def save_model_and_parameters_to_file(
     Args:
         model: The PyTorch model to save.
         model_file_name: The name of the model to save.
-        train_dataset_root_dir: The full path to the training dataset which was used for training
+        root_dir: The full path to the dataset which was used for training
         models_dir: The directory to save the model file to.
 
     Returns:
@@ -75,8 +75,8 @@ def save_model_and_parameters_to_file(
     # Generate a unique ID to append to the model name
     model_id = str(uuid.uuid4().hex)[:3]
     
-    print(train_dataset_root_dir)
-    train_set_name: str = train_dataset_root_dir.replace("./", "").replace("/", "_")
+    print(root_dir)
+    train_set_name: str = root_dir.replace("./", "").replace("/", "_")
 
     today = date.today()
 

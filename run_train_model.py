@@ -95,6 +95,7 @@ def main(year, model_name, use_augmented_data):
         criterion,
         optimizer,
         scheduler,
+        train_dataset_root_dir,
         model_name=model_name,
         epoch_count=EPOCH_COUNT
     )

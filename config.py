@@ -32,18 +32,6 @@ AUGMENTED_DATASET_2019_LABELS: str = (
 AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Input"
 
 
-######################################
-# ========== CHOOSE DATASET ==========
-######################################
-TRAIN_DATASET_LABELS: str = AUGMENTED_TRAIN_2018_LABELS
-TRAIN_DATASET_ROOT_DIR: str = AUGMENTED_TRAIN_2018_ROOT_DIR
-
-# this should only be assigned when using the 2018 dataset
-TEST_DATASET_LABELS: str = TEST_2018_LABELS 
-TEST_DATASET_ROOT_DIR: str = TEST_2018_ROOT_DIR
-
-
-
 # NUMBER OF ROWS - can be used if you want to run some simple tests
 TRAIN_NROWS: int = None # SET TO None if you want all samples
 TEST_NROWS: int = None # SET TO None if you want all samples
