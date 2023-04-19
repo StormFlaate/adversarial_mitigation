@@ -74,7 +74,6 @@ def save_model_and_parameters_to_file(
     # Generate a unique ID to append to the model name
     model_id = str(uuid.uuid4().hex)[:3]
     
-    print(root_dir)
     train_set_name: str = root_dir.replace("./", "").replace("/", "_")
 
     today = date.today()
