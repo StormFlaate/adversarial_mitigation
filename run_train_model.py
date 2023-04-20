@@ -13,6 +13,7 @@ from helper_functions.train_model_helper import (
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
+    LEARNING_RATES,
     PREPROCESS_INCEPTIONV3,
     PREPROCESS_RESNET18,
     RANDOM_SEED,
@@ -49,75 +50,95 @@ def load_pretrained_model_resnet18_and_transform():
     )
 
 
-def define_criterion_and_optimizer(model):
+def define_criterion_and_optimizer(model, learning_rate, momentum, step_size, gamma):
     print("Defining criterion and optimizer...")
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(
-        model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM
+        model.parameters(), lr=learning_rate, momentum=momentum
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, step_size=STEP_SIZE, gamma=GAMMA
+        optimizer, step_size=step_size, gamma=gamma
     )
     return criterion, optimizer, scheduler
 
-
-def main(year, model_name, use_augmented_data):
-    mp.freeze_support()
-    mp.set_start_method('spawn')
-    set_random_seeds()
-
+def check_model_name(model_name):
     assert model_name in {INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME}
+
+
+def print_augmentation_status(use_augmented_data):
     if use_augmented_data:
         print("Using the augmented dataset...")
     else:
         print("Using the NON augmented dataset...")
 
+
+def load_model_and_transform(model_name):
     if model_name == INCEPTIONV3_MODEL_NAME:
-        cnn_model, transform = load_pretrained_model_inceptionv3_and_transform()
+        return load_pretrained_model_inceptionv3_and_transform()
     elif model_name == RESNET18_MODEL_NAME:
-        cnn_model, transform = load_pretrained_model_resnet18_and_transform()
+        return load_pretrained_model_resnet18_and_transform()
     else:
         raise Exception("Need to choose a model architecture...")
 
+
+def get_data_loaders_by_year(year, transform, use_augmented_data):
     if year == "2018":
-        *data_loaders, train_dataset_root_dir = get_data_loaders_2018(
+        return get_data_loaders_2018(
             transform=transform,
             is_augmented_dataset=use_augmented_data
         )
-        train_data_loader, validation_data_loader, test_data_loader = data_loaders
     elif year == "2019":
-        *data_loaders, train_dataset_root_dir = get_data_loaders_2019(
+        return get_data_loaders_2019(
             transform=transform,
             is_augmented_dataset=use_augmented_data
         )
-        train_data_loader, validation_data_loader, test_data_loader = data_loaders
     else:
         raise Exception("Need to choose dataset year...")
 
-    criterion, optimizer, scheduler = define_criterion_and_optimizer(cnn_model)
+def main(year, model_name, use_augmented_data, learning_rates):
+    mp.freeze_support()
+    mp.set_start_method('spawn')
+    set_random_seeds()
 
-    # Train the model
-    print("Training model...")
-    cnn_model = train_model(
-        cnn_model,
-        train_data_loader,
-        validation_data_loader,
-        criterion,
-        optimizer,
-        scheduler,
-        train_dataset_root_dir,
-        model_name=model_name,
-        epoch_count=EPOCH_COUNT
-    )
+    for learning_rate in learning_rates:
+        print(f"Learning rate: {learning_rate}")
 
-    # save the model to file
-    save_model_and_parameters_to_file(
-        cnn_model, model_name, train_dataset_root_dir, EPOCH_COUNT, models_dir="models"
-    )
+        check_model_name(model_name)
+        print_augmentation_status(use_augmented_data)
+        cnn_model, transform = load_model_and_transform(model_name)
+        *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(year, transform, use_augmented_data)
+        train_data_loader, validation_data_loader, test_data_loader = data_loaders
 
-    # Test the model's performance
-    print("Testing the model's performance...")
-    test_model(cnn_model, test_data_loader, model_name=model_name)
+        criterion, optimizer, scheduler = define_criterion_and_optimizer(
+            cnn_model,
+            learning_rate,
+            MOMENTUM,
+            STEP_SIZE,
+            GAMMA
+        )
+
+        # Train the model
+        print("Training model...")
+        cnn_model = train_model(
+            cnn_model,
+            train_data_loader,
+            validation_data_loader,
+            criterion,
+            optimizer,
+            scheduler,
+            train_dataset_root_dir,
+            model_name=model_name,
+            epoch_count=EPOCH_COUNT
+        )
+
+        # save the model to file
+        save_model_and_parameters_to_file(
+            cnn_model, model_name, train_dataset_root_dir, EPOCH_COUNT, models_dir="models"
+        )
+
+        # Test the model's performance
+        print("Testing the model's performance...")
+        test_model(cnn_model, test_data_loader, model_name=model_name)
        
 
 if __name__ == "__main__":
@@ -148,5 +169,13 @@ if __name__ == "__main__":
         help="Disable the use of the data augmented dataset"
     )
 
+    parser.add_argument(
+        "--learning-rates",
+        nargs="+",
+        type=float,
+        default=[LEARNING_RATE],
+        help="A list of learning rates for the optimizer, default is the learning rate in config.py file",
+    )
+
     args = parser.parse_args()
-    main(args.year, args.model, not args.not_augment)
+    main(args.year, args.model, not args.not_augment, args.learning_rates)
