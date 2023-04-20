@@ -13,7 +13,6 @@ from helper_functions.train_model_helper import (
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
-    LEARNING_RATES,
     PREPROCESS_INCEPTIONV3,
     PREPROCESS_RESNET18,
     RANDOM_SEED,
