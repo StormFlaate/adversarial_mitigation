@@ -8,7 +8,8 @@ from helper_functions.train_model_helper import (
     get_data_loaders_2018,
     get_data_loaders_2019,
     test_model,
-    train_model
+    train_model,
+    validate_model_during_training
 )
 from config import (
     GAMMA,
@@ -94,56 +95,107 @@ def get_data_loaders_by_year(year, transform, use_augmented_data):
     else:
         raise Exception("Need to choose dataset year...")
 
+def load_train_and_save_model(model_name, year, learning_rate, momentum, step_size, gamma, epoch_count, use_augmented_data):
+
+    cnn_model, transform = load_model_and_transform(model_name)
+    *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(year, transform, use_augmented_data)
+    train_data_loader, validation_data_loader, test_data_loader = data_loaders
+
+    criterion, optimizer, scheduler = define_criterion_and_optimizer(
+        cnn_model,
+        learning_rate,
+        momentum,
+        step_size,
+        gamma
+    )
+
+    # Train the model
+    print("Training model...")
+    cnn_model = train_model(
+        cnn_model,
+        train_data_loader,
+        validation_data_loader,
+        criterion,
+        optimizer,
+        scheduler,
+        train_dataset_root_dir,
+        model_name=model_name,
+        epoch_count=epoch_count
+    )
+
+    # save the model to file
+    save_model_and_parameters_to_file(
+        cnn_model, model_name, train_dataset_root_dir, epoch_count, models_dir="models"
+    )
+
+    return cnn_model, train_data_loader, validation_data_loader, test_data_loader
+
+
+
 def main(year, model_name, use_augmented_data, learning_rates):
     mp.freeze_support()
     mp.set_start_method('spawn')
     set_random_seeds()
+    check_model_name(model_name)
+    print_augmentation_status(use_augmented_data)
 
+    # Initialize a dictionary to store the accuracy for each learning rate
+    learning_rate_to_accuracy: dict = {}
+
+    # Iterate over different learning rates
     for learning_rate in learning_rates:
         print(f"Learning rate: {learning_rate}")
 
-        check_model_name(model_name)
-        print_augmentation_status(use_augmented_data)
-        cnn_model, transform = load_model_and_transform(model_name)
-        *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(year, transform, use_augmented_data)
-        train_data_loader, validation_data_loader, test_data_loader = data_loaders
-
-        criterion, optimizer, scheduler = define_criterion_and_optimizer(
-            cnn_model,
+        # Load, train and save the model with the given learning rate
+        output = load_train_and_save_model(
+            model_name,
+            year,
             learning_rate,
             MOMENTUM,
             STEP_SIZE,
-            GAMMA
+            GAMMA,
+            EPOCH_COUNT,
+            use_augmented_data
         )
 
-        # Train the model
-        print("Training model...")
-        cnn_model = train_model(
-            cnn_model,
-            train_data_loader,
-            validation_data_loader,
-            criterion,
-            optimizer,
-            scheduler,
-            train_dataset_root_dir,
-            model_name=model_name,
-            epoch_count=EPOCH_COUNT
-        )
+        cnn_model, _, validation_data_loader, __ = output
 
-        # save the model to file
-        save_model_and_parameters_to_file(
-            cnn_model, model_name, train_dataset_root_dir, EPOCH_COUNT, models_dir="models"
-        )
+        # Validate the model and get its accuracy
+        accuracy, *_ = validate_model_during_training(cnn_model, validation_data_loader)
 
-        # Test the model's performance
-        print("Testing the model's performance...")
-        test_model(cnn_model, test_data_loader, model_name=model_name)
+        # Store the accuracy in the dictionary
+        learning_rate_to_accuracy[learning_rate] = accuracy
+
+    # Find the best learning rate by checking the highest accuracy
+    best_learning_rate = max(learning_rate_to_accuracy, key=learning_rate_to_accuracy.get)
+
+    # Print the best learning rate
+    print("The best learning rate is:", best_learning_rate)
+
+    # Train the model with the best learning rate
+    cnn_model, *_, test_data_loader = load_train_and_save_model(
+        model_name,
+        year,
+        best_learning_rate,
+        MOMENTUM,
+        STEP_SIZE,
+        GAMMA,
+        EPOCH_COUNT,
+        use_augmented_data
+    )
+
+    # Test the model's performance
+    print("Testing the model's performance...")
+    test_model(cnn_model, test_data_loader, model_name=model_name)
+
        
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Model-name, dataset-year and removing data augmentation"
+        description="Model-name, dataset-year, possibility to use non-augmented dataset and add multiple learning rates."
     )
+    # Add argument for the dataset year
     parser.add_argument(
         "--year",
         required=True,
@@ -151,6 +203,7 @@ if __name__ == "__main__":
         help="Dataset for which to perform training on (2018 or 2019)."
     )
 
+    # Add argument for the model type
     parser.add_argument(
         "--model",
         required=True,
@@ -161,13 +214,14 @@ if __name__ == "__main__":
         )
     )
 
-    # the default value is to use the augmented dataset
+    # Add argument to disable data augmentation
     parser.add_argument(
         "--not-augment",
         action="store_true",
         help="Disable the use of the data augmented dataset"
     )
 
+    # Add argument for specifying learning rates
     parser.add_argument(
         "--learning-rates",
         nargs="+",
@@ -176,5 +230,8 @@ if __name__ == "__main__":
         help="A list of learning rates for the optimizer, default is the learning rate in config.py file",
     )
 
+    # Parse the command-line arguments
     args = parser.parse_args()
+
+    # Call the main function with parsed arguments
     main(args.year, args.model, not args.not_augment, args.learning_rates)

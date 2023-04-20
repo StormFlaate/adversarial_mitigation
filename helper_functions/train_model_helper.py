@@ -120,7 +120,7 @@ def train_model(
         if epoch and epoch%10==0:
             # check the accuracy of the model
             _print_test_results(
-                *_validate_model_during_training(model, val_data_loader)
+                *validate_model_during_training(model, val_data_loader)
             )
             
             # save the model to file
@@ -409,7 +409,7 @@ def get_data_loaders(
 #######################################################################
 # ======================= PRIVATE FUNCTION ========================== #
 #######################################################################
-def _validate_model_during_training(
+def validate_model_during_training(
         model: torch.nn.Module,
         data_loader: DataLoader[Subset[ISICDataset]]
     ) -> tuple:
