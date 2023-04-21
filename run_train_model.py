@@ -3,7 +3,9 @@ import argparse
 import torch
 import numpy as np
 import multiprocessing as mp
-from torchvision.models import Inception3, resnet18
+from torchvision.models import inception_v3, resnet18
+from torchvision.models import ResNet18_Weights
+from torchvision.models import Inception_V3_Weights
 from helper_functions.misc_helper import save_model_and_parameters_to_file
 from helper_functions.train_model_helper import (
     get_data_loaders_2018,
@@ -35,14 +37,14 @@ def set_random_seeds():
 
 def load_pretrained_model_inceptionv3_and_transform():
     print(f"Loading pretrained {INCEPTIONV3_MODEL_NAME} model...")
-    model = Inception3(pretrained=True, aux_logits=False)
+    model = inception_v3(weights=Inception_V3_Weights.DEFAULT, aux_logits=False)
     return (model,PREPROCESS_INCEPTIONV3)
 
 
 def load_pretrained_model_resnet18_and_transform():
     print(f"Loading pretrained {RESNET18_MODEL_NAME} model...")
     return (
-        resnet18(pretrained=True),
+        resnet18(weights=ResNet18_Weights.DEFAULT),
         PREPROCESS_RESNET18
     )
 
