@@ -508,13 +508,6 @@ def validate_model_accuracy_f1(model, val_data_loader, device):
             true_labels.extend(labels.cpu().numpy())
             predicted_labels.extend(preds.cpu().numpy())
 
-    print(type(predicted_labels))
-    print(type(true_labels))
-    print(predicted_labels[0].shape)
-    print(true_labels[0].shape)
-    print(predicted_labels[0])
-    print(true_labels[0])
-
     # Calculate the overall accuracy and F1 score
     overall_accuracy = accuracy_score(true_labels, predicted_labels)
     overall_f1_score = f1_score(true_labels, predicted_labels, average='weighted')
