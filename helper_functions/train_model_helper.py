@@ -490,6 +490,35 @@ def validate_model_during_training(
 
     return overall_accuracy, overall_f1_score, accuracy_by_type_dict
 
+def validate_model_accuracy_f1(model, val_data_loader, device):
+    model.eval()  # Set the model to evaluation mode
+
+    true_labels = []
+    predicted_labels = []
+
+    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
+        for val_data in val_data_loader:
+            inputs, labels = val_data
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)  # Get the class with the highest probability as predictions
+
+            true_labels.extend(labels.cpu().numpy())
+            predicted_labels.extend(preds.cpu().numpy())
+
+    print(type(predicted_labels))
+    print(type(true_labels))
+    print(predicted_labels.shape)
+    print(true_labels.shape)
+
+    # Calculate the overall accuracy and F1 score
+    overall_accuracy = accuracy_score(true_labels, predicted_labels)
+    overall_f1_score = f1_score(true_labels, predicted_labels, average='weighted')
+
+    model.train()  # Set the model back to training mode
+
+    return overall_accuracy, overall_f1_score
 
 
 def _print_test_results(
@@ -636,29 +665,3 @@ def _generate_and_split_dataset_2019(
         ]
     )
     return train_validation_test_dataset
-
-
-def validate_model_accuracy_f1(model, val_data_loader, device):
-    model.eval()  # Set the model to evaluation mode
-
-    true_labels = []
-    predicted_labels = []
-
-    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
-        for val_data in val_data_loader:
-            inputs, labels = val_data
-            inputs, labels = inputs.to(device), labels.to(device)
-
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)  # Get the class with the highest probability as predictions
-
-            true_labels.extend(labels.cpu().numpy())
-            predicted_labels.extend(preds.cpu().numpy())
-
-    # Calculate the overall accuracy and F1 score
-    overall_accuracy = accuracy_score(true_labels, predicted_labels)
-    overall_f1_score = f1_score(true_labels, predicted_labels, average='weighted')
-
-    model.train()  # Set the model back to training mode
-
-    return overall_accuracy, overall_f1_score
