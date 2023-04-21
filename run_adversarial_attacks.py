@@ -16,7 +16,7 @@ from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders, get_data_loaders_by_year
 
 
-def _initialize_model(model_name: str) -> torch.nn.Module:
+def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
     """
     Initialize the model.
 
@@ -26,7 +26,7 @@ def _initialize_model(model_name: str) -> torch.nn.Module:
     print("get trained or default model...")
     return get_trained_or_default_model(
         model_name,
-        model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-03-08_50__bb6.pt"
+        model_file_name=model_file_name
     )
 
 def _initialize_data_loader_inception_v3(year):
@@ -84,7 +84,10 @@ def main(year, model_name):
     
     # Initialize setup
     train_data_loader, *_ = _initialize_data_loader_resnet18(year)
-    model = _initialize_model(RESNET18_MODEL_NAME)
+    model = _initialize_model(
+        RESNET18_MODEL_NAME,
+        model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_20__ef7.pt"
+    )
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
 
