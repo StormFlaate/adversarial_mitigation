@@ -8,8 +8,7 @@ from torchvision.models import ResNet18_Weights
 from torchvision.models import Inception_V3_Weights
 from helper_functions.misc_helper import save_model_and_parameters_to_file
 from helper_functions.train_model_helper import (
-    get_data_loaders_2018,
-    get_data_loaders_2019,
+    get_data_loaders_by_year,
     test_model,
     train_model,
 )
@@ -80,20 +79,6 @@ def load_model_and_transform(model_name):
     else:
         raise Exception("Need to choose a model architecture...")
 
-
-def get_data_loaders_by_year(year, transform, use_augmented_data):
-    if year == "2018":
-        return get_data_loaders_2018(
-            transform=transform,
-            is_augmented_dataset=use_augmented_data
-        )
-    elif year == "2019":
-        return get_data_loaders_2019(
-            transform=transform,
-            is_augmented_dataset=use_augmented_data
-        )
-    else:
-        raise Exception("Need to choose dataset year...")
 
 def load_train_and_save_model(
         model_name,

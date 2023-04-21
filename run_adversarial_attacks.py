@@ -1,10 +1,11 @@
+import argparse
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from config import RANDOM_SEED, RESNET18_MODEL_NAME
+from config import INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
 
 from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_resnet_architecture,
@@ -12,18 +13,7 @@ from helper_functions.adversarial_attacks_helper import (
     plot_colored_grid
 )
 from helper_functions.misc_helper import get_trained_or_default_model
-from helper_functions.train_model_helper import get_data_loaders
-
-
-def _initialize_data_loaders() -> tuple:
-    """
-    Initialize data loaders.
-
-    Returns:
-        tuple: Train, validation and test data loaders.
-    """
-    print("get data loaders...")
-    return get_data_loaders(batch_size=1, num_workers=1)
+from helper_functions.train_model_helper import get_data_loaders, get_data_loaders_by_year
 
 
 def _initialize_model(model_name: str) -> torch.nn.Module:
@@ -39,6 +29,12 @@ def _initialize_model(model_name: str) -> torch.nn.Module:
         model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-03-08_50__bb6.pt"
     )
 
+def _initialize_data_loader_inception_v3(year):
+    return get_data_loaders_by_year(year, PREPROCESS_INCEPTIONV3, False)
+
+
+def _initialize_data_loader_resnet18(year):
+    return get_data_loaders_by_year(year, PREPROCESS_RESNET18, False)
 
 def _initialize_device() -> torch.device:
     """
@@ -75,7 +71,7 @@ def _print_overall_accuracy(
 
 
 
-def main():
+def main(year, model_name):
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
@@ -87,7 +83,7 @@ def main():
     predicted_adversarial_labels: list = []
     
     # Initialize setup
-    train_data_loader, _, _ = _initialize_data_loaders()
+    train_data_loader, *_ = _initialize_data_loader_resnet18(year)
     model = _initialize_model(RESNET18_MODEL_NAME)
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
@@ -133,4 +129,30 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description="Model-name, dataset-year, possibility to use non-augmented dataset and add multiple learning rates."
+    )
+    # Add argument for the dataset year
+    parser.add_argument(
+        "--year",
+        required=True,
+        choices=["2018", "2019"],
+        help="Dataset for which to perform training on (2018 or 2019)."
+    )
+
+    # Add argument for the model type
+    parser.add_argument(
+        "--model",
+        required=True,
+        choices=[INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME],
+        help=(
+            f"Model for which to perform training ({INCEPTIONV3_MODEL_NAME}"
+            f" or {RESNET18_MODEL_NAME})"
+        )
+    )
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # Call the main function with parsed arguments
+    main(args.year, args.model)

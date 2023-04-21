@@ -403,7 +403,19 @@ def get_data_loaders(
     
     return train_data_loader, val_data_loader, test_data_loader
 
-
+def get_data_loaders_by_year(year, transform, use_augmented_data):
+    if year == "2018":
+        return get_data_loaders_2018(
+            transform=transform,
+            is_augmented_dataset=use_augmented_data
+        )
+    elif year == "2019":
+        return get_data_loaders_2019(
+            transform=transform,
+            is_augmented_dataset=use_augmented_data
+        )
+    else:
+        raise Exception("Need to choose dataset year...")
 
 
 
