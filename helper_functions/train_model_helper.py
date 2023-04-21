@@ -131,8 +131,6 @@ def train_model(
         # Print the average loss for this epoch
         print(f'Epoch {epoch + 1} loss: {running_loss / (i + 1):.4f}')
 
-    # Print a message indicating that training has finished
-    print('Finished training')
 
 
     return model
