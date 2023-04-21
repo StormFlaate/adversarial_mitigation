@@ -5,8 +5,6 @@ import torch.hub
 import torch.nn as nn
 from datetime import date
 
-from helper_functions.train_model_helper import get_data_loaders_2018, get_data_loaders_2019
-
 def truncated_uuid4() -> str:
     """Generate a truncated UUID-4 string.
 
