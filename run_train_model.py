@@ -3,6 +3,7 @@ import argparse
 import torch
 import numpy as np
 import multiprocessing as mp
+from torchvision.models import Inception3, resnet18
 from helper_functions.misc_helper import save_model_and_parameters_to_file
 from helper_functions.train_model_helper import (
     get_data_loaders_2018,
@@ -34,20 +35,14 @@ def set_random_seeds():
 
 def load_pretrained_model_inceptionv3_and_transform():
     print(f"Loading pretrained {INCEPTIONV3_MODEL_NAME} model...")
-    model = torch.hub.load(
-        'pytorch/vision:v0.10.0', INCEPTIONV3_MODEL_NAME, pretrained=True
-    )
-    model.aux_logits = False
-    
+    model = Inception3(pretrained=True, aux_logits=False)
     return (model,PREPROCESS_INCEPTIONV3)
 
 
 def load_pretrained_model_resnet18_and_transform():
     print(f"Loading pretrained {RESNET18_MODEL_NAME} model...")
     return (
-        torch.hub.load(
-            'pytorch/vision:v0.10.0', RESNET18_MODEL_NAME, pretrained=True
-        ),
+        resnet18(pretrained=True),
         PREPROCESS_RESNET18
     )
 
@@ -58,7 +53,7 @@ def define_criterion_and_optimizer(model, learning_rate, momentum, step_size, ga
     optimizer = torch.optim.SGD(
         model.parameters(), lr=learning_rate, momentum=momentum
     )
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
+    scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer,
         lr_lambda=lambda epoch: 1 / (1 + LEARNING_RATE_DECAY * epoch)
     )
