@@ -34,7 +34,8 @@ def set_random_seeds():
 
 def load_pretrained_model_inceptionv3_and_transform():
     print(f"Loading pretrained {INCEPTIONV3_MODEL_NAME} model...")
-    model = inception_v3(weights=Inception_V3_Weights.DEFAULT, aux_logits=False)
+    model = inception_v3(weights=Inception_V3_Weights.DEFAULT)
+    model.aux_logits = False
     return (model,PREPROCESS_INCEPTIONV3)
 
 
