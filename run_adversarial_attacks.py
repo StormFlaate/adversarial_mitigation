@@ -71,7 +71,7 @@ def _print_overall_accuracy(
 
 
 
-def main(year, model_name):
+def main(year):
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
@@ -143,19 +143,8 @@ if __name__ == '__main__':
         help="Dataset for which to perform training on (2018 or 2019)."
     )
 
-    # Add argument for the model type
-    parser.add_argument(
-        "--model",
-        required=True,
-        choices=[INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME],
-        help=(
-            f"Model for which to perform training ({INCEPTIONV3_MODEL_NAME}"
-            f" or {RESNET18_MODEL_NAME})"
-        )
-    )
-
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
-    main(args.year, args.model)
+    main(args.year)
