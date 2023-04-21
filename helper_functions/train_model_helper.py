@@ -511,6 +511,8 @@ def validate_model_accuracy_f1(model, val_data_loader, device):
     print(type(true_labels))
     print(predicted_labels[0].shape)
     print(true_labels[0].shape)
+    print(predicted_labels[0])
+    print(true_labels[0])
 
     # Calculate the overall accuracy and F1 score
     overall_accuracy = accuracy_score(true_labels, predicted_labels)
