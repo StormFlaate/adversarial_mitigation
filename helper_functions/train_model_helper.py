@@ -441,52 +441,53 @@ def validate_model_during_training(
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
     # Loop over the data in the data loader
-    for i, (inputs, labels) in tqdm(enumerate(data_loader, 0)):
+    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
+        for i, (inputs, labels) in tqdm(enumerate(data_loader, 0)):
 
-        # Move inputs and labels to the specified device
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+            # Move inputs and labels to the specified device
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
-        # Forward pass through the model to get the predicted outputs
-        outputs = model(inputs)
+            # Forward pass through the model to get the predicted outputs
+            outputs = model(inputs)
 
-        # Convert the labels to a list of labels
-        labels = torch.argmax(labels, 1)
-        # Convert the predicted outputs to a list of labels
-        predicted = torch.argmax(outputs.data, 1)
+            # Convert the labels to a list of labels
+            labels = torch.argmax(labels, 1)
+            # Convert the predicted outputs to a list of labels
+            predicted = torch.argmax(outputs.data, 1)
 
-        np_labels = labels.cpu().numpy()
-        np_predicted = predicted.cpu().numpy()
+            np_labels = labels.cpu().numpy()
+            np_predicted = predicted.cpu().numpy()
 
-        # Append the target and predicted labels to their respective lists
-        target_labels.extend(np_labels)
-        predicted_labels.extend(np_predicted)
+            # Append the target and predicted labels to their respective lists
+            target_labels.extend(np_labels)
+            predicted_labels.extend(np_predicted)
+
+            # Calculate the accuracy for each skin lesion type
+            for j in range(len(np_labels)):
+                for k, col in enumerate(df.columns[1:]):
+                    if np_labels[j] == k:
+                        accuracy_by_type[col]["total"] += 1
+                        if np_predicted[j] == k:
+                            accuracy_by_type[col]["correct"] += 1
+
+        # Calculate the overall accuracy and F1 score
+        overall_accuracy = accuracy_score(target_labels, predicted_labels)
+        overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
+
+        # Initialize the dictionary to store the accuracy of each category
+        accuracy_by_type_dict = {}
 
         # Calculate the accuracy for each skin lesion type
-        for j in range(len(np_labels)):
-            for k, col in enumerate(df.columns[1:]):
-                if np_labels[j] == k:
-                    accuracy_by_type[col]["total"] += 1
-                    if np_predicted[j] == k:
-                        accuracy_by_type[col]["correct"] += 1
-
-    # Calculate the overall accuracy and F1 score
-    overall_accuracy = accuracy_score(target_labels, predicted_labels)
-    overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
-
-    # Initialize the dictionary to store the accuracy of each category
-    accuracy_by_type_dict = {}
-
-    # Calculate the accuracy for each skin lesion type
-    for col in df.columns[1:]:
-        if accuracy_by_type[col]["total"]:
-            accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
-        else:
-            accuracy = 0
-        accuracy_by_type_dict[col] = accuracy
-    
-    model.train()
+        for col in df.columns[1:]:
+            if accuracy_by_type[col]["total"]:
+                accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
+            else:
+                accuracy = 0
+            accuracy_by_type_dict[col] = accuracy
+        
+        model.train()
 
     return overall_accuracy, overall_f1_score, accuracy_by_type_dict
 
