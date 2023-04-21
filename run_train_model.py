@@ -14,6 +14,7 @@ from helper_functions.train_model_helper import (
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
+    LEARNING_RATE_EPOCH,
     PREPROCESS_INCEPTIONV3,
     PREPROCESS_RESNET18,
     RANDOM_SEED,
@@ -154,7 +155,7 @@ def main(year, model_name, use_augmented_data, learning_rates):
             MOMENTUM,
             STEP_SIZE,
             GAMMA,
-            EPOCH_COUNT,
+            LEARNING_RATE_EPOCH,
             use_augmented_data
         )
 
