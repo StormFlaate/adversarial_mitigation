@@ -58,9 +58,6 @@ def define_criterion_and_optimizer(model, learning_rate, momentum, step_size, ga
     optimizer = torch.optim.SGD(
         model.parameters(), lr=learning_rate, momentum=momentum
     )
-    scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, step_size=step_size, gamma=gamma
-    )
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer,
         lr_lambda=lambda epoch: 1 / (1 + LEARNING_RATE_DECAY * epoch)
