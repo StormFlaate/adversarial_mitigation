@@ -131,12 +131,7 @@ def train_model(
             _print_test_results(
                 *validate_model_during_training(model, val_data_loader)
             )
-            
-            # save the model to file
-            save_model_and_parameters_to_file(
-                model, model_name, root_dir, epoch, models_dir="models"
-            )
-
+    
     return model
 
 def test_model(
