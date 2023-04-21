@@ -503,8 +503,9 @@ def validate_model_accuracy_f1(model, val_data_loader, device):
 
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)  # Get the class with the highest probability as predictions
+            true_label = torch.max(labels, 1)  # Get the class with the highest probability as predictions
 
-            true_labels.extend(labels.cpu().numpy())
+            true_labels.extend(true_label.cpu().numpy())
             predicted_labels.extend(preds.cpu().numpy())
 
     print(type(predicted_labels))
