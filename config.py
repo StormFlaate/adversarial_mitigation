@@ -26,7 +26,7 @@ SHUFFLE_VAL_DATALOADER: bool = True
 
 # PARAMETERS - Model Training
 # the epoch used for training the model
-EPOCH_COUNT: int = 50
+EPOCH_COUNT: int = 25
 
 TRAIN_SPLIT_PERCENTAGE: float = 0.8
 VAL_SPLIT_PERCENTAGE: float = 0.2
