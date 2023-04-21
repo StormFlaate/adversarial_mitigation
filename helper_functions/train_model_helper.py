@@ -117,7 +117,11 @@ def train_model(
             optimizer.zero_grad()
         
         
-        overall_accuracy, overall_f1_score = validate_model_accuracy_f1(model, val_data_loader)
+        overall_accuracy, overall_f1_score = validate_model_accuracy_f1(
+            model,
+            val_data_loader,
+            device
+        )
 
         writer.add_scalar("Loss/train", running_loss, epoch)
         writer.add_scalar("Accuracy/validation", overall_accuracy, epoch)
