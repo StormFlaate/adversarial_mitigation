@@ -51,30 +51,26 @@ def train_model(
         writer,
         model_name: str = "",
         epoch_count: int = 20,
-        freeze_layers: bool = True,
     ) -> Module:
-    """Trains a neural network model by retraining a model with already existing weights
-        form Image Net.
+    """Trains a neural network model.
 
     Args:
-        model: The neural network model to train.
-        train_dataset: The train_dataset used for training.
-        train_data_loader: The data loader used for iterating over the train_dataset.
-        val_data_loader: The data loader used for validating the training
-        criterion: The loss function used for calculating the loss between model output
-            and labels.
-        optimizer: The optimizer used for updating the model parameters.
-        model_name: The type of the model being used (if applicable).
-        epoch_count: The number of epochs to train the model.
+        model (Module): The neural network model to train.
+        train_data_loader (DataLoader): The data loader used for iterating over the training dataset.
+        val_data_loader (DataLoader): The data loader used for validating the training.
+        criterion (Module): The loss function used for calculating the loss between model output and labels.
+        optimizer (torch.optim.Optimizer): The optimizer used for updating the model parameters.
+        scheduler (torch.optim.lr_scheduler): The learning rate scheduler to adjust the learning rate during training.
+        root_dir (str): The root directory where the model and parameters will be saved.
+        writer: A TensorBoard writer object for logging training metrics.
+        model_name (str, optional): The type of the model being used (if applicable). Defaults to "".
+        epoch_count (int, optional): The number of epochs to train the model. Defaults to 20.
 
     Returns:
-        The trained neural network model.
+        Module: The trained neural network model.
     """
-    
-    # Freeze the model parameters to prevent backpropagation
-    for param in model.parameters():
-        param.requires_grad = not freeze_layers
 
+    
     # Replace final layer with new layer that matches the number of classes in dataset
     train_dataset = train_data_loader.dataset.dataset
     num_classes = len(train_dataset.annotations.columns)-1
