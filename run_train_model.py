@@ -12,13 +12,11 @@ from helper_functions.train_model_helper import (
     get_data_loaders_2019,
     test_model,
     train_model,
-    validate_model_during_training
 )
 from torch.utils.tensorboard import SummaryWriter
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
-    LEARNING_RATE_DECAY,
     PREPROCESS_INCEPTIONV3,
     PREPROCESS_RESNET18,
     RANDOM_SEED,
@@ -57,7 +55,8 @@ def define_criterion_and_optimizer(model, learning_rate, momentum, step_size, ga
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer,
-        lr_lambda=lambda epoch: 1 / (1 + LEARNING_RATE_DECAY * epoch)
+        step_size=step_size,
+        gamma=gamma
     )
 
     return criterion, optimizer, scheduler

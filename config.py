@@ -11,11 +11,11 @@ INCEPTIONV3_PIXEL_SIZE: int = 299
 RESNET18_PIXEL_SIZE: int = 224
 
 # PARAMETERS - Optimizer
-LEARNING_RATE: float = 0.0001
+LEARNING_RATE: float = 0.01
 MOMENTUM: float = 0.9
 
 # PARAMETERS - Scheduler
-STEP_SIZE: int = 40
+STEP_SIZE: int = 10
 GAMMA: int = 0.1
 
 # PARAMETERS - Dataloader
@@ -27,7 +27,6 @@ SHUFFLE_VAL_DATALOADER: bool = True
 # PARAMETERS - Model Training
 # the epoch used for training the model
 EPOCH_COUNT: int = 50
-LEARNING_RATE_DECAY: int = 1e-6
 
 TRAIN_SPLIT_PERCENTAGE: float = 0.8
 VAL_SPLIT_PERCENTAGE: float = 0.2
