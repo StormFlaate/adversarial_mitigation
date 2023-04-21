@@ -11,10 +11,11 @@ from helper_functions.train_model_helper import (
     train_model,
     validate_model_during_training
 )
+from torch.utils.tensorboard import SummaryWriter
 from config import (
     GAMMA,
     INCEPTIONV3_MODEL_NAME,
-    LEARNING_RATE_EPOCH,
+    LEARNING_RATE_DECAY,
     PREPROCESS_INCEPTIONV3,
     PREPROCESS_RESNET18,
     RANDOM_SEED,
@@ -60,6 +61,11 @@ def define_criterion_and_optimizer(model, learning_rate, momentum, step_size, ga
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, step_size=step_size, gamma=gamma
     )
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer,
+        lr_lambda=lambda epoch: 1 / (1 + LEARNING_RATE_DECAY * epoch)
+    )
+
     return criterion, optimizer, scheduler
 
 def check_model_name(model_name):
@@ -96,7 +102,17 @@ def get_data_loaders_by_year(year, transform, use_augmented_data):
     else:
         raise Exception("Need to choose dataset year...")
 
-def load_train_and_save_model(model_name, year, learning_rate, momentum, step_size, gamma, epoch_count, use_augmented_data):
+def load_train_and_save_model(
+        model_name,
+        year,
+        learning_rate,
+        momentum,
+        step_size,
+        gamma,
+        epoch_count,
+        use_augmented_data,
+        writer
+    ):
 
     cnn_model, transform = load_model_and_transform(model_name)
     *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(year, transform, use_augmented_data)
@@ -120,6 +136,7 @@ def load_train_and_save_model(model_name, year, learning_rate, momentum, step_si
         optimizer,
         scheduler,
         train_dataset_root_dir,
+        writer,
         model_name=model_name,
         epoch_count=epoch_count
     )
@@ -133,61 +150,32 @@ def load_train_and_save_model(model_name, year, learning_rate, momentum, step_si
 
 
 
-def main(year, model_name, use_augmented_data, learning_rates):
+def main(year, model_name, use_augmented_data):
     mp.freeze_support()
     mp.set_start_method('spawn')
     set_random_seeds()
     check_model_name(model_name)
     print_augmentation_status(use_augmented_data)
-
-    # Initialize a dictionary to store the accuracy for each learning rate
-    learning_rate_to_accuracy: dict = {}
-
-    # Iterate over different learning rates
-    for learning_rate in learning_rates:
-        print(f"Learning rate: {learning_rate}")
-
-        # Load, train and save the model with the given learning rate
-        output = load_train_and_save_model(
-            model_name,
-            year,
-            learning_rate,
-            MOMENTUM,
-            STEP_SIZE,
-            GAMMA,
-            LEARNING_RATE_EPOCH,
-            use_augmented_data
-        )
-
-        cnn_model, _, validation_data_loader, __ = output
-
-        # Validate the model and get its accuracy
-        accuracy, *_ = validate_model_during_training(cnn_model, validation_data_loader)
-
-        # Store the accuracy in the dictionary
-        learning_rate_to_accuracy[learning_rate] = accuracy
-
-    # Find the best learning rate by checking the highest accuracy
-    best_learning_rate = max(learning_rate_to_accuracy, key=learning_rate_to_accuracy.get)
-
-    # Print the best learning rate
-    print("The best learning rate is:", best_learning_rate)
+    writer = SummaryWriter()
 
     # Train the model with the best learning rate
     cnn_model, *_, test_data_loader = load_train_and_save_model(
         model_name,
         year,
-        best_learning_rate,
+        LEARNING_RATE,
         MOMENTUM,
         STEP_SIZE,
         GAMMA,
         EPOCH_COUNT,
-        use_augmented_data
+        use_augmented_data,
+        writer
     )
 
     # Test the model's performance
     print("Testing the model's performance...")
     test_model(cnn_model, test_data_loader, model_name=model_name)
+
+    writer.close()
 
        
 
@@ -222,17 +210,9 @@ if __name__ == "__main__":
         help="Disable the use of the data augmented dataset"
     )
 
-    # Add argument for specifying learning rates
-    parser.add_argument(
-        "--learning-rates",
-        nargs="+",
-        type=float,
-        default=[LEARNING_RATE],
-        help="A list of learning rates for the optimizer, default is the learning rate in config.py file",
-    )
-
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
-    main(args.year, args.model, not args.not_augment, args.learning_rates)
+    main(args.year, args.model, not args.not_augment)
+    

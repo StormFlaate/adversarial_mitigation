@@ -117,9 +117,13 @@ def main():
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
         
-        if i >= 0:
+        if i >= 1:
             break
+    
+    
+    print(log_distances)
 
+    
     _print_overall_accuracy(
         correct_labels, predicted_labels, predicted_adversarial_labels
     )

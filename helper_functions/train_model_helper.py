@@ -49,9 +49,11 @@ def train_model(
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         root_dir: str,
+        writer,
         model_name: str = "",
         epoch_count: int = 20,
-        freeze_layers: bool = True) -> Module:
+        freeze_layers: bool = True,
+    ) -> Module:
     """Trains a neural network model by retraining a model with already existing weights
         form Image Net.
 
@@ -112,9 +114,16 @@ def train_model(
             
             # Add the loss for this batch to the running loss for this epoch
             running_loss += loss.item()
+            optimizer.zero_grad()
         
+        
+        overall_accuracy, overall_f1_score = validate_model_accuracy_f1(model, val_data_loader)
+
+        writer.add_scalar("Loss/train", running_loss, epoch)
+        writer.add_scalar("Accuracy/validation", overall_accuracy, epoch)
+        writer.add_scalar("F1 score", overall_f1_score, epoch)
+
         # zero gradients after each epoch
-        optimizer.zero_grad()
         scheduler.step()
 
         if epoch and epoch%10==0:
@@ -127,11 +136,6 @@ def train_model(
             save_model_and_parameters_to_file(
                 model, model_name, root_dir, epoch, models_dir="models"
             )
-
-        # Print the average loss for this epoch
-        print(f'Epoch {epoch + 1} loss: {running_loss / (i + 1):.4f}')
-
-
 
     return model
 
@@ -628,3 +632,29 @@ def _generate_and_split_dataset_2019(
         ]
     )
     return train_validation_test_dataset
+
+
+def validate_model_accuracy_f1(model, val_data_loader, device):
+    model.eval()  # Set the model to evaluation mode
+
+    true_labels = []
+    predicted_labels = []
+
+    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
+        for val_data in val_data_loader:
+            inputs, labels = val_data
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)  # Get the class with the highest probability as predictions
+
+            true_labels.extend(labels.cpu().numpy())
+            predicted_labels.extend(preds.cpu().numpy())
+
+    # Calculate the overall accuracy and F1 score
+    overall_accuracy = accuracy_score(true_labels, predicted_labels)
+    overall_f1_score = f1_score(true_labels, predicted_labels, average='weighted')
+
+    model.train()  # Set the model back to training mode
+
+    return overall_accuracy, overall_f1_score
