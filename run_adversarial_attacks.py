@@ -108,23 +108,8 @@ def main(year, model_name, model_file_name):
 
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
-
-    # Initialize variables
-    model_children: list = list(model.children()) # get all the model children as list
-
-    if model_name == RESNET18_MODEL_NAME:
-        _, conv_layers = extract_kernels_from_resnet_architecture(
-            model_children
-        )
-    elif model_name == INCEPTIONV3_MODEL_NAME:
-        conv_layers = extract_kernels_from_inception_v3_architecture(
-            model_children
-        )
-    else:
-        raise Exception("Not a valid model name")
     
     print("Length of convolutional layers: ", len(conv_layers))
-    print(conv_layers)
 
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
