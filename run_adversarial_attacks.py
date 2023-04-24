@@ -121,8 +121,6 @@ def main(year, model_file_name):
         if i >= 1:
             break
     
-    
-    print(log_distances[0].size)
 
     
     _print_overall_accuracy(
@@ -154,5 +152,5 @@ if __name__ == '__main__':
     # Call the main function with parsed arguments
     main(
         args.year,
-        "resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_50__a7f.pt"
+        "inception_v3_augmented_data_ISIC_2019_Training_Input_2023-04-24_50__78e.pt"
     )

@@ -339,3 +339,4 @@ def _get_normalize_function(row):
     norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
 
     return norm
+
