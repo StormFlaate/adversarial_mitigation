@@ -5,9 +5,10 @@ import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 import multiprocessing as mp
-from config import PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
+from config import INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
 
 from helper_functions.adversarial_attacks_helper import (
+    extract_kernels_from_inception_v3_architecture,
     extract_kernels_from_resnet_architecture,
     assess_attack_and_log_distances,
     plot_colored_grid
@@ -71,7 +72,7 @@ def _print_overall_accuracy(
 
 
 
-def main(year, model_file_name):
+def main(year, model_name, model_file_name):
     mp.freeze_support()
     mp.set_start_method('spawn')
     # Set the randomness seeds
@@ -95,8 +96,14 @@ def main(year, model_file_name):
 
     # Initialize variables
     model_children: list = list(model.children()) # get all the model children as list
-    _, conv_layers = extract_kernels_from_resnet_architecture(
-            model_children)
+    if model_name == RESNET18_MODEL_NAME:
+        _, conv_layers = extract_kernels_from_resnet_architecture(
+                model_children)
+    elif model_name == INCEPTIONV3_MODEL_NAME:
+        _, conv_layers = extract_kernels_from_inception_v3_architecture(
+                model_children)
+    else:
+        raise Exception("Not a valid model name")
     
     print("Length of convolutional layers: ", len(conv_layers))
     print(conv_layers)
@@ -146,11 +153,23 @@ if __name__ == '__main__':
         help="Dataset for which to perform training on (2018 or 2019)."
     )
 
+    # Add argument for the model type
+    parser.add_argument(
+        "--model",
+        required=True,
+        choices=[INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME],
+        help=(
+            f"Model for which to perform training ({INCEPTIONV3_MODEL_NAME}"
+            f" or {RESNET18_MODEL_NAME})"
+        )
+    )
+
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
     main(
         args.year,
+        args.model,
         "inception_v3_augmented_data_ISIC_2019_Training_Input_2023-04-24_50__78e.pt"
     )

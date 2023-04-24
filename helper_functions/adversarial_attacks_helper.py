@@ -1,6 +1,6 @@
 import math
 import os
-from typing import Iterator
+from typing import Iterator, List
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
@@ -89,6 +89,47 @@ def extract_kernels_from_resnet_architecture(
     print(f"Total convolutional layers: {counter}")
 
     # Return the updated model_weights and conv_layers lists as a tuple
+    return model_weights, conv_layers
+
+
+def extract_kernels_from_inception_v3_architecture(
+    model_children: list[nn.Module],
+) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
+    """
+    Extracts the kernel weights and convolutional layers from an Inception_v3
+    architecture.
+
+    Args:
+        model_children: A list of child modules from the Inception_v3 model.
+
+    Returns:
+        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
+            1. The weights of the extracted convolutional layers.
+            2. The extracted convolutional layers themselves.
+    """
+
+    model_weights = []
+    conv_layers = []
+    counter = 0
+
+    def process_module(module: nn.Module):
+        nonlocal counter
+        if isinstance(module, nn.Conv2d):
+            counter += 1
+            model_weights.append(module.weight)
+            conv_layers.append(module)
+        elif isinstance(module, nn.Sequential) or isinstance(module, nn.ModuleList):
+            for submodule in module:
+                process_module(submodule)
+        elif isinstance(module, nn.Module):
+            for child in module.children():
+                process_module(child)
+
+    for i in range(len(model_children)):
+        process_module(model_children[i])
+
+    print(f"Total convolutional layers: {counter}")
+
     return model_weights, conv_layers
 
 
