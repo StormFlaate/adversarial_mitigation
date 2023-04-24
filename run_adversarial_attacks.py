@@ -152,5 +152,5 @@ if __name__ == '__main__':
     # Call the main function with parsed arguments
     main(
         args.year,
-        "resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_10__cde.pt"
+        "resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_50__a7f.pt"
     )
