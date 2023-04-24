@@ -240,7 +240,7 @@ def assess_attack_and_log_distances(
     true_label = true_label.to(device)
     if model_name == INCEPTIONV3_MODEL_NAME:
         feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-            input, conv_layers, match_input_channels=False)
+            input, conv_layers)
     else:
         feature_map_before_attack = extract_feature_map_of_convolutional_layers(
             input, conv_layers)
