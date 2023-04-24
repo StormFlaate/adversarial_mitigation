@@ -1,11 +1,11 @@
 import argparse
-from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from config import INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
+import multiprocessing as mp
+from config import PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
 
 from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_resnet_architecture,
@@ -13,7 +13,7 @@ from helper_functions.adversarial_attacks_helper import (
     plot_colored_grid
 )
 from helper_functions.misc_helper import get_trained_or_default_model
-from helper_functions.train_model_helper import get_data_loaders, get_data_loaders_by_year
+from helper_functions.train_model_helper import get_data_loaders_by_year
 
 
 def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
@@ -72,6 +72,8 @@ def _print_overall_accuracy(
 
 
 def main(year, model_file_name):
+    mp.freeze_support()
+    mp.set_start_method('spawn')
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
