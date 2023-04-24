@@ -58,7 +58,7 @@ RESNET18_MODEL_NAME: str = "resnet18"
 RANDOM_SEED: int = 42
 
 # PARAMETERS - GPU
-NUM_WORKERS: int = 10
+NUM_WORKERS: int = 1
 
 # TRANSFORMS FOR RESNET-18 and INCEPTION V3
 # Define image pre-processing steps

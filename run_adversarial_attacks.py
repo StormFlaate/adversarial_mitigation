@@ -36,17 +36,14 @@ def _initialize_data_loader_inception_v3(year):
 def _initialize_data_loader_resnet18(year):
     return get_data_loaders_by_year(year, PREPROCESS_RESNET18, False)
 
-def _initialize_device(use_cude_if_available: bool=True) -> torch.device:
+def _initialize_device() -> torch.device:
     """
     Initialize the device.
 
     Returns:
         torch.device: The device to be used (CPU or GPU).
     """
-    if use_cude_if_available:
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    else:
-        return torch.device("cpu")
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def _print_overall_accuracy(
         correct_labels: np.ndarray | list,
@@ -93,7 +90,7 @@ def main(year, model_file_name):
         RESNET18_MODEL_NAME,
         model_file_name=model_file_name
     )
-    device = _initialize_device(use_cude_if_available=False)
+    device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
 
     # Initialize variables
