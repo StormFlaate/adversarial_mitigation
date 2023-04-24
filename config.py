@@ -106,3 +106,21 @@ AUGMENTED_DATASET_2019_LABELS: str = (
 )
 AUGMENTED_DATASET_2019_ROOT_DIR: str = "./augmented_data/ISIC_2019_Training_Input"
 
+
+
+##################################################################
+# ==================== TRAINED MODELS ===========================
+##################################################################
+
+TRAINED_INCEPTION_V3_MODEL_2019: str = (
+    "inception_v3_augmented_data_ISIC_2019_Training_Input_2023-04-24_50__78e.pt"
+)
+TRAINED_RESNET18_MODEL_2019: str = (
+    "resnet18_augmented_data_ISIC_2019_Training_Input_2023-04-24_50__c6c.pt"
+)
+TRAINED_INCEPTION_V3_MODEL_2018: str = (
+    "inception_v3_augmented_data_ISIC2018_Training_Input_2023-04-21_50__36c.pt"
+)
+TRAINED_RESNET18_MODEL_2018: str = (
+    "resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_25__995.pt"
+)

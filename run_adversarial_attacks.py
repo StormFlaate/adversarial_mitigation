@@ -7,11 +7,9 @@ from tqdm import tqdm
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
-    RANDOM_SEED, RESNET18_MODEL_NAME)
+    RANDOM_SEED, RESNET18_MODEL_NAME, TRAINED_INCEPTION_V3_MODEL_2018, TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018, TRAINED_RESNET18_MODEL_2019)
 
 from helper_functions.adversarial_attacks_helper import (
-    extract_kernels_from_inception_v3_architecture,
-    extract_kernels_from_resnet_architecture,
     assess_attack_and_log_distances,
     get_conv_layers,
     get_conv_layers_resnet18,
@@ -74,9 +72,17 @@ def _print_overall_accuracy(
     print("Overall accuracy: ", overall_accuracy)
     print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
 
+def _get_correct_model_file_name(model_name: str, year: str) -> str:
+    if model_name == INCEPTIONV3_MODEL_NAME and year == "2019":
+        return TRAINED_INCEPTION_V3_MODEL_2019
+    elif model_name == INCEPTIONV3_MODEL_NAME and year == "2018":
+        return TRAINED_INCEPTION_V3_MODEL_2018
+    elif model_name == RESNET18_MODEL_NAME and year == "2019":
+        return TRAINED_RESNET18_MODEL_2019
+    elif model_name == RESNET18_MODEL_NAME and year == "2018":
+        return TRAINED_RESNET18_MODEL_2018
 
-
-def main(year, model_name, model_file_name):
+def main(year, model_name):
     mp.freeze_support()
     mp.set_start_method('spawn')
     # Set the randomness seeds
@@ -89,14 +95,16 @@ def main(year, model_name, model_file_name):
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
     torch.cuda.empty_cache()
-    
-    # Initialize setup
+    model_file_name = _get_correct_model_file_name(model_name, year)
+
     model = _initialize_model(
         model_name,
         model_file_name=model_file_name
     )
     
+    # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
+        # Initialize setup
         train_data_loader, *_ = _initialize_data_loader_resnet18(year)
         conv_layers = get_conv_layers_resnet18(model)
     elif model_name == INCEPTIONV3_MODEL_NAME:
@@ -173,6 +181,5 @@ if __name__ == '__main__':
     # Call the main function with parsed arguments
     main(
         args.year,
-        args.model,
-        "inception_v3_augmented_data_ISIC_2019_Training_Input_2023-04-24_50__78e.pt"
+        args.model
     )
