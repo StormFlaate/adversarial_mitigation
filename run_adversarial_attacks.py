@@ -13,6 +13,8 @@ from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_inception_v3_architecture,
     extract_kernels_from_resnet_architecture,
     assess_attack_and_log_distances,
+    get_conv_layers,
+    get_conv_layers_resnet18,
     plot_colored_grid
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -87,20 +89,22 @@ def main(year, model_name, model_file_name):
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
     torch.cuda.empty_cache()
+    
     # Initialize setup
-    
-    
-    if model_name == RESNET18_MODEL_NAME:
-        train_data_loader, *_ = _initialize_data_loader_resnet18(year)
-    elif model_name == INCEPTIONV3_MODEL_NAME:
-        train_data_loader, *_ = _initialize_data_loader_inception_v3(year)
-    else:
-        raise Exception("Not a valid model name")
-
     model = _initialize_model(
         model_name,
         model_file_name=model_file_name
     )
+    
+    if model_name == RESNET18_MODEL_NAME:
+        train_data_loader, *_ = _initialize_data_loader_resnet18(year)
+        conv_layers = get_conv_layers_resnet18(model)
+    elif model_name == INCEPTIONV3_MODEL_NAME:
+        train_data_loader, *_ = _initialize_data_loader_inception_v3(year)
+        conv_layers = get_conv_layers(model)
+    else:
+        raise Exception("Not a valid model name")
+
 
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)

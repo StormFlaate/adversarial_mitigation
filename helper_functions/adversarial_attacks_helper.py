@@ -396,3 +396,75 @@ def _get_normalize_function(row):
 
     return norm
 
+
+def get_conv_layers_resnet18(model):
+    conv_layers = []
+    conv_layers.append(model.conv1)
+    for layer in model.layer1:
+        conv_layers.extend([layer.conv1, layer.conv2])
+    for layer in model.layer2:
+        conv_layers.extend([layer.conv1, layer.conv2])
+    for layer in model.layer3:
+        conv_layers.extend([layer.conv1, layer.conv2])
+    for layer in model.layer4:
+        conv_layers.extend([layer.conv1, layer.conv2])
+
+    return conv_layers
+
+
+def get_conv_layers_inception_v3(model):
+    conv_layers = []
+    conv_layers.append(model.Conv2d_1a_3x3.conv)
+    conv_layers.append(model.Conv2d_2a_3x3.conv)
+    conv_layers.append(model.Conv2d_2b_3x3.conv)
+    conv_layers.append(model.Conv2d_3b_1x1.conv)
+    conv_layers.append(model.Conv2d_4a_3x3.conv)
+
+    for module in model.Mixed_5b.branch1x1:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch5x5_1:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch5x5_2:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch3x3dbl_1:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch3x3dbl_2:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch3x3dbl_3:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+    for module in model.Mixed_5b.branch_pool:
+        if isinstance(module, nn.Conv2d):
+            conv_layers.append(module)
+
+    for i in range(5, 10):
+        for j in range(1, 4):
+            branch_name = f'branch{j}x{j}'
+            if j == 3:
+                branch_name += 'dbl'
+            for module in getattr(getattr(model, f'Mixed_{i}b'), branch_name):
+                if isinstance(module, nn.Conv2d):
+                    conv_layers.append(module)
+
+    conv_layers.append(model.Mixed_7a.branch3x3_1.conv)
+    conv_layers.append(model.Mixed_7a.branch3x3_2.conv)
+    conv_layers.append(model.Mixed_7a.branch7x7x3_1.conv)
+    conv_layers.append(model.Mixed_7a.branch7x7x3_2.conv)
+    conv_layers.append(model.Mixed_7a.branch7x7x3_3.conv)
+    conv_layers.append(model.Mixed_7a.branch7x7x3_4.conv)
+
+    for i in range(7, 9):
+        for j in range(1, 4):
+            branch_name = f'branch{j}x{j}'
+            if j == 3:
+                branch_name += 'dbl'
+            for module in getattr(getattr(model, f'Mixed_{i}b'), branch_name):
+                if isinstance(module, nn.Conv2d):
+                    conv_layers.append(module)
+
+    return conv_layers
