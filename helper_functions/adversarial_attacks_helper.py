@@ -140,6 +140,7 @@ def extract_kernels_from_inception_v3_architecture(
 def extract_feature_map_of_convolutional_layers(
         input_tensor: torch.Tensor,
         conv_layers: list[nn.Conv2d],
+        model_name: str
     ) -> list[torch.Tensor]:
     """
     Extracts the feature maps of a list of convolutional layers applied to an input
@@ -148,6 +149,7 @@ def extract_feature_map_of_convolutional_layers(
     Args:
         input_tensor: The input tensor to pass through the convolutional layers.
         conv_layers: A list of convolutional layers to apply to the input tensor.
+        model_name: The name of the model. Accepts 'resnet18' or 'inception_v3'.
 
     Returns:
         A list containing the feature maps of each convolutional layer applied to the
@@ -158,14 +160,25 @@ def extract_feature_map_of_convolutional_layers(
             list of nn.Conv2d layers.
 
     """
+    if not isinstance(input_tensor, torch.Tensor):
+        raise TypeError("input_tensor must be a torch.Tensor")
+
+    if not all(isinstance(layer, nn.Conv2d) for layer in conv_layers):
+        raise TypeError("conv_layers must be a list of nn.Conv2d layers")
+
+    if model_name not in ['resnet18', 'inception_v3']:
+        raise ValueError("model_name must be either 'resnet18' or 'inception_v3'")
+
     results = [conv_layers[0](input_tensor)]
 
     for i in range(1, len(conv_layers)):
         results.append(conv_layers[i](results[-1]))
 
+    if model_name == 'inception_v3':
+        results.append(nn.AdaptiveAvgPool2d((1, 1))(results[-1]))
+        results[-1] = torch.flatten(results[-1], 1)
+
     return results
-
-
 
 
 def visualize_feature_map_of_convolutional_layers(
@@ -238,12 +251,8 @@ def assess_attack_and_log_distances(
     """
     input = input.to(device)
     true_label = true_label.to(device)
-    if model_name == INCEPTIONV3_MODEL_NAME:
-        feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-            input, conv_layers)
-    else:
-        feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-            input, conv_layers)
+    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
+        input, conv_layers, model_name)
         
     # perform adversarial attack on the input
     adversarial_input = generate_adversarial_input(input, true_label, attack)
@@ -252,7 +261,7 @@ def assess_attack_and_log_distances(
     predicted_adversarial_label = model(adversarial_input)
 
     feature_map_after_attack = extract_feature_map_of_convolutional_layers(
-        adversarial_input, conv_layers)
+        adversarial_input, conv_layers, model_name)
 
     logarithmic_distances = calculate_logarithmic_distances(
         feature_map_before_attack, feature_map_after_attack)
