@@ -159,6 +159,7 @@ def extract_feature_map_of_convolutional_layers(
             list of nn.Conv2d layers.
 
     """
+
     if not isinstance(input_tensor, torch.Tensor):
         raise TypeError("input_tensor must be a torch.Tensor")
 
@@ -173,11 +174,10 @@ def extract_feature_map_of_convolutional_layers(
     for i in range(1, len(conv_layers)):
         results.append(conv_layers[i](results[-1]))
 
-    if model_name == 'inception_v3':
-        results.append(nn.AdaptiveAvgPool2d((1, 1))(results[-1]))
-        results[-1] = torch.flatten(results[-1], 1)
-
     return results
+
+
+
 
 
 def visualize_feature_map_of_convolutional_layers(
