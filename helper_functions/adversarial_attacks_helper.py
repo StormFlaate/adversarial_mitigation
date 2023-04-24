@@ -9,6 +9,8 @@ import torch
 import torch.nn as nn
 import torchattacks
 
+from config import INCEPTIONV3_MODEL_NAME
+
 
 def generate_adversarial_input(
         input,
@@ -135,7 +137,8 @@ def extract_kernels_from_inception_v3_architecture(
 
 def extract_feature_map_of_convolutional_layers(
         input_tensor: torch.Tensor,
-        conv_layers: list[nn.Conv2d]
+        conv_layers: list[nn.Conv2d],
+        match_input_channels: bool = True
     ) -> list[torch.Tensor]:
     """
     Extracts the feature maps of a list of convolutional layers applied to an input
@@ -144,6 +147,8 @@ def extract_feature_map_of_convolutional_layers(
     Args:
         input_tensor: The input tensor to pass through the convolutional layers.
         conv_layers: A list of convolutional layers to apply to the input tensor.
+        match_input_channels (optional): If True, changes the input tensor's number of
+            channels to match the first convolutional layer's input channels.
 
     Returns:
         A list containing the feature maps of each convolutional layer applied to the
@@ -154,15 +159,18 @@ def extract_feature_map_of_convolutional_layers(
             list of nn.Conv2d layers.
 
     """
-        # pass the image through all the layers
+    if match_input_channels:
+        input_channels = conv_layers[0].in_channels
+        if input_tensor.size(1) != input_channels:
+            input_tensor = input_tensor[:, :input_channels, :, :]
+
     results = [conv_layers[0](input_tensor)]
 
     for i in range(1, len(conv_layers)):
-        # pass the result from the last layer to the next layer
         results.append(conv_layers[i](results[-1]))
-    # make a copy of the `results`
-    
+
     return results
+
 
 def visualize_feature_map_of_convolutional_layers(
         convolutional_outputs: list[torch.Tensor],
@@ -212,7 +220,8 @@ def assess_attack_and_log_distances(
         input: torch.Tensor,
         true_label: torch.Tensor,
         attack: torchattacks.attack, 
-        conv_layers: list[torch.nn.Conv2d]
+        conv_layers: list[torch.nn.Conv2d],
+        model_name: str
     ) -> tuple[list[torch.Tensor], np.intp, np.intp, np.intp]:
     """
     Assesses the attack before and after the pertubation of the input image, calculating
@@ -225,6 +234,7 @@ def assess_attack_and_log_distances(
         true_label (torch.Tensor): The true label tensor.
         attack (torchattacks.Attack): The attack method object.
         conv_layers: The convolutional layers for the current model.
+        model_name: What model is used in the current attack
 
     Returns:
         The logarithmic distances between feature maps, true label, predicted label,
@@ -232,10 +242,13 @@ def assess_attack_and_log_distances(
     """
     input = input.to(device)
     true_label = true_label.to(device)
-
-    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-        input, conv_layers)
-    
+    if model_name == INCEPTIONV3_MODEL_NAME:
+        feature_map_before_attack = extract_feature_map_of_convolutional_layers(
+            input, conv_layers, match_input_channels=False)
+    else:
+        feature_map_before_attack = extract_feature_map_of_convolutional_layers(
+            input, conv_layers)
+        
     # perform adversarial attack on the input
     adversarial_input = generate_adversarial_input(input, true_label, attack)
     # evaluates the input using the trained model

@@ -111,7 +111,7 @@ def main(year, model_name, model_file_name):
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
         label_results = assess_attack_and_log_distances(
-            model, device, input, true_label, attack, conv_layers
+            model, device, input, true_label, attack, conv_layers, model_name
         )
         log_distance, correct_label, predicted_label, adv_label = label_results
 
