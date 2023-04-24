@@ -5,13 +5,16 @@ import torchattacks
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 import multiprocessing as mp
-from config import INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18, RANDOM_SEED, RESNET18_MODEL_NAME
+from config import (
+    INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
+    RANDOM_SEED, RESNET18_MODEL_NAME)
 
 from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_inception_v3_architecture,
     extract_kernels_from_resnet_architecture,
     assess_attack_and_log_distances,
-    plot_colored_grid
+    plot_colored_grid,
+    process_tensor_through_inception_v3
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -86,22 +89,34 @@ def main(year, model_name, model_file_name):
     predicted_adversarial_labels: list = []
     torch.cuda.empty_cache()
     # Initialize setup
-    train_data_loader, *_ = _initialize_data_loader_resnet18(year)
+    
+    
+    if model_name == RESNET18_MODEL_NAME:
+        train_data_loader, *_ = _initialize_data_loader_resnet18(year)
+    elif model_name == INCEPTIONV3_MODEL_NAME:
+        train_data_loader, *_ = _initialize_data_loader_inception_v3(year)
+    else:
+        raise Exception("Not a valid model name")
+
     model = _initialize_model(
-        RESNET18_MODEL_NAME,
+        model_name,
         model_file_name=model_file_name
     )
+
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
 
     # Initialize variables
     model_children: list = list(model.children()) # get all the model children as list
+
     if model_name == RESNET18_MODEL_NAME:
         _, conv_layers = extract_kernels_from_resnet_architecture(
-                model_children)
+            model_children
+        )
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        _, conv_layers = extract_kernels_from_inception_v3_architecture(
-                model_children)
+        conv_layers = extract_kernels_from_inception_v3_architecture(
+            model_children
+        )
     else:
         raise Exception("Not a valid model name")
     

@@ -98,47 +98,49 @@ def extract_kernels_from_inception_v3_architecture(
     model_children: list[nn.Module],
 ) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
     """
-    Extracts the kernel weights and convolutional layers from an Inception_v3
+    Extracts the kernel weights and convolutional layers from an Inception V3
     architecture.
 
     Args:
-        model_children: A list of child modules from the Inception_v3 model.
+        model_children: A list of child modules from the Inception V3 model.
 
     Returns:
-        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
+        A tuple containing two lists:
             1. The weights of the extracted convolutional layers.
             2. The extracted convolutional layers themselves.
     """
 
     model_weights = []
     conv_layers = []
+    # Initialize a counter to keep track of the number of convolutional layers
     counter = 0
 
-    def process_module(module: nn.Module):
+    # Recursive function to search for Conv2d layers in nested modules
+    def find_conv_layers(module: nn.Module):
         nonlocal counter
-        if isinstance(module, nn.Conv2d):
-            counter += 1
-            model_weights.append(module.weight)
-            conv_layers.append(module)
-        elif isinstance(module, nn.Sequential) or isinstance(module, nn.ModuleList):
-            for submodule in module:
-                process_module(submodule)
-        elif isinstance(module, nn.Module):
-            for child in module.children():
-                process_module(child)
 
+        for child in module.children():
+            if isinstance(child, nn.Conv2d):
+                counter += 1
+                model_weights.append(child.weight)
+                conv_layers.append(child)
+            else:
+                find_conv_layers(child)
+
+    # Iterate through the model's child modules
     for i in range(len(model_children)):
-        process_module(model_children[i])
+        find_conv_layers(model_children[i])
 
+    # Print the total number of convolutional layers found
     print(f"Total convolutional layers: {counter}")
 
+    # Return the updated model_weights and conv_layers lists as a tuple
     return model_weights, conv_layers
 
 
 def extract_feature_map_of_convolutional_layers(
         input_tensor: torch.Tensor,
         conv_layers: list[nn.Conv2d],
-        match_input_channels: bool = True
     ) -> list[torch.Tensor]:
     """
     Extracts the feature maps of a list of convolutional layers applied to an input
@@ -147,8 +149,6 @@ def extract_feature_map_of_convolutional_layers(
     Args:
         input_tensor: The input tensor to pass through the convolutional layers.
         conv_layers: A list of convolutional layers to apply to the input tensor.
-        match_input_channels (optional): If True, changes the input tensor's number of
-            channels to match the first convolutional layer's input channels.
 
     Returns:
         A list containing the feature maps of each convolutional layer applied to the
@@ -159,17 +159,14 @@ def extract_feature_map_of_convolutional_layers(
             list of nn.Conv2d layers.
 
     """
-    if match_input_channels:
-        input_channels = conv_layers[0].in_channels
-        if input_tensor.size(1) != input_channels:
-            input_tensor = input_tensor[:, :input_channels, :, :]
-
     results = [conv_layers[0](input_tensor)]
 
     for i in range(1, len(conv_layers)):
         results.append(conv_layers[i](results[-1]))
 
     return results
+
+
 
 
 def visualize_feature_map_of_convolutional_layers(
