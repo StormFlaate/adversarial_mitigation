@@ -94,7 +94,9 @@ def load_train_and_save_model(
     ):
 
     cnn_model, transform = load_model_and_transform(model_name)
-    *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(year, transform, use_augmented_data)
+    *data_loaders, train_dataset_root_dir = get_data_loaders_by_year(
+        year, transform, use_augmented_data
+    )
     train_data_loader, validation_data_loader, test_data_loader = data_loaders
 
     criterion, optimizer, scheduler = define_criterion_and_optimizer(
@@ -161,7 +163,10 @@ def main(year, model_name, use_augmented_data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Model-name, dataset-year, possibility to use non-augmented dataset and add multiple learning rates."
+        description=(
+            "Model-name, dataset-year, possibility to use non-augmented dataset and add"
+            " multiple learning rates."
+        )
     )
     # Add argument for the dataset year
     parser.add_argument(

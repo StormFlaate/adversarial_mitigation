@@ -13,8 +13,7 @@ from helper_functions.adversarial_attacks_helper import (
     extract_kernels_from_inception_v3_architecture,
     extract_kernels_from_resnet_architecture,
     assess_attack_and_log_distances,
-    plot_colored_grid,
-    process_tensor_through_inception_v3
+    plot_colored_grid
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year

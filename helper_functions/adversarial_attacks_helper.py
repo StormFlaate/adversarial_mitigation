@@ -1,6 +1,5 @@
 import math
 import os
-from typing import Iterator, List
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
@@ -271,7 +270,8 @@ def calculate_logarithmic_distances(
         after_attack: list[torch.Tensor]
     ) -> list[torch.Tensor]:
     """
-    Calculate logarithmic distances between the feature maps before and after the attack.
+    Calculate logarithmic distances between the feature maps before and after the
+    attack.
 
     Args:
         before_attack (torch.Tensor): The feature map before the attack.
@@ -304,10 +304,6 @@ def calculate_logarithmic_distances(
         print(mean_logarithmic_distance.shape)
         distances.append(mean_logarithmic_distance)
 
-        # # Find the indices of the k feature maps with the greatest mean logarithmic distance
-        # most_changed_indices = sorted(range(len(mean_logarithmic_distances)),
-        #                           key=lambda i: mean_logarithmic_distances[i],
-        #                           reverse=True)[:k]
 
     return distances
 
