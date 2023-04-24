@@ -83,7 +83,7 @@ def main(year, model_file_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
-    
+    torch.cuda.empty_cache()
     # Initialize setup
     train_data_loader, *_ = _initialize_data_loader_resnet18(year)
     model = _initialize_model(
