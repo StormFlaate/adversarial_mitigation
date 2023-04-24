@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torchattacks
 
-from config import INCEPTIONV3_MODEL_NAME
 
 
 def generate_adversarial_input(
@@ -412,59 +411,15 @@ def get_conv_layers_resnet18(model):
     return conv_layers
 
 
-def get_conv_layers_inception_v3(model):
+def get_conv_layers(model):
     conv_layers = []
-    conv_layers.append(model.Conv2d_1a_3x3.conv)
-    conv_layers.append(model.Conv2d_2a_3x3.conv)
-    conv_layers.append(model.Conv2d_2b_3x3.conv)
-    conv_layers.append(model.Conv2d_3b_1x1.conv)
-    conv_layers.append(model.Conv2d_4a_3x3.conv)
 
-    for module in model.Mixed_5b.branch1x1:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch5x5_1:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch5x5_2:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch3x3dbl_1:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch3x3dbl_2:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch3x3dbl_3:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
-    for module in model.Mixed_5b.branch_pool:
-        if isinstance(module, nn.Conv2d):
-            conv_layers.append(module)
+    def _extract_conv_layers(module):
+        for child_module in module.children():
+            if isinstance(child_module, nn.Conv2d):
+                conv_layers.append(child_module)
+            else:
+                _extract_conv_layers(child_module)
 
-    for i in range(5, 10):
-        for j in range(1, 4):
-            branch_name = f'branch{j}x{j}'
-            if j == 3:
-                branch_name += 'dbl'
-            for module in getattr(getattr(model, f'Mixed_{i}b'), branch_name):
-                if isinstance(module, nn.Conv2d):
-                    conv_layers.append(module)
-
-    conv_layers.append(model.Mixed_7a.branch3x3_1.conv)
-    conv_layers.append(model.Mixed_7a.branch3x3_2.conv)
-    conv_layers.append(model.Mixed_7a.branch7x7x3_1.conv)
-    conv_layers.append(model.Mixed_7a.branch7x7x3_2.conv)
-    conv_layers.append(model.Mixed_7a.branch7x7x3_3.conv)
-    conv_layers.append(model.Mixed_7a.branch7x7x3_4.conv)
-
-    for i in range(7, 9):
-        for j in range(1, 4):
-            branch_name = f'branch{j}x{j}'
-            if j == 3:
-                branch_name += 'dbl'
-            for module in getattr(getattr(model, f'Mixed_{i}b'), branch_name):
-                if isinstance(module, nn.Conv2d):
-                    conv_layers.append(module)
-
+    _extract_conv_layers(model)
     return conv_layers
