@@ -71,7 +71,7 @@ def _print_overall_accuracy(
 
 
 
-def main(year):
+def main(year, model_file_name):
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
@@ -86,7 +86,7 @@ def main(year):
     train_data_loader, *_ = _initialize_data_loader_resnet18(year)
     model = _initialize_model(
         RESNET18_MODEL_NAME,
-        model_file_name="resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_20__ef7.pt"
+        model_file_name=model_file_name
     )
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
@@ -133,7 +133,10 @@ def main(year):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="Model-name, dataset-year, possibility to use non-augmented dataset and add multiple learning rates."
+        description=(
+            "Model-name, dataset-year, possibility to use non-augmented dataset" 
+            " and add multiple learning rates."
+        )
     )
     # Add argument for the dataset year
     parser.add_argument(
@@ -147,4 +150,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
-    main(args.year)
+    main(
+        args.year,
+        "resnet18_augmented_data_ISIC2018_Training_Input_2023-04-21_10__cde.pt"
+    )
