@@ -122,7 +122,7 @@ def main(year, model_file_name):
             break
     
     
-    print(log_distances)
+    print(log_distances.size)
 
     
     _print_overall_accuracy(
