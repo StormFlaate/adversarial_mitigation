@@ -126,7 +126,7 @@ def main(year, model_name):
     device = _initialize_device()
     attacks.append(("fgsm",torchattacks.FGSM(model, eps=2/255)))
     attacks.append(("cw",torchattacks.CW(model)))
-    attacks.append(("deepfool",torchattacks.DeepFool(model)))
+    #attacks.append(("deepfool",torchattacks.DeepFool(model)))
     attacks.append(("one_pixel",torchattacks.OnePixel(model)))
 
     for name, attack in attacks:
