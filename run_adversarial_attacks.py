@@ -17,6 +17,7 @@ from helper_functions.adversarial_attacks_helper import (
     generate_adversarial_input,
     get_feature_maps,
     normalize_features,
+    plot_3d_scatter,
     reduce_dimensionality,
     save_average_line_plots,
     save_line_plots,
@@ -163,15 +164,13 @@ def main(year, model_name):
             adv_input = generate_adversarial_input(input, true_label, attack)
             
             pca_1_list.extend(
-                normalize_features(
-                    combine_features(
-                        *extract_features(
-                            get_feature_maps(input, model, model_name)))))
+                combine_features(
+                    *extract_features(
+                        get_feature_maps(input, model, model_name))))
             pca_2_list.extend(
-                normalize_features(
-                    combine_features(
-                        *extract_features(
-                            get_feature_maps(adv_input, model, model_name)))))
+                combine_features(
+                    *extract_features(
+                        get_feature_maps(adv_input, model, model_name))))
                 
             
             
@@ -181,7 +180,9 @@ def main(year, model_name):
             
         
         
-    visualize_2d(*reduce_dimensionality(pca_1_list, pca_2_list))
+    pca_1_list.extend(pca_2_list)
+
+    plot_3d_scatter(*pca_1_list)
     
     # save_line_plots(
     #     log_distances,

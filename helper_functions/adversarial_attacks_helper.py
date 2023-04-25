@@ -11,7 +11,7 @@ import torchattacks
 
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from sklearn.decomposition import PCA
-
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def combine_features(max_values, min_values, avg_values):
@@ -27,6 +27,20 @@ def normalize_features(combined_features):
     scaler = StandardScaler()
     normalized_features = scaler.fit_transform(combined_features)
     return normalized_features
+
+
+
+def plot_3d_scatter(x, y, z):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x, y, z, c='r', marker='o')
+    ax.set_xlabel('Max Values')
+    ax.set_ylabel('Min Values')
+    ax.set_zlabel('Avg Values')
+    os.makedirs("./test_images/", exist_ok=True)
+    plt.savefig(os.path.join("./test_images/", "3d_plot.png"))
+    plt.close()
+
 
 def reduce_dimensionality(normalized_features_1, normalized_features_2, n_components=2):
     # Combine the normalized features
