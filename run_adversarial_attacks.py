@@ -159,15 +159,13 @@ def main(year, model_name):
             adv_input = generate_adversarial_input(input, true_label, attack)
             
             pca_1_list.extend(
-                combine_features(
                     *extract_features(
-                        get_feature_maps(input, model, model_name))))
+                        get_feature_maps(input, model, model_name)))
             pca_2_list.extend(
-                combine_features(
                     *extract_features(
-                        get_feature_maps(adv_input, model, model_name))))
+                        get_feature_maps(adv_input, model, model_name)))
                 
-            
+            print(len(pca_1_list))
             
             
             if i >= 10:
@@ -175,11 +173,7 @@ def main(year, model_name):
             
         
         
-    pca_1_list.extend(pca_2_list)
 
-    x, y, z = zip(*pca_1_list)
-    labels, centroids = kmeans_clustering(x, y, z, n_clusters=3)
-    plot_3d_scatter_with_clusters(x, y, z, labels, centroids)
 
     
     
