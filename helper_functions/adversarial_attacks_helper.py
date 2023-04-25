@@ -122,7 +122,7 @@ def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tenso
 
         log_distances.append(log_distance.item())
 
-    return get_normalized_values(log_distances)
+    return log_distances
 
 
 def get_normalized_values(data: list) -> list:
