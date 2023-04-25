@@ -113,8 +113,8 @@ def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tenso
         l_inf_distance = torch.norm(a - b, p=float('inf'), dim=1)
 
         # Compute the log distance
-        #log_distance = torch.log(l_inf_distance)
-        log_distance = l2_distance
+        log_distance = torch.log(l2_distance)
+        # log_distance = l2_distance
 
         # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
         finite_mask = torch.isfinite(log_distance)
