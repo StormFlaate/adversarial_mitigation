@@ -122,6 +122,7 @@ def main(year, model_name):
     device = _initialize_device()
     attacks.append(torchattacks.FGSM(model, eps=2/255))
     attacks.append(torchattacks.CW(model))
+    attacks.append(torchattacks.DeepFool(model))
 
     for attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
