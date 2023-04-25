@@ -162,7 +162,7 @@ def main(year, model_name):
                 get_feature_maps(adv_input, model, model_name))
             
             
-            if i >= 10:
+            if i >= 1000:
                 break
             
         
