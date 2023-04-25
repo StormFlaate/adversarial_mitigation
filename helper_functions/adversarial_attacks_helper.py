@@ -15,12 +15,14 @@ from sklearn.decomposition import PCA
 
 
 def combine_features(max_indices, min_indices, max_values, min_values, avg_values):
-    return list(zip(
-        max_values,
-        min_values,
-        avg_values,
-        [idx[0] for idx in max_indices],
-        [idx[0] for idx in min_indices])
+    return list(
+                zip(
+                    max_values,
+                    min_values,
+                    avg_values,
+                    max_indices,
+                    min_indices
+                )
     )
 
 def normalize_features(combined_features):
@@ -56,10 +58,10 @@ def extract_features(feature_maps):
         avg_value = torch.mean(feature_map)
 
         max_values.append(max_value.item())
-        max_indices.append(torch.unravel_index(max_index, feature_map.shape))
         min_values.append(min_value.item())
-        min_indices.append(torch.unravel_index(min_index, feature_map.shape))
         avg_values.append(avg_value.item())
+        min_indices.append(min_index.item())
+        max_indices.append(max_index.item())
 
     # max_value_index = max_indices[max_values.index(max(max_values))]
     # min_value_index = min_indices[min_values.index(min(min_values))]
