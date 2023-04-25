@@ -131,15 +131,11 @@ def main(year, model_name):
             attack,
             model_name
         )
-        log_distance, correct_label, predicted_label, adv_label = assessment_results
-
-        [print(tensor.size()) for tensor in log_distance]
-
-        # gets the tensors over to the cpu and then over to numpy
-        log_distance: list = [tensor.detach().cpu().numpy() for tensor in log_distance]
-        log_distance = np.array(log_distance)
+        cur_log_distances, correct_label, predicted_label, adv_label = assessment_results
+        print(f"len(cur_log_distances): {len(cur_log_distances)}")
+        print(cur_log_distances)
         
-        log_distances.append(log_distance)
+        log_distances.append(cur_log_distances)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
@@ -147,8 +143,12 @@ def main(year, model_name):
         if i >= 1:
             break
     
-
     
+    print(f"len(log_distances): {len(log_distances)}")
+    print(log_distances)
+    
+    
+
     _print_overall_accuracy(
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
