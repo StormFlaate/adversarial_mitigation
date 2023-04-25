@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 import numpy as np
+from sklearn.cluster import KMeans
 from sklearn.discriminant_analysis import StandardScaler
 import torch
 import torch.nn as nn
@@ -11,8 +12,15 @@ import torchattacks
 
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from sklearn.decomposition import PCA
-from mpl_toolkits.mplot3d import Axes3D
 
+
+def kmeans_clustering(x, y, z, n_clusters=3):
+    data = np.array(list(zip(x, y, z)))
+    kmeans = KMeans(n_clusters=n_clusters)
+    kmeans.fit(data)
+    labels = kmeans.labels_
+    centroids = kmeans.cluster_centers_
+    return labels, centroids
 
 def combine_features(max_values, min_values, avg_values):
     return list(
@@ -28,7 +36,17 @@ def normalize_features(combined_features):
     normalized_features = scaler.fit_transform(combined_features)
     return normalized_features
 
-
+def plot_3d_scatter_with_clusters(x, y, z, labels, centroids):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x, y, z, c=labels, marker='o', cmap='viridis')
+    ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], c='red', marker='x', s=100)
+    ax.set_xlabel('Max Values')
+    ax.set_ylabel('Min Values')
+    ax.set_zlabel('Avg Values')
+    os.makedirs("./test_images/", exist_ok=True)
+    plt.savefig(os.path.join("./test_images/", "3d_plot.png"))
+    plt.close()
 
 def plot_3d_scatter(x, y, z):
     fig = plt.figure()

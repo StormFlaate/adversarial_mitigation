@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+from sklearn.cluster import KMeans
 import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
@@ -16,6 +17,7 @@ from helper_functions.adversarial_attacks_helper import (
     extract_features,
     generate_adversarial_input,
     get_feature_maps,
+    kmeans_clustering,
     normalize_features,
     plot_3d_scatter,
     reduce_dimensionality,
@@ -183,6 +185,11 @@ def main(year, model_name):
     pca_1_list.extend(pca_2_list)
 
     x, y, z = zip(*pca_1_list)
+    labels, centroids = kmeans_clustering(x, y, z, n_clusters=3)
+    plot_3d_scatter_with_clusters(x, y, z, labels, centroids)
+
+    
+
 
     plot_3d_scatter(x, y, z)
     
