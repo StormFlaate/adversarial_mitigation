@@ -158,7 +158,7 @@ def main(year, model_name):
             predicted_labels.append(predicted_label)
             predicted_adversarial_labels.append(adv_label)
             
-            if i >= 100:
+            if i >= 1000:
                 break
             
         
@@ -168,22 +168,22 @@ def main(year, model_name):
     save_line_plots(
         log_distances,
         "./test_images/",
-        "l2_log_normalized_100_iter.png"
+        "l2_log_normalized_1000_iter.png"
     )
     save_average_line_plots(
         log_distances,
         "./test_images/",
-        "average_l2_log_normalized_100_iter.png"
+        "average_l2_log_normalized_1000_iter.png"
     )
     save_line_plots(
         comparison_distances,
         "./test_images/",
-        "comparison_l2_log_normalized_100_iter.png"
+        "comparison_l2_log_normalized_1000_iter.png"
     )
     save_average_line_plots(
         comparison_distances,
         "./test_images/",
-        "comparison_average_l2_log_normalized_100_iter.png"
+        "comparison_average_l2_log_normalized_1000_iter.png"
     )
     
 
