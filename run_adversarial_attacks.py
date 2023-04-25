@@ -119,9 +119,9 @@ def main(year, model_name):
     # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
-        train_data_loader, *_ = _initialize_data_loader_resnet18(year)
+        train_data_loader, val_data_loader, test_data_loader = _initialize_data_loader_resnet18(year)
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        train_data_loader, *_ = _initialize_data_loader_inception_v3(year)
+        train_data_loader, val_data_loader, test_data_loader = _initialize_data_loader_inception_v3(year)
     else:
         raise Exception("Not a valid model name")
 
@@ -148,7 +148,7 @@ def main(year, model_name):
                     for tensor in get_feature_maps(adv_input, model, model_name)
             ])
             
-            if i >= 10000:
+            if i >= 1:
                 break
             
         
@@ -157,6 +157,42 @@ def main(year, model_name):
         benign_feature_map,
         adversarial_feature_map
     )
+    test_benign_feature_map = []
+    test_adversarial_feature_map = []
+
+    for i, (input, true_label) in tqdm(enumerate(test_data_loader)):
+        input = input.to(device)
+        true_label = true_label.to(device)
+
+        adv_input = generate_adversarial_input(input, true_label, attack)
+        
+        test_benign_feature_map.append([
+            tensor.mean().item() 
+                for tensor in get_feature_maps(input, model, model_name)
+        ])
+        test_adversarial_feature_map.append([
+            tensor.mean().item() 
+                for tensor in get_feature_maps(adv_input, model, model_name)
+        ])
+    
+    # Assuming pca_1_list and pca_2_list are your input features
+    benign_features = np.array(test_benign_feature_map)
+    adversarial_features = np.array(test_adversarial_feature_map)
+
+    # Combine the two lists into one and create the corresponding labels
+    X = np.concatenate((benign_features, adversarial_features), axis=0)
+    y = np.concatenate(
+        (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
+        axis=0
+    )
+    
+    # Predict on the test set
+    y_pred = xgboost_model.predict(X)
+    predictions = [round(value) for value in y_pred]
+
+    # Evaluate the accuracy
+    accuracy = accuracy_score(y, predictions)
+    print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
     
 
