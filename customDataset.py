@@ -40,6 +40,10 @@ class ISICDataset(Dataset):
         target transform.
         """
         df = pd.read_csv(csv_file, nrows=nrows)
+        # removes the UNK colunn if it exists (2019 dataset)
+        if 'UNK' in df.columns:
+            df = df.drop('UNK', axis=1)
+
         # define the types for all columns (except first) as int
         df[df.columns[1:]] = df[df.columns[1:]].astype({col: int for col in df.columns[1:]})
 
