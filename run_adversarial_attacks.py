@@ -137,7 +137,7 @@ def main(year, model_name):
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
         
-        if i >= 1:
+        if i >= 3:
             break
     
     
