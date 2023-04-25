@@ -9,9 +9,67 @@ from sklearn.discriminant_analysis import StandardScaler
 import torch
 import torch.nn as nn
 import torchattacks
-
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from sklearn.decomposition import PCA
+
+def train_and_evaluate_xgboost_classifier(
+    benign_feature_map: list[list[float]] | np.ndarray,
+    adversarial_feature_map: list[list[float]] | np.ndarray,
+    test_size: float = 0.2,
+    random_state: int = 42
+) -> tuple[xgb.XGBClassifier, float]:
+    """
+    Trains an XGBoost classifier on input benign and adversarial feature maps, evaluates
+    its accuracy, and returns the trained model and accuracy.
+
+    Args:
+        benign_feature_map (list of lists or array-like): A 2D list or array-like object
+            containing the benign features.
+        adversarial_feature_map (list of lists or array-like): A 2D list or array-like
+            object containing the adversarial features.
+        test_size (float, optional): A float between 0 and 1 representing the proportion
+            of the dataset to be used as test set. Defaults to 0.2.
+        random_state (int, optional): A random seed used by the random number generator.
+            Defaults to 42.
+
+    Returns:
+        tuple: A tuple containing:
+            - model (xgb.XGBClassifier): The trained XGBoost classifier.
+            - accuracy (float): The accuracy of the classifier on the test set, as a
+                percentage.
+    """
+    # Assuming pca_1_list and pca_2_list are your input features
+    benign_features = np.array(benign_feature_map)
+    adversarial_features = np.array(adversarial_feature_map)
+
+    # Combine the two lists into one and create the corresponding labels
+    X = np.concatenate((benign_features, adversarial_features), axis=0)
+    y = np.concatenate(
+        (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
+        axis=0
+    )
+
+    # Split the dataset into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+
+    # Train the XGBoost classifier
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+    model.fit(X_train, y_train)
+
+    # Predict on the test set
+    y_pred = model.predict(X_test)
+    predictions = [round(value) for value in y_pred]
+
+    # Evaluate the accuracy
+    accuracy = accuracy_score(y_test, predictions)
+    print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+    return model, accuracy
 
 
 def kmeans_clustering(x, y, z, n_clusters=3):
