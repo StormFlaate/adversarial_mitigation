@@ -192,7 +192,7 @@ def main(year, model_name):
 
     # Evaluate the accuracy
     accuracy = accuracy_score(y, predictions)
-    print("Accuracy: %.2f%%" % (accuracy * 100.0))
+    print("Accuracy on test dataset: %.2f%%" % (accuracy * 100.0))
 
     
 
