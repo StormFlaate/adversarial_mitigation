@@ -265,6 +265,24 @@ def visualize_feature_maps(feature_maps, ncols=8, output_dir: str="./test_images
     plt.close()
 
 
+def save_line_plots(data, output_dir):
+    for i, d in enumerate(data):
+        plt.plot(d, label=f'List {i+1}')
+
+    plt.xlabel('Index')
+    plt.ylabel('Value')
+    plt.title('Line Plots of Lists')
+    plt.legend()
+    
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig(os.path.join(output_dir, "line_plots.png"))
+    plt.close()
+
+
+# =======================================
+# ============ OLD FUNCTIONS ============
+# =======================================
+
 def old_calculate_logarithmic_distances(
         before_attack: list[torch.Tensor],
         after_attack: list[torch.Tensor]

@@ -12,7 +12,8 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    assess_attack_and_log_distances
+    assess_attack_and_log_distances,
+    save_line_plots
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -140,12 +141,12 @@ def main(year, model_name):
             predicted_labels.append(predicted_label)
             predicted_adversarial_labels.append(adv_label)
             
-            if i >= 3:
+            if i >= 5:
                 break
         
         
     [print(x) for x in log_distances]
-    
+    save_line_plots(log_distances, "./test_images/")
     
 
 if __name__ == '__main__':
