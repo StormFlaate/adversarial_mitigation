@@ -20,7 +20,8 @@ from helper_functions.adversarial_attacks_helper import (
     reduce_dimensionality,
     save_average_line_plots,
     save_line_plots,
-    visualize_2d
+    visualize_2d,
+    visualize_3d
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -180,7 +181,7 @@ def main(year, model_name):
             
         
         
-    visualize_2d(*reduce_dimensionality(pca_1_list, pca_2_list))
+    visualize_3d(*reduce_dimensionality(pca_1_list, pca_2_list))
     
     # save_line_plots(
     #     log_distances,

@@ -30,10 +30,20 @@ def normalize_features(combined_features):
     normalized_features = scaler.fit_transform(combined_features)
     return normalized_features
 
-def reduce_dimensionality(normalized_features, n_components=2):
+def reduce_dimensionality(normalized_features_1, normalized_features_2, n_components=2):
+    # Combine the normalized features
+    combined_normalized_features = np.vstack((normalized_features_1, normalized_features_2))
+
+    # Perform PCA
     pca = PCA(n_components=n_components)
-    reduced_features = pca.fit_transform(normalized_features)
-    return reduced_features
+    reduced_features = pca.fit_transform(combined_normalized_features)
+
+    # Split the reduced features back into two sets
+    split_index = len(normalized_features_1)
+    reduced_features_1 = reduced_features[:split_index]
+    reduced_features_2 = reduced_features[split_index:]
+
+    return reduced_features_1, reduced_features_2
 
 def visualize_2d(reduced_features_1, reduced_features_2):
     plt.scatter(reduced_features_1[:, 0], reduced_features_1[:, 1], c='blue', label='Input 1')
@@ -43,6 +53,21 @@ def visualize_2d(reduced_features_1, reduced_features_2):
     plt.title("PCA 2D Visualization")
     os.makedirs("./test_images/", exist_ok=True)
     plt.savefig(os.path.join("./test_images/", "pca.png"))
+    plt.close()
+
+
+def visualize_3d(reduced_features_1, reduced_features_2):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(reduced_features_1[:, 0], reduced_features_1[:, 1], reduced_features_1[:, 2], c='blue', label='Input 1')
+    ax.scatter(reduced_features_2[:, 0], reduced_features_2[:, 1], reduced_features_2[:, 2], c='red', label='Input 2')
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("PCA 3D Visualization")
+    ax.legend()
+    os.makedirs("./test_images/", exist_ok=True)
+    plt.savefig(os.path.join("./test_images/", "pca_3d.png"))
     plt.close()
 
 
