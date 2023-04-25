@@ -7,8 +7,10 @@ from tqdm import tqdm
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
-    RANDOM_SEED, RESNET18_MODEL_NAME, TRAINED_INCEPTION_V3_MODEL_2018, TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018, TRAINED_RESNET18_MODEL_2019)
-
+    RANDOM_SEED, RESNET18_MODEL_NAME, TRAINED_INCEPTION_V3_MODEL_2018,
+    TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018,
+    TRAINED_RESNET18_MODEL_2019
+)
 from helper_functions.adversarial_attacks_helper import (
     assess_attack_and_log_distances,
     get_conv_layers,
@@ -82,6 +84,14 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
     elif model_name == RESNET18_MODEL_NAME and year == "2018":
         return TRAINED_RESNET18_MODEL_2018
 
+
+
+
+
+
+
+
+
 def main(year, model_name):
     mp.freeze_support()
     mp.set_start_method('spawn')
@@ -112,6 +122,9 @@ def main(year, model_name):
         conv_layers = get_conv_layers(model)
     else:
         raise Exception("Not a valid model name")
+
+
+    print(conv_layers)
 
 
     device = _initialize_device()
