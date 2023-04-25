@@ -128,7 +128,7 @@ def main(year, model_name):
     attacks.append(("fgsm",torchattacks.FGSM(model, eps=2/255)))
     attacks.append(("cw",torchattacks.CW(model)))
     #attacks.append(("deepfool",torchattacks.DeepFool(model)))
-    attacks.append(("one_pixel",torchattacks.OnePixel(model)))
+    # attacks.append(("one_pixel",torchattacks.OnePixel(model)))
 
     for name, attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
@@ -161,7 +161,7 @@ def main(year, model_name):
             pca_2_list.append(
                 [tensor.mean().item() for tensor in get_feature_maps(adv_input, model, model_name)])
             
-            if i >= 1000:
+            if i >= 10000:
                 break
             
         
