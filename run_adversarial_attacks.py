@@ -143,6 +143,7 @@ def main(year, model_name):
 
         # gets the tensors over to the cpu and then over to numpy
         log_distance: list = [tensor.detach().cpu().numpy() for tensor in log_distance]
+        log_distance = np.array(log_distance)
         
         log_distances.append(log_distance)
         correct_labels.append(correct_label)
@@ -158,7 +159,7 @@ def main(year, model_name):
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
     
-    print(log_distances[0])
+    print(log_distances[0].shape)
     plot_colored_grid(log_distances[0])
 
 
