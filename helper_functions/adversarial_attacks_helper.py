@@ -295,6 +295,43 @@ def save_line_plots(log_distances, output_dir):
     plt.savefig(os.path.join(output_dir, "line_plots.png"))
     plt.close()
 
+def save_average_line_plots(log_distances, output_dir):
+    # Create a dictionary to group data by name
+    data_dict = {}
+    for name, cur_distance in log_distances:
+        if name not in data_dict:
+            data_dict[name] = []
+        data_dict[name].append(cur_distance)
+
+    # Create a colormap
+    cmap = plt.cm.get_cmap('viridis', len(data_dict))
+
+    # Set the figure size (width, height) in inches
+    plt.figure(figsize=(12, 6))
+
+    # Compute the average and variance, and plot as lines with shaded variance region
+    x = np.arange(len(log_distances[0][1]))  # Assuming all lists have the same length
+    plotted_names = set()
+    for i, (name, distances) in enumerate(data_dict.items()):
+        label = name if name not in plotted_names else None
+        distances = np.array(distances)
+        avg = np.mean(distances, axis=0)
+        variance = np.var(distances, axis=0)
+        std_dev = np.sqrt(variance)
+        plt.plot(x, avg, label=label, color=cmap(i))
+        plt.fill_between(x, avg - std_dev, avg + std_dev, color=cmap(i), alpha=0.3)
+        plotted_names.add(name)
+
+    plt.xlabel('Index')
+    plt.ylabel('Value')
+    plt.title('Average and Variance of Log Distances')
+    plt.legend()
+    
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig(os.path.join(output_dir, "line_plots.png"))
+    plt.close()
+
+
 
 # =======================================
 # ============ OLD FUNCTIONS ============
