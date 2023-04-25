@@ -101,6 +101,7 @@ def main(year, model_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
+    attacks: list = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
@@ -118,38 +119,35 @@ def main(year, model_name):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    attack = torchattacks.FGSM(model, eps=2/255)
+    attacks.append(torchattacks.FGSM(model, eps=2/255))
+    attacks.append(torchattacks.CW(model))
+    
+    for attack in attacks:
+        for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
-    for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
-
-        assessment_results = assess_attack_and_log_distances(
-            model,
-            device,
-            input,
-            true_label,
-            attack,
-            model_name
-        )
-        cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            assessment_results = assess_attack_and_log_distances(
+                model,
+                device,
+                input,
+                true_label,
+                attack,
+                model_name
+            )
+            cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            
+            log_distances.append(cur_distance)
+            correct_labels.append(correct_label)
+            predicted_labels.append(predicted_label)
+            predicted_adversarial_labels.append(adv_label)
+            
+            if i >= 3:
+                break
         
-        log_distances.append(cur_distance)
-        correct_labels.append(correct_label)
-        predicted_labels.append(predicted_label)
-        predicted_adversarial_labels.append(adv_label)
         
-        if i >= 3:
-            break
+        print(f"len(log_distances): {len(log_distances)}")
+        [print(x) for x in log_distances]
     
     
-    print(f"len(log_distances): {len(log_distances)}")
-    [print(x) for x in log_distances]
-    
-    
-
-    _print_overall_accuracy(
-        correct_labels, predicted_labels, predicted_adversarial_labels
-    )
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
