@@ -122,9 +122,22 @@ def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tenso
 
         log_distances.append(log_distance.item())
 
-    return log_distances
+    return get_normalized_values(log_distances)
 
 
+def get_normalized_values(data: list) -> list:
+    # Normalize log_distances
+    distances_tensor = torch.tensor(data)
+
+    # Calculate the mean and standard deviation
+    mean = torch.mean(distances_tensor)
+    std = torch.std(distances_tensor)
+
+    # Normalize the tensor around 1
+    normalized_distances = (distances_tensor - mean) / std + 1
+
+    # Convert the tensor back to a list if needed
+    return normalized_distances.tolist()
 
 
 def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
