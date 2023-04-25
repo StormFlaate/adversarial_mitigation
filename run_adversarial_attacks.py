@@ -119,9 +119,9 @@ def main(year, model_name):
     # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
-        train_data_loader, val_data_loader, test_data_loader = _initialize_data_loader_resnet18(year)
+        train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(year)
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        train_data_loader, val_data_loader, test_data_loader = _initialize_data_loader_inception_v3(year)
+        train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(year)
     else:
         raise Exception("Not a valid model name")
 
@@ -133,7 +133,7 @@ def main(year, model_name):
 
     for name, attack in attacks:
         print(name)
-        for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
+        for i, (input, true_label) in tqdm(enumerate(train_dl)):
             input = input.to(device)
             true_label = true_label.to(device)
 
@@ -160,7 +160,7 @@ def main(year, model_name):
     test_benign_feature_map = []
     test_adversarial_feature_map = []
 
-    for i, (input, true_label) in tqdm(enumerate(test_data_loader)):
+    for i, (input, true_label) in tqdm(enumerate(test_dl)):
         input = input.to(device)
         true_label = true_label.to(device)
 
