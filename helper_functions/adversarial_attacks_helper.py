@@ -80,7 +80,7 @@ def assess_attack_and_log_distances(
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
 
-    feature_map_after_attack = get_feature_maps(input, model, model_name)
+    feature_map_after_attack = get_feature_maps(adversarial_input, model, model_name)
 
     logarithmic_distances = calculate_log_distances(
         feature_map_before_attack, feature_map_after_attack)
@@ -110,9 +110,11 @@ def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tenso
         a = torch.flatten(a, start_dim=1)
         b = torch.flatten(b, start_dim=1)
         l2_distance = torch.norm(a - b, p=2, dim=1)
+        print(l2_distance)
 
         # Compute the log distance
         log_distance = torch.log(l2_distance.mean())
+        print(log_distance)
 
         # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
         finite_mask = torch.isfinite(log_distance)

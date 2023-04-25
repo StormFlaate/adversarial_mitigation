@@ -101,7 +101,6 @@ def main(year, model_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
-    torch.cuda.empty_cache()
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
