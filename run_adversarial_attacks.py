@@ -12,13 +12,11 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    combine_features,
-    extract_features,
     generate_adversarial_input,
     get_feature_maps,
-    kmeans_clustering,
-    plot_3d_scatter_with_clusters
 )
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
 
@@ -158,19 +156,40 @@ def main(year, model_name):
             print(name)
             adv_input = generate_adversarial_input(input, true_label, attack)
             
-            pca_1_list.extend(
+            pca_1_list.append(
                 get_feature_maps(input, model, model_name))
-            pca_2_list.extend(
+            pca_2_list.append(
                 get_feature_maps(adv_input, model, model_name))
-                
-            print(len(pca_1_list))
             
             
             if i >= 10:
                 break
             
         
-        
+    
+
+    # Assuming pca_1_list and pca_2_list are your input features
+    pca_1_list = np.array(pca_1_list)
+    pca_2_list = np.array(pca_2_list)
+
+    # Combine the two lists into one and create the corresponding labels
+    X = np.concatenate((pca_1_list, pca_2_list), axis=0)
+    y = np.concatenate((np.ones(len(pca_1_list)), np.zeros(len(pca_2_list))), axis=0)
+
+    # Split the dataset into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train the XGBoost classifier
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+    model.fit(X_train, y_train)
+
+    # Predict on the test set
+    y_pred = model.predict(X_test)
+    predictions = [round(value) for value in y_pred]
+
+    # Evaluate the accuracy
+    accuracy = accuracy_score(y_test, predictions)
+    print("Accuracy: %.2f%%" % (accuracy * 100.0))  
 
 
     
