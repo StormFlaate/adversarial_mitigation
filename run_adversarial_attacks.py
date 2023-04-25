@@ -157,20 +157,19 @@ def main(year, model_name):
             adv_input = generate_adversarial_input(input, true_label, attack)
             
             pca_1_list.append(
-                get_feature_maps(input, model, model_name))
+                [tensor.mean().item() for tensor in get_feature_maps(input, model, model_name)])
             pca_2_list.append(
-                get_feature_maps(adv_input, model, model_name))
+                [tensor.mean().item() for tensor in get_feature_maps(adv_input, model, model_name)])
             
-            
-            if i >= 1000:
+            if i >= 5:
                 break
             
         
     
 
     # Assuming pca_1_list and pca_2_list are your input features
-    pca_1_list = np.array([[tensor.mean().item() for tensor in sublist] for sublist in pca_1_list])
-    pca_2_list = np.array([[tensor.mean().item() for tensor in sublist] for sublist in pca_2_list])
+    pca_1_list = np.array(pca_1_list)
+    pca_2_list = np.array(pca_2_list)
 
     # Combine the two lists into one and create the corresponding labels
     X = np.concatenate((pca_1_list, pca_2_list), axis=0)
