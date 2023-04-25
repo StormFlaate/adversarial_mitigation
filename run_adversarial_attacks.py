@@ -12,10 +12,7 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    assess_attack_and_log_distances,
-    get_conv_layers,
-    get_conv_layers_resnet18,
-    plot_colored_grid
+    assess_attack_and_log_distances
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -116,28 +113,25 @@ def main(year, model_name):
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
         train_data_loader, *_ = _initialize_data_loader_resnet18(year)
-        conv_layers = get_conv_layers_resnet18(model)
     elif model_name == INCEPTIONV3_MODEL_NAME:
         train_data_loader, *_ = _initialize_data_loader_inception_v3(year)
-        conv_layers = get_conv_layers(model)
     else:
         raise Exception("Not a valid model name")
 
-
-    [print(x) for x in conv_layers]
-
-
     device = _initialize_device()
     attack = torchattacks.FGSM(model, eps=2/255)
-    
-    print("Length of convolutional layers: ", len(conv_layers))
 
     for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
-        label_results = assess_attack_and_log_distances(
-            model, device, input, true_label, attack, conv_layers, model_name
+        assessment_results = assess_attack_and_log_distances(
+            model,
+            device,
+            input,
+            true_label,
+            attack,
+            model_name
         )
-        log_distance, correct_label, predicted_label, adv_label = label_results
+        log_distance, correct_label, predicted_label, adv_label = assessment_results
 
         [print(tensor.size()) for tensor in log_distance]
 
@@ -158,9 +152,6 @@ def main(year, model_name):
     _print_overall_accuracy(
         correct_labels, predicted_labels, predicted_adversarial_labels
     )
-    
-    print(log_distances[0].shape)
-    plot_colored_grid(log_distances[0])
 
 
 if __name__ == '__main__':

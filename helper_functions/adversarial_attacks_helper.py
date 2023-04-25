@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 import torchattacks
 
+from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
+
 
 
 def generate_adversarial_input(
@@ -228,12 +230,12 @@ def assess_attack_and_log_distances(
         input: torch.Tensor,
         true_label: torch.Tensor,
         attack: torchattacks.attack, 
-        conv_layers: list[torch.nn.Conv2d],
         model_name: str
     ) -> tuple[list[torch.Tensor], np.intp, np.intp, np.intp]:
     """
-    Assesses the attack before and after the pertubation of the input image, calculating
-    log distance and what the model evaluates clean and pertubated input as.
+    This is a function in Python that assesses the effect of an attack on an input
+    image. It calculates the logarithmic distance between feature maps, true label,
+    predicted label, and predicted adversarial label.
 
     Args:
         model (torch.nn.Module): The target model.
@@ -241,28 +243,28 @@ def assess_attack_and_log_distances(
         input (torch.Tensor): The input tensor.
         true_label (torch.Tensor): The true label tensor.
         attack (torchattacks.Attack): The attack method object.
-        conv_layers: The convolutional layers for the current model.
-        model_name: What model is used in the current attack
+        model_name (str): The name of the model used in the current attack.
 
     Returns:
-        The logarithmic distances between feature maps, true label, predicted label,
-            and predicted adversarial label.
+
+    tuple: A tuple of logarithmic distances between feature maps, true label, predicted
+        label, and predicted adversarial label.
     """
     input = input.to(device)
     true_label = true_label.to(device)
-    feature_map_before_attack = extract_feature_map_of_convolutional_layers(
-        input, conv_layers, model_name)
+
+    feature_map_before_attack = get_feature_maps(input, model, model_name)
         
     # perform adversarial attack on the input
     adversarial_input = generate_adversarial_input(input, true_label, attack)
+
     # evaluates the input using the trained model
     predicted_label = model(input)
     predicted_adversarial_label = model(adversarial_input)
 
-    feature_map_after_attack = extract_feature_map_of_convolutional_layers(
-        adversarial_input, conv_layers, model_name)
+    feature_map_after_attack = get_feature_maps(input, model, model_name)
 
-    logarithmic_distances = calculate_logarithmic_distances(
+    logarithmic_distances = calculate_log_distance(
         feature_map_before_attack, feature_map_after_attack)
 
     return (
@@ -273,7 +275,173 @@ def assess_attack_and_log_distances(
     )
 
 
-def calculate_logarithmic_distances(
+
+def calculate_log_distance(A, B):
+    """Calculate the log distance between two feature maps.
+
+    Args:
+        A (torch.Tensor): Feature map of shape (N, C, H, W).
+        B (torch.Tensor): Feature map of shape (N, C, H, W).
+
+    Returns:
+        float: Log distance between the two feature maps.
+    """
+    # Flatten the feature maps and compute their L2 distance
+    A = torch.flatten(A, start_dim=1)
+    B = torch.flatten(B, start_dim=1)
+    l2_distance = torch.norm(A - B, p=2, dim=1)
+
+    # Compute the log distance
+    log_distance = torch.log(l2_distance.mean())
+
+    # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
+    finite_mask = torch.isfinite(log_distance)
+    log_distance[~finite_mask] = 0  # Set non-real values to 0
+
+    return log_distance.item()
+
+
+
+
+def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
+    # Stack the arrays in the list horizontally
+    stacked_array = np.hstack(list_of_arrays)
+    
+    # Flatten the stacked array into a 1D array
+    flattened_array = stacked_array.flatten()
+    
+    return flattened_array
+
+def _get_normalize_function(row):
+    # Normalize the data to map colors in the color map
+    min_value = min(row)
+    max_value = max(row)
+    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
+
+    return norm
+
+
+def get_feature_maps(input, model, model_name):
+    """Get feature maps from a given model.
+
+    Args:
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torch.nn.Module): Model to extract feature maps from.
+        model_name (str): Name of the model to extract feature maps from.
+
+    Returns:
+        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
+    """
+    if model_name == INCEPTIONV3_MODEL_NAME:
+        return _get_feature_maps_inception_v3(input, model)
+    elif model_name == RESNET18_MODEL_NAME:
+        return _get_feature_maps_resnet18(input, model)
+    else:
+        raise Exception("Not valid model name")
+
+
+def _get_feature_maps_inception_v3(input, model):
+    """Get feature maps from InceptionV3 model.
+
+    Args:
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torch.nn.Module): InceptionV3 model.
+
+    Returns:
+        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
+    """
+    feature_maps = []
+
+    def hook(module, input, output):
+        feature_maps.append(output.detach())
+
+    # List of InceptionV3 layers to extract feature maps from
+    layers = [
+        model.Conv2d_1a_3x3,
+        model.Conv2d_2a_3x3,
+        model.Conv2d_2b_3x3,
+        model.Conv2d_3b_1x1,
+        model.Conv2d_4a_3x3,
+        model.Mixed_5b,
+        model.Mixed_5c,
+        model.Mixed_5d,
+        model.Mixed_6a,
+        model.Mixed_6b,
+        model.Mixed_6c,
+        model.Mixed_6d,
+        model.Mixed_6e,
+        model.Mixed_7a,
+        model.Mixed_7b,
+        model.Mixed_7c
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
+
+    _ = model(input)
+
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
+
+    return feature_maps
+
+
+def _get_feature_maps_resnet18(input, model):
+    """Get feature maps from ResNet18 model.
+
+    Args:
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torch.nn.Module): ResNet18 model.
+
+    Returns:
+        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
+    """
+    feature_maps = []
+
+    def hook(module, input, output):
+        feature_maps.append(output.detach())
+
+    # List of ResNet18 layers to extract feature maps from
+    layers = [
+        module for _, module in model.named_children() 
+        if isinstance(module, (torch.nn.Conv2d, torch.nn.Sequential))
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
+
+    _ = model(input)
+
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
+
+    return feature_maps
+
+
+def visualize_feature_maps(feature_maps, ncols=8, output_dir: str="./test_images/"):
+    """Visualize feature maps.
+
+    Args:
+        feature_maps (List[torch.Tensor]): List of feature maps of shape (N, C, H, W).
+        ncols (int, optional): Number of columns to display. Default is 8.
+    """
+    nrows = len(feature_maps)
+    fig, axs = plt.subplots(nrows, ncols, figsize=(15, 15))
+
+    for row in range(nrows):
+        for col in range(ncols):
+            axs[row, col].imshow(feature_maps[row][0, col].cpu().numpy())
+            axs[row, col].axis('off')
+
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+    
+    # Save the images with different names based on the number of columns
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
+    plt.close()
+
+
+def old_calculate_logarithmic_distances(
         before_attack: list[torch.Tensor],
         after_attack: list[torch.Tensor]
     ) -> list[torch.Tensor]:
@@ -317,7 +485,7 @@ def calculate_logarithmic_distances(
 
 
 
-def plot_colored_grid(data: list[np.array], color_map='viridis'):
+def old_plot_colored_grid(data: list[np.array], color_map='viridis'):
     nrows = len(data)
 
     # Group rows by the number of columns
@@ -374,52 +542,3 @@ def plot_colored_grid(data: list[np.array], color_map='viridis'):
         os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
         plt.close()
-
-
-
-
-def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
-    # Stack the arrays in the list horizontally
-    stacked_array = np.hstack(list_of_arrays)
-    
-    # Flatten the stacked array into a 1D array
-    flattened_array = stacked_array.flatten()
-    
-    return flattened_array
-
-def _get_normalize_function(row):
-    # Normalize the data to map colors in the color map
-    min_value = min(row)
-    max_value = max(row)
-    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
-
-    return norm
-
-
-def get_conv_layers_resnet18(model):
-    conv_layers = []
-    conv_layers.append(model.conv1)
-    for layer in model.layer1:
-        conv_layers.extend([layer.conv1, layer.conv2])
-    for layer in model.layer2:
-        conv_layers.extend([layer.conv1, layer.conv2])
-    for layer in model.layer3:
-        conv_layers.extend([layer.conv1, layer.conv2])
-    for layer in model.layer4:
-        conv_layers.extend([layer.conv1, layer.conv2])
-
-    return conv_layers
-
-
-def get_conv_layers(model):
-    conv_layers = []
-
-    def _extract_conv_layers(module):
-        for child_module in module.children():
-            if isinstance(child_module, nn.Conv2d):
-                conv_layers.append(child_module)
-            else:
-                _extract_conv_layers(child_module)
-
-    _extract_conv_layers(model)
-    return conv_layers
