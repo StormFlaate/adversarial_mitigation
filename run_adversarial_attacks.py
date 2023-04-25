@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-from sklearn.cluster import KMeans
 import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
@@ -18,13 +17,7 @@ from helper_functions.adversarial_attacks_helper import (
     generate_adversarial_input,
     get_feature_maps,
     kmeans_clustering,
-    normalize_features,
-    plot_3d_scatter,
-    reduce_dimensionality,
-    save_average_line_plots,
-    save_line_plots,
-    visualize_2d,
-    visualize_3d
+    plot_3d_scatter_with_clusters
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -189,9 +182,6 @@ def main(year, model_name):
     plot_3d_scatter_with_clusters(x, y, z, labels, centroids)
 
     
-
-
-    plot_3d_scatter(x, y, z)
     
     # save_line_plots(
     #     log_distances,
