@@ -13,6 +13,8 @@ from config import (
 )
 from helper_functions.adversarial_attacks_helper import (
     assess_attack_and_log_distances,
+    calculate_log_distances,
+    get_feature_maps,
     save_average_line_plots,
     save_line_plots
 )
@@ -128,24 +130,33 @@ def main(year, model_name):
 
     for name, attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
+            if i == 0:
+                last_input = input
+                continue
+            map1 = get_feature_maps(input, model, model_name)
+            map2 = get_feature_maps(last_input, model, model_name)
+            cur_distance = calculate_log_distances(map1, map2)
+
+
             print(name)
-            assessment_results = assess_attack_and_log_distances(
-                model,
-                device,
-                input,
-                true_label,
-                attack,
-                model_name
-            )
-            cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            # assessment_results = assess_attack_and_log_distances(
+            #     model,
+            #     device,
+            #     input,
+            #     true_label,
+            #     attack,
+            #     model_name
+            # )
+            # cur_distance, correct_label, predicted_label, adv_label = assessment_results
             
             log_distances.append((name, cur_distance))
-            correct_labels.append(correct_label)
-            predicted_labels.append(predicted_label)
-            predicted_adversarial_labels.append(adv_label)
+            # correct_labels.append(correct_label)
+            # predicted_labels.append(predicted_label)
+            # predicted_adversarial_labels.append(adv_label)
             
             if i >= 5:
                 break
+            
         
         
     [print(x) for x in log_distances]
