@@ -160,7 +160,7 @@ def main(year, model_name):
             
             if i >= 100:
                 break
-
+            last_input = input
             
         
         
