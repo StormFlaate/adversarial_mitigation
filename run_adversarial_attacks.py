@@ -161,7 +161,6 @@ def main(year, model_name):
             if i >= 100:
                 break
 
-            calculate_log_distances(input, [0]*len(input))
             
         
         
