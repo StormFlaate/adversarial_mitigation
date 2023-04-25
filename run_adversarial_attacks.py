@@ -13,6 +13,7 @@ from config import (
 )
 from helper_functions.adversarial_attacks_helper import (
     assess_attack_and_log_distances,
+    save_average_line_plots,
     save_line_plots
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -149,6 +150,7 @@ def main(year, model_name):
         
     [print(x) for x in log_distances]
     save_line_plots(log_distances, "./test_images/")
+    save_average_line_plots(log_distances, "./test_images/")
     
 
 if __name__ == '__main__':

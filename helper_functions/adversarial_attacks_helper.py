@@ -328,7 +328,7 @@ def save_average_line_plots(log_distances, output_dir):
     plt.legend()
     
     os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, "line_plots.png"))
+    plt.savefig(os.path.join(output_dir, "line_plots_average.png"))
     plt.close()
 
 
