@@ -159,11 +159,9 @@ def main(year, model_name):
             adv_input = generate_adversarial_input(input, true_label, attack)
             
             pca_1_list.extend(
-                    extract_features(
-                        get_feature_maps(input, model, model_name)))
+                get_feature_maps(input, model, model_name))
             pca_2_list.extend(
-                    extract_features(
-                        get_feature_maps(adv_input, model, model_name)))
+                get_feature_maps(adv_input, model, model_name))
                 
             print(len(pca_1_list))
             
