@@ -14,14 +14,12 @@ from sklearn.decomposition import PCA
 
 
 
-def combine_features(max_indices, min_indices, max_values, min_values, avg_values):
+def combine_features(max_values, min_values, avg_values):
     return list(
                 zip(
                     max_values,
                     min_values,
-                    avg_values,
-                    max_indices,
-                    min_indices
+                    avg_values
                 )
     )
 
@@ -96,8 +94,6 @@ def extract_features(feature_maps):
     # min_value_index = min_indices[min_values.index(min(min_values))]
     
     return (
-        max_indices,
-        min_indices,
         max_values,
         min_values,
         avg_values
