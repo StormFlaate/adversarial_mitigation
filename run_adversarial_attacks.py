@@ -14,9 +14,16 @@ from config import (
 from helper_functions.adversarial_attacks_helper import (
     assess_attack_and_log_distances,
     calculate_log_distances,
+    combine_features,
+    create_5xn_list,
+    extract_features,
+    generate_adversarial_input,
     get_feature_maps,
+    normalize_features,
+    reduce_dimensionality,
     save_average_line_plots,
-    save_line_plots
+    save_line_plots,
+    visualize_2d
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
@@ -106,6 +113,7 @@ def main(year, model_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
+    pca_list: list = []
     attacks: list[tuple] = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
@@ -131,40 +139,50 @@ def main(year, model_name):
 
     for name, attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
-            if i == 0:
-                last_input = input
-                continue
             input = input.to(device)
-            last_input = last_input.to(device)
+            true_label = true_label.to(device)
 
-            map1 = get_feature_maps(input, model, model_name)
-            map2 = get_feature_maps(last_input, model, model_name)
-            comparison_distance = calculate_log_distances(map1, map2)
-            comparison_distances.append((name, comparison_distance))
+            # map1 = get_feature_maps(input, model, model_name)
+            # map2 = get_feature_maps(last_input, model, model_name)
+            # comparison_distance = calculate_log_distances(map1, map2)
+            # comparison_distances.append((name, comparison_distance))
+            # assessment_results = assess_attack_and_log_distances(
+            #     model,
+            #     device,
+            #     input,
+            #     true_label,
+            #     attack,
+            #     model_name
+            # )
+            # cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            # log_distances.append((name, cur_distance))
+            # correct_labels.append(correct_label)
+            # predicted_labels.append(predicted_label)
+            # predicted_adversarial_labels.append(adv_label)
 
             print(name)
-            assessment_results = assess_attack_and_log_distances(
-                model,
-                device,
-                input,
-                true_label,
-                attack,
-                model_name
-            )
-            cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            adv_input = generate_adversarial_input(input, true_label, attack)
             
-            log_distances.append((name, cur_distance))
-            correct_labels.append(correct_label)
-            predicted_labels.append(predicted_label)
-            predicted_adversarial_labels.append(adv_label)
+            pca_list.extend(
+                normalize_features(
+                    combine_features(
+                        extract_features(
+                            get_feature_maps(input, model, model_name)))))
+            pca_list.extend(
+                normalize_features(
+                    combine_features(
+                        extract_features(
+                            get_feature_maps(adv_input, model, model_name)))))
+                
+            
+            
             
             if i >= 100:
                 break
-            last_input = input
             
         
         
-    [print(x) for x in log_distances]
+    visualize_2d(reduce_dimensionality(pca_list))
     
     save_line_plots(
         log_distances,

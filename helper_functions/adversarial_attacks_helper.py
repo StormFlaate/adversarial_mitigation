@@ -4,19 +4,74 @@ from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 import numpy as np
+from sklearn.discriminant_analysis import StandardScaler
 import torch
 import torch.nn as nn
 import torchattacks
 
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
+from sklearn.decomposition import PCA
 
+
+
+def combine_features(max_indices, min_indices, max_values, min_values, avg_values):
+    return list(zip(max_values, min_values, avg_values, [idx[0] for idx in max_indices], [idx[0] for idx in min_indices]))
+
+def normalize_features(combined_features):
+    scaler = StandardScaler()
+    normalized_features = scaler.fit_transform(combined_features)
+    return normalized_features
+
+def reduce_dimensionality(normalized_features, n_components=2):
+    pca = PCA(n_components=n_components)
+    reduced_features = pca.fit_transform(normalized_features)
+    return reduced_features
+
+def visualize_2d(reduced_features):
+    plt.scatter(reduced_features[:, 0], reduced_features[:, 1])
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+    plt.title("PCA 2D Visualization")
+    os.makedirs("./test_images/", exist_ok=True)
+    plt.savefig(os.path.join("./test_images/", "pca.png"))
+    plt.close()
+
+
+def extract_features(feature_maps):
+    max_values = []
+    max_indices = []
+    min_values = []
+    min_indices = []
+    avg_values = []
+
+    for feature_map in feature_maps:
+        max_value, max_index = torch.max(feature_map, dim=None)
+        min_value, min_index = torch.min(feature_map, dim=None)
+        avg_value = torch.mean(feature_map)
+
+        max_values.append(max_value.item())
+        max_indices.append(torch.unravel_index(max_index, feature_map.shape))
+        min_values.append(min_value.item())
+        min_indices.append(torch.unravel_index(min_index, feature_map.shape))
+        avg_values.append(avg_value.item())
+
+    # max_value_index = max_indices[max_values.index(max(max_values))]
+    # min_value_index = min_indices[min_values.index(min(min_values))]
+    
+    return (
+        max_indices,
+        min_indices,
+        max_values,
+        min_values,
+        avg_values
+    )
 
 
 def generate_adversarial_input(
         input,
         label, 
         attack
-        ) -> tuple[torch.tensor, torch.tensor]:
+        ) -> tuple[torch.tensor]:
     """
         Applies adversarial attack to the input, creating an adversarial example.
 
@@ -26,7 +81,7 @@ def generate_adversarial_input(
             attack: specific attack form torchattacks
 
         Returns:
-            (adversarial_input, label): attack applied to input and the correct label
+            (adversarial_input): attack applied to input
     """
     # Move inputs and labels to the specified device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
