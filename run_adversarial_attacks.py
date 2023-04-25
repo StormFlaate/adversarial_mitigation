@@ -180,28 +180,28 @@ def main(year, model_name):
             
         
         
-    visualize_2d(reduce_dimensionality(pca_1_list), reduce_dimensionality(pca_2_list))
+    visualize_2d(*reduce_dimensionality(pca_1_list, pca_2_list))
     
-    save_line_plots(
-        log_distances,
-        "./test_images/",
-        "l2_log_100_iter.png"
-    )
-    save_average_line_plots(
-        log_distances,
-        "./test_images/",
-        "average_l2_log_100_iter.png"
-    )
-    save_line_plots(
-        comparison_distances,
-        "./test_images/",
-        "comparison_l2_log_100_iter.png"
-    )
-    save_average_line_plots(
-        comparison_distances,
-        "./test_images/",
-        "comparison_average_l2_log_000_iter.png"
-    )
+    # save_line_plots(
+    #     log_distances,
+    #     "./test_images/",
+    #     "l2_log_100_iter.png"
+    # )
+    # save_average_line_plots(
+    #     log_distances,
+    #     "./test_images/",
+    #     "average_l2_log_100_iter.png"
+    # )
+    # save_line_plots(
+    #     comparison_distances,
+    #     "./test_images/",
+    #     "comparison_l2_log_100_iter.png"
+    # )
+    # save_average_line_plots(
+    #     comparison_distances,
+    #     "./test_images/",
+    #     "comparison_average_l2_log_000_iter.png"
+    # )
     
 
 if __name__ == '__main__':
