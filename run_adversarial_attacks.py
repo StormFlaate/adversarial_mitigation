@@ -110,7 +110,8 @@ def main(year, model_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
-    pca_list: list = []
+    pca_1_list: list = []
+    pca_2_list: list = []
     attacks: list[tuple] = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
@@ -160,12 +161,12 @@ def main(year, model_name):
             print(name)
             adv_input = generate_adversarial_input(input, true_label, attack)
             
-            pca_list.extend(
+            pca_1_list.extend(
                 normalize_features(
                     combine_features(
                         *extract_features(
                             get_feature_maps(input, model, model_name)))))
-            pca_list.extend(
+            pca_2_list.extend(
                 normalize_features(
                     combine_features(
                         *extract_features(
@@ -174,12 +175,12 @@ def main(year, model_name):
             
             
             
-            if i >= 100:
+            if i >= 10:
                 break
             
         
         
-    visualize_2d(reduce_dimensionality(pca_list))
+    visualize_2d(reduce_dimensionality(pca_1_list), reduce_dimensionality(pca_2_list))
     
     save_line_plots(
         log_distances,

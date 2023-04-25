@@ -35,8 +35,9 @@ def reduce_dimensionality(normalized_features, n_components=2):
     reduced_features = pca.fit_transform(normalized_features)
     return reduced_features
 
-def visualize_2d(reduced_features):
-    plt.scatter(reduced_features[:, 0], reduced_features[:, 1])
+def visualize_2d(reduced_features_1, reduced_features_2):
+    plt.scatter(reduced_features_1[:, 0], reduced_features_1[:, 1], c='blue', label='Input 1')
+    plt.scatter(reduced_features_2[:, 0], reduced_features_2[:, 1], c='red', label='Input 2')
     plt.xlabel("PC1")
     plt.ylabel("PC2")
     plt.title("PCA 2D Visualization")
