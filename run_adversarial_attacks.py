@@ -102,7 +102,7 @@ def main(year, model_name):
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
-    attacks: list = []
+    attacks: list[tuple] = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
@@ -120,13 +120,14 @@ def main(year, model_name):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    attacks.append(torchattacks.FGSM(model, eps=2/255))
-    attacks.append(torchattacks.CW(model))
-    attacks.append(torchattacks.DeepFool(model))
+    attacks.append(("fgsm",torchattacks.FGSM(model, eps=2/255)))
+    attacks.append(("cw",torchattacks.CW(model)))
+    attacks.append(("deepfool",torchattacks.DeepFool(model)))
+    attacks.append(("one_pixel",torchattacks.OnePixel(model)))
 
-    for attack in attacks:
+    for name, attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
-
+            print(name)
             assessment_results = assess_attack_and_log_distances(
                 model,
                 device,
@@ -137,7 +138,7 @@ def main(year, model_name):
             )
             cur_distance, correct_label, predicted_label, adv_label = assessment_results
             
-            log_distances.append(cur_distance)
+            log_distances.append((name, cur_distance))
             correct_labels.append(correct_label)
             predicted_labels.append(predicted_label)
             predicted_adversarial_labels.append(adv_label)
