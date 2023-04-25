@@ -109,12 +109,12 @@ def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tenso
         # Flatten the feature maps and compute their L2 distance
         a = torch.flatten(a, start_dim=1)
         b = torch.flatten(b, start_dim=1)
-        # l2_distance = torch.norm(a - b, p=2, dim=1)
-        l_inf_distance = torch.norm(a - b, p=float('inf'), dim=1)
+        l2_distance = torch.norm(a - b, p=2, dim=1)
+        # l_inf_distance = torch.norm(a - b, p=float('inf'), dim=1)
 
         # Compute the log distance
-        log_distance = torch.log(l_inf_distance)
-        # log_distance = l2_distance
+        # log_distance = torch.log(l_inf_distance)
+        log_distance = l2_distance
 
         # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
         finite_mask = torch.isfinite(log_distance)
