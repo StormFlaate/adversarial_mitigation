@@ -278,7 +278,7 @@ def visualize_feature_maps(feature_maps, ncols=8, output_dir: str="./test_images
     plt.close()
 
 
-def save_line_plots(log_distances, output_dir):
+def save_line_plots(log_distances, output_dir, file_name):
     # Create a dictionary to group data by name
     data_dict = {}
     for name, cur_distance in log_distances:
@@ -305,10 +305,11 @@ def save_line_plots(log_distances, output_dir):
     plt.legend()
     
     os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, "line_plots.png"))
+    plt.savefig(os.path.join(output_dir, file_name))
     plt.close()
 
-def save_average_line_plots(log_distances, output_dir):
+
+def save_average_line_plots(log_distances, output_dir, file_name):
     # Create a dictionary to group data by name
     data_dict = {}
     for name, cur_distance in log_distances:
@@ -341,7 +342,7 @@ def save_average_line_plots(log_distances, output_dir):
     plt.legend()
     
     os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, "line_plots_average.png"))
+    plt.savefig(os.path.join(output_dir, file_name))
     plt.close()
 
 

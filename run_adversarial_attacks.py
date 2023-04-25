@@ -102,6 +102,7 @@ def main(year, model_name):
 
     # Initialize empty lists
     log_distances: list = []
+    comparison_distances: list = []
     correct_labels: list = []
     predicted_labels: list = []
     predicted_adversarial_labels: list = []
@@ -138,33 +139,52 @@ def main(year, model_name):
 
             map1 = get_feature_maps(input, model, model_name)
             map2 = get_feature_maps(last_input, model, model_name)
-            cur_distance = calculate_log_distances(map1, map2)
-
+            comparison_distance = calculate_log_distances(map1, map2)
+            comparison_distances.append((name, comparison_distance))
 
             print(name)
-            # assessment_results = assess_attack_and_log_distances(
-            #     model,
-            #     device,
-            #     input,
-            #     true_label,
-            #     attack,
-            #     model_name
-            # )
-            # cur_distance, correct_label, predicted_label, adv_label = assessment_results
+            assessment_results = assess_attack_and_log_distances(
+                model,
+                device,
+                input,
+                true_label,
+                attack,
+                model_name
+            )
+            cur_distance, correct_label, predicted_label, adv_label = assessment_results
             
             log_distances.append((name, cur_distance))
-            # correct_labels.append(correct_label)
-            # predicted_labels.append(predicted_label)
-            # predicted_adversarial_labels.append(adv_label)
+            correct_labels.append(correct_label)
+            predicted_labels.append(predicted_label)
+            predicted_adversarial_labels.append(adv_label)
             
-            if i >= 5:
+            if i >= 100:
                 break
             
         
         
     [print(x) for x in log_distances]
-    save_line_plots(log_distances, "./test_images/")
-    save_average_line_plots(log_distances, "./test_images/")
+    
+    save_line_plots(
+        log_distances,
+        "./test_images/",
+        "l2_log_normalized_100_iter.png"
+    )
+    save_average_line_plots(
+        log_distances,
+        "./test_images/",
+        "average_l2_log_normalized_100_iter.png"
+    )
+    save_line_plots(
+        comparison_distances,
+        "./test_images/",
+        "comparison_l2_log_normalized_100_iter.png"
+    )
+    save_average_line_plots(
+        comparison_distances,
+        "./test_images/",
+        "comparison_average_l2_log_normalized_100_iter.png"
+    )
     
 
 if __name__ == '__main__':
