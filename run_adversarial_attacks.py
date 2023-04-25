@@ -134,7 +134,7 @@ def main(year, model_name):
                 last_input = input
                 continue
             input = input.to(device)
-            last_input = input = last_input = input.to(device)
+            last_input = last_input.to(device)
 
             map1 = get_feature_maps(input, model, model_name)
             map2 = get_feature_maps(last_input, model, model_name)
