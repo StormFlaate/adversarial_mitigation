@@ -163,12 +163,12 @@ def main(year, model_name):
             pca_list.extend(
                 normalize_features(
                     combine_features(
-                        extract_features(
+                        *extract_features(
                             get_feature_maps(input, model, model_name)))))
             pca_list.extend(
                 normalize_features(
                     combine_features(
-                        extract_features(
+                        *extract_features(
                             get_feature_maps(adv_input, model, model_name)))))
                 
             
