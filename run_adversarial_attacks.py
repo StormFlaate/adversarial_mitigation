@@ -182,7 +182,9 @@ def main(year, model_name):
         
     pca_1_list.extend(pca_2_list)
 
-    plot_3d_scatter(*pca_1_list)
+    x, y, z = zip(*pca_1_list)
+
+    plot_3d_scatter(x, y, z)
     
     # save_line_plots(
     #     log_distances,
