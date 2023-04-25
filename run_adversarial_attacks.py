@@ -133,6 +133,9 @@ def main(year, model_name):
             if i == 0:
                 last_input = input
                 continue
+            input = input.to(device)
+            true_label = true_label.to(device)
+            
             map1 = get_feature_maps(input, model, model_name)
             map2 = get_feature_maps(last_input, model, model_name)
             cur_distance = calculate_log_distances(map1, map2)
