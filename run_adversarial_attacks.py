@@ -148,7 +148,7 @@ def main(year, model_name):
                     for tensor in get_feature_maps(adv_input, model, model_name)
             ])
             
-            if i >= 1:
+            if i >= 10000:
                 break
             
         
