@@ -265,19 +265,6 @@ def visualize_feature_maps(feature_maps, ncols=8, output_dir: str="./test_images
     plt.close()
 
 
-# def save_line_plots(data, output_dir):
-#     for i, d in enumerate(data):
-#         plt.plot(d, label=f'List {i+1}')
-
-#     plt.xlabel('Index')
-#     plt.ylabel('Value')
-#     plt.title('Line Plots of Lists')
-#     plt.legend()
-    
-#     os.makedirs(output_dir, exist_ok=True)
-#     plt.savefig(os.path.join(output_dir, "line_plots.png"))
-#     plt.close()
-
 def save_line_plots(log_distances, output_dir):
     # Create a dictionary to group data by name
     data_dict = {}
@@ -289,9 +276,15 @@ def save_line_plots(log_distances, output_dir):
     # Create a colormap
     cmap = plt.cm.get_cmap('viridis', len(data_dict))
 
-    # Plot the data with consistent colors for each name
+    # Set the figure size (width, height) in inches
+    plt.figure(figsize=(40, 25))
+
+    # Plot the data with consistent colors for each name and only one label per name
+    plotted_names = set()
     for i, (name, distances) in enumerate(data_dict.items()):
-        plt.plot(distances, label=name, color=cmap(i))
+        label = name if name not in plotted_names else None
+        plt.plot(distances, label=label, color=cmap(i))
+        plotted_names.add(name)
 
     plt.xlabel('Index')
     plt.ylabel('Value')
@@ -299,7 +292,7 @@ def save_line_plots(log_distances, output_dir):
     plt.legend()
     
     os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, f"line_plots.png"))
+    plt.savefig(os.path.join(output_dir, "line_plots.png"))
     plt.close()
 
 
