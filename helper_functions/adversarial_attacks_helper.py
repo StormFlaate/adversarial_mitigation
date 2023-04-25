@@ -42,188 +42,6 @@ def generate_adversarial_input(
     return adversarial_input
 
 
-def extract_kernels_from_resnet_architecture(
-    model_children: list[nn.Module],
-    ) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
-    """
-    Extracts the kernel weights and convolutional layers from a ResNet architecture.
-
-    Args:
-        model_children (List[nn.Module]): A list of child modules from the ResNet model.
-
-    Returns:
-        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
-            1. The weights of the extracted convolutional layers.
-            2. The extracted convolutional layers themselves.
-    """
-
-    model_weights = []
-    conv_layers = []
-    # Initialize a counter to keep track of the number of convolutional layers
-    counter = 0 
-
-    # Iterate through the model's child modules
-    for i in range(len(model_children)):
-        # Check if the current child module is a convolutional layer
-        if type(model_children[i]) == nn.Conv2d:
-            # Increment the counter for each convolutional layer found
-            counter += 1
-            # Append the current layer's weights to the model_weights list
-            model_weights.append(model_children[i].weight)
-            # Append the current convolutional layer to the conv_layers list
-            conv_layers.append(model_children[i])
-
-        # Check if the current child module is a sequential layer
-        elif type(model_children[i]) == nn.Sequential:
-            # Iterate through the sub-modules within the sequential layer
-            for j in range(len(model_children[i])):
-                # Iterate through the children of each sub-module
-                for child in model_children[i][j].children():
-                    # Check if the current child is a convolutional layer
-                    if type(child) == nn.Conv2d:
-                        counter += 1
-                        # Append the current layer's weights to the model_weights list
-                        model_weights.append(child.weight)
-                        # Append the current convolutional layer to the conv_layers list
-                        conv_layers.append(child)
-
-    # Print the total number of convolutional layers found
-    print(f"Total convolutional layers: {counter}")
-
-    # Return the updated model_weights and conv_layers lists as a tuple
-    return model_weights, conv_layers
-
-
-def extract_kernels_from_inception_v3_architecture(
-    model_children: list[nn.Module],
-) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
-    """
-    Extracts the kernel weights and convolutional layers from an Inception V3
-    architecture.
-
-    Args:
-        model_children: A list of child modules from the Inception V3 model.
-
-    Returns:
-        A tuple containing two lists:
-            1. The weights of the extracted convolutional layers.
-            2. The extracted convolutional layers themselves.
-    """
-
-    model_weights = []
-    conv_layers = []
-    # Initialize a counter to keep track of the number of convolutional layers
-    counter = 0
-
-    # Recursive function to search for Conv2d layers in nested modules
-    def find_conv_layers(module: nn.Module):
-        nonlocal counter
-
-        for child in module.children():
-            if isinstance(child, nn.Conv2d):
-                counter += 1
-                model_weights.append(child.weight)
-                conv_layers.append(child)
-            else:
-                find_conv_layers(child)
-
-    # Iterate through the model's child modules
-    for i in range(len(model_children)):
-        find_conv_layers(model_children[i])
-
-    # Print the total number of convolutional layers found
-    print(f"Total convolutional layers: {counter}")
-
-    # Return the updated model_weights and conv_layers lists as a tuple
-    return model_weights, conv_layers
-
-
-def extract_feature_map_of_convolutional_layers(
-        input_tensor: torch.Tensor,
-        conv_layers: list[nn.Conv2d],
-        model_name: str
-    ) -> list[torch.Tensor]:
-    """
-    Extracts the feature maps of a list of convolutional layers applied to an input
-    tensor.
-
-    Args:
-        input_tensor: The input tensor to pass through the convolutional layers.
-        conv_layers: A list of convolutional layers to apply to the input tensor.
-        model_name: The name of the model. Accepts 'resnet18' or 'inception_v3'.
-
-    Returns:
-        A list containing the feature maps of each convolutional layer applied to the
-            input tensor.
-
-    Raises:
-        TypeError: If the input_tensor is not a torch.Tensor, or if conv_layers is not a
-            list of nn.Conv2d layers.
-
-    """
-
-    if not isinstance(input_tensor, torch.Tensor):
-        raise TypeError("input_tensor must be a torch.Tensor")
-
-    if not all(isinstance(layer, nn.Conv2d) for layer in conv_layers):
-        raise TypeError("conv_layers must be a list of nn.Conv2d layers")
-
-    if model_name not in ['resnet18', 'inception_v3']:
-        raise ValueError("model_name must be either 'resnet18' or 'inception_v3'")
-
-    results = [conv_layers[0](input_tensor)]
-
-    for i in range(1, len(conv_layers)):
-        results.append(conv_layers[i](results[-1]))
-
-    return results
-
-
-
-
-
-def visualize_feature_map_of_convolutional_layers(
-        convolutional_outputs: list[torch.Tensor],
-        file_name_prefix: str
-    ) -> None:
-    """Visualizes the feature maps of a list of convolutional layers.
-
-    Args:
-        convolutional_outputs: A list containing the feature maps of each convolutional
-            layer.
-        file_name_prefix: The base name to use when saving the visualizations of the
-            feature maps.
-
-    Returns:
-        None
-
-    Raises:
-        TypeError: If the convolutional_outputs is not a list of torch.Tensor objects, 
-            or if file_name_prefix is not a string.
-    """
-    # visualize features from each layer
-    for num_layer in range(len(convolutional_outputs)):
-        layer_viz = convolutional_outputs[num_layer][0, :, :, :]
-        layer_viz = layer_viz.data
-        num_filters = layer_viz.size(0)
-
-        # Calculate the dimensions of the grid based on the number of filters
-        grid_size = int(math.ceil(math.sqrt(num_filters)))
-
-        plt.figure(figsize=(grid_size * 3, grid_size * 3))
-
-        for i, filter in enumerate(layer_viz):
-            filter = filter.cpu()
-            plt.subplot(grid_size, grid_size, i + 1)
-            plt.imshow(filter)
-            plt.axis("off")
-        
-        print(f"Saving layer {num_layer} feature maps...")
-        plt.savefig(f"./{file_name_prefix}_layer_{num_layer}.png")
-        # plt.show()
-        plt.close()
-
-
 def assess_attack_and_log_distances(
         model: torch.nn.Module,
         device: torch.device,
@@ -264,7 +82,7 @@ def assess_attack_and_log_distances(
 
     feature_map_after_attack = get_feature_maps(input, model, model_name)
 
-    logarithmic_distances = calculate_log_distance(
+    logarithmic_distances = calculate_log_distances(
         feature_map_before_attack, feature_map_after_attack)
 
     return (
@@ -276,29 +94,33 @@ def assess_attack_and_log_distances(
 
 
 
-def calculate_log_distance(A, B):
-    """Calculate the log distance between two feature maps.
+def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tensor]):
+    """Calculate the log distance between two lists of feature maps.
 
     Args:
-        A (torch.Tensor): Feature map of shape (N, C, H, W).
-        B (torch.Tensor): Feature map of shape (N, C, H, W).
+        a_list (list[torch.Tensor]): List of feature maps of shape (N, C, H, W).
+        b_list (list[torch.Tensor]): List of feature maps of shape (N, C, H, W).
 
     Returns:
-        float: Log distance between the two feature maps.
+        float: List of log distance between the two feature maps.
     """
-    # Flatten the feature maps and compute their L2 distance
-    A = torch.flatten(A, start_dim=1)
-    B = torch.flatten(B, start_dim=1)
-    l2_distance = torch.norm(A - B, p=2, dim=1)
+    log_distances:list = []
+    for a, b in zip(a_list, b_list):
+        # Flatten the feature maps and compute their L2 distance
+        a = torch.flatten(a, start_dim=1)
+        b = torch.flatten(b, start_dim=1)
+        l2_distance = torch.norm(a - b, p=2, dim=1)
 
-    # Compute the log distance
-    log_distance = torch.log(l2_distance.mean())
+        # Compute the log distance
+        log_distance = torch.log(l2_distance.mean())
 
-    # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
-    finite_mask = torch.isfinite(log_distance)
-    log_distance[~finite_mask] = 0  # Set non-real values to 0
+        # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
+        finite_mask = torch.isfinite(log_distance)
+        log_distance[~finite_mask] = 0  # Set non-real values to 0
 
-    return log_distance.item()
+        log_distances.append(log_distance.item())
+
+    return log_distances
 
 
 
@@ -542,3 +364,187 @@ def old_plot_colored_grid(data: list[np.array], color_map='viridis'):
         os.makedirs(output_dir, exist_ok=True)
         plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
         plt.close()
+
+
+
+def old_extract_kernels_from_resnet_architecture(
+    model_children: list[nn.Module],
+    ) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
+    """
+    Extracts the kernel weights and convolutional layers from a ResNet architecture.
+
+    Args:
+        model_children (List[nn.Module]): A list of child modules from the ResNet model.
+
+    Returns:
+        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
+            1. The weights of the extracted convolutional layers.
+            2. The extracted convolutional layers themselves.
+    """
+
+    model_weights = []
+    conv_layers = []
+    # Initialize a counter to keep track of the number of convolutional layers
+    counter = 0 
+
+    # Iterate through the model's child modules
+    for i in range(len(model_children)):
+        # Check if the current child module is a convolutional layer
+        if type(model_children[i]) == nn.Conv2d:
+            # Increment the counter for each convolutional layer found
+            counter += 1
+            # Append the current layer's weights to the model_weights list
+            model_weights.append(model_children[i].weight)
+            # Append the current convolutional layer to the conv_layers list
+            conv_layers.append(model_children[i])
+
+        # Check if the current child module is a sequential layer
+        elif type(model_children[i]) == nn.Sequential:
+            # Iterate through the sub-modules within the sequential layer
+            for j in range(len(model_children[i])):
+                # Iterate through the children of each sub-module
+                for child in model_children[i][j].children():
+                    # Check if the current child is a convolutional layer
+                    if type(child) == nn.Conv2d:
+                        counter += 1
+                        # Append the current layer's weights to the model_weights list
+                        model_weights.append(child.weight)
+                        # Append the current convolutional layer to the conv_layers list
+                        conv_layers.append(child)
+
+    # Print the total number of convolutional layers found
+    print(f"Total convolutional layers: {counter}")
+
+    # Return the updated model_weights and conv_layers lists as a tuple
+    return model_weights, conv_layers
+
+
+def old_extract_kernels_from_inception_v3_architecture(
+    model_children: list[nn.Module],
+) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
+    """
+    Extracts the kernel weights and convolutional layers from an Inception V3
+    architecture.
+
+    Args:
+        model_children: A list of child modules from the Inception V3 model.
+
+    Returns:
+        A tuple containing two lists:
+            1. The weights of the extracted convolutional layers.
+            2. The extracted convolutional layers themselves.
+    """
+
+    model_weights = []
+    conv_layers = []
+    # Initialize a counter to keep track of the number of convolutional layers
+    counter = 0
+
+    # Recursive function to search for Conv2d layers in nested modules
+    def find_conv_layers(module: nn.Module):
+        nonlocal counter
+
+        for child in module.children():
+            if isinstance(child, nn.Conv2d):
+                counter += 1
+                model_weights.append(child.weight)
+                conv_layers.append(child)
+            else:
+                find_conv_layers(child)
+
+    # Iterate through the model's child modules
+    for i in range(len(model_children)):
+        find_conv_layers(model_children[i])
+
+    # Print the total number of convolutional layers found
+    print(f"Total convolutional layers: {counter}")
+
+    # Return the updated model_weights and conv_layers lists as a tuple
+    return model_weights, conv_layers
+
+
+def old_extract_feature_map_of_convolutional_layers(
+        input_tensor: torch.Tensor,
+        conv_layers: list[nn.Conv2d],
+        model_name: str
+    ) -> list[torch.Tensor]:
+    """
+    Extracts the feature maps of a list of convolutional layers applied to an input
+    tensor.
+
+    Args:
+        input_tensor: The input tensor to pass through the convolutional layers.
+        conv_layers: A list of convolutional layers to apply to the input tensor.
+        model_name: The name of the model. Accepts 'resnet18' or 'inception_v3'.
+
+    Returns:
+        A list containing the feature maps of each convolutional layer applied to the
+            input tensor.
+
+    Raises:
+        TypeError: If the input_tensor is not a torch.Tensor, or if conv_layers is not a
+            list of nn.Conv2d layers.
+
+    """
+
+    if not isinstance(input_tensor, torch.Tensor):
+        raise TypeError("input_tensor must be a torch.Tensor")
+
+    if not all(isinstance(layer, nn.Conv2d) for layer in conv_layers):
+        raise TypeError("conv_layers must be a list of nn.Conv2d layers")
+
+    if model_name not in ['resnet18', 'inception_v3']:
+        raise ValueError("model_name must be either 'resnet18' or 'inception_v3'")
+
+    results = [conv_layers[0](input_tensor)]
+
+    for i in range(1, len(conv_layers)):
+        results.append(conv_layers[i](results[-1]))
+
+    return results
+
+
+
+
+
+def old_visualize_feature_map_of_convolutional_layers(
+        convolutional_outputs: list[torch.Tensor],
+        file_name_prefix: str
+    ) -> None:
+    """Visualizes the feature maps of a list of convolutional layers.
+
+    Args:
+        convolutional_outputs: A list containing the feature maps of each convolutional
+            layer.
+        file_name_prefix: The base name to use when saving the visualizations of the
+            feature maps.
+
+    Returns:
+        None
+
+    Raises:
+        TypeError: If the convolutional_outputs is not a list of torch.Tensor objects, 
+            or if file_name_prefix is not a string.
+    """
+    # visualize features from each layer
+    for num_layer in range(len(convolutional_outputs)):
+        layer_viz = convolutional_outputs[num_layer][0, :, :, :]
+        layer_viz = layer_viz.data
+        num_filters = layer_viz.size(0)
+
+        # Calculate the dimensions of the grid based on the number of filters
+        grid_size = int(math.ceil(math.sqrt(num_filters)))
+
+        plt.figure(figsize=(grid_size * 3, grid_size * 3))
+
+        for i, filter in enumerate(layer_viz):
+            filter = filter.cpu()
+            plt.subplot(grid_size, grid_size, i + 1)
+            plt.imshow(filter)
+            plt.axis("off")
+        
+        print(f"Saving layer {num_layer} feature maps...")
+        plt.savefig(f"./{file_name_prefix}_layer_{num_layer}.png")
+        # plt.show()
+        plt.close()
+
