@@ -181,7 +181,7 @@ def main(year, model_name):
             
         
         
-    visualize_3d(*reduce_dimensionality(pca_1_list, pca_2_list))
+    visualize_2d(*reduce_dimensionality(pca_1_list, pca_2_list))
     
     # save_line_plots(
     #     log_distances,
