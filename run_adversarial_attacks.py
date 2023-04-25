@@ -124,7 +124,7 @@ def main(year, model_name):
         raise Exception("Not a valid model name")
 
 
-    print(conv_layers)
+    [print(x) for x in conv_layers]
 
 
     device = _initialize_device()
