@@ -121,7 +121,7 @@ def main(year, model_name):
     device = _initialize_device()
     attacks.append(torchattacks.FGSM(model, eps=2/255))
     attacks.append(torchattacks.CW(model))
-    
+
     for attack in attacks:
         for i, (input, true_label) in tqdm(enumerate(train_data_loader)):
 
@@ -144,8 +144,7 @@ def main(year, model_name):
                 break
         
         
-        print(f"len(log_distances): {len(log_distances)}")
-        [print(x) for x in log_distances]
+    [print(x) for x in log_distances]
     
     
 
