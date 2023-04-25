@@ -161,7 +161,7 @@ def main(year, model_name):
             pca_2_list.append(
                 [tensor.mean().item() for tensor in get_feature_maps(adv_input, model, model_name)])
             
-            if i >= 5:
+            if i >= 1000:
                 break
             
         
