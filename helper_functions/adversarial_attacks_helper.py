@@ -51,8 +51,8 @@ def extract_features(feature_maps):
     avg_values = []
 
     for feature_map in feature_maps:
-        max_value, max_index = torch.max(feature_map, dim=None)
-        min_value, min_index = torch.min(feature_map, dim=None)
+        max_value, max_index = torch.max(feature_map)
+        min_value, min_index = torch.min(feature_map)
         avg_value = torch.mean(feature_map)
 
         max_values.append(max_value.item())
