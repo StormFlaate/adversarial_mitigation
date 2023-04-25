@@ -12,10 +12,7 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    assess_attack_and_log_distances,
-    calculate_log_distances,
     combine_features,
-    create_5xn_list,
     extract_features,
     generate_adversarial_input,
     get_feature_maps,

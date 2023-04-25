@@ -15,7 +15,13 @@ from sklearn.decomposition import PCA
 
 
 def combine_features(max_indices, min_indices, max_values, min_values, avg_values):
-    return list(zip(max_values, min_values, avg_values, [idx[0] for idx in max_indices], [idx[0] for idx in min_indices]))
+    return list(zip(
+        max_values,
+        min_values,
+        avg_values,
+        [idx[0] for idx in max_indices],
+        [idx[0] for idx in min_indices])
+    )
 
 def normalize_features(combined_features):
     scaler = StandardScaler()
