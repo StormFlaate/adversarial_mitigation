@@ -130,11 +130,9 @@ def main(year, model_name):
             attack,
             model_name
         )
-        cur_log_distances, correct_label, predicted_label, adv_label = assessment_results
-        print(f"len(cur_log_distances): {len(cur_log_distances)}")
-        print(cur_log_distances)
+        cur_distance, correct_label, predicted_label, adv_label = assessment_results
         
-        log_distances.append(cur_log_distances)
+        log_distances.append(cur_distance)
         correct_labels.append(correct_label)
         predicted_labels.append(predicted_label)
         predicted_adversarial_labels.append(adv_label)
@@ -144,7 +142,7 @@ def main(year, model_name):
     
     
     print(f"len(log_distances): {len(log_distances)}")
-    print(log_distances)
+    [print(x) for x in log_distances]
     
     
 
