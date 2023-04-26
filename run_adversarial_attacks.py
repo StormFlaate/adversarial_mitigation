@@ -143,7 +143,7 @@ def main(year, model_name, is_augmented):
     
     test_input, test_label, *_ = prepare_data(
         *test_feature_maps,
-        test_size=0.0 # since we will use all the data in this set for testing
+        test_size=0.05 
     )
 
     # Evaluate the accuracy
