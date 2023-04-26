@@ -33,12 +33,12 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
         model_file_name=model_file_name
     )
 
-def _initialize_data_loader_inception_v3(year):
-    return get_data_loaders_by_year(year, PREPROCESS_INCEPTIONV3, False)
+def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
+    return get_data_loaders_by_year(year, PREPROCESS_INCEPTIONV3, is_augmented_dataset)
 
 
-def _initialize_data_loader_resnet18(year):
-    return get_data_loaders_by_year(year, PREPROCESS_RESNET18, False)
+def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
+    return get_data_loaders_by_year(year, PREPROCESS_RESNET18, is_augmented_dataset)
 
 def _initialize_device() -> torch.device:
     """
@@ -91,7 +91,7 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
 
 
 
-def main(year, model_name):
+def main(year, model_name, is_augmented):
     mp.freeze_support()
     mp.set_start_method('spawn')
     # Set the randomness seeds
@@ -117,38 +117,43 @@ def main(year, model_name):
     # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
-        train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(year)
+        train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(
+            year, is_augmented
+        )
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(year)
-        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_inception_v3("2018")
+        train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(
+            year, is_augmented
+        )
+        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_inception_v3(
+            "2018", is_augmented
+        )
     else:
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    attacks.append(("fgsm",torchattacks.FGSM(model, eps=2/255)))
-    # attacks.append(("cw",torchattacks.CW(model)))
+    fgsm_attack = torchattacks.FGSM(model, eps=2/255)
+    cw_attack = torchattacks.CW(model)
     #attacks.append(("deepfool",torchattacks.DeepFool(model)))
     # attacks.append(("one_pixel",torchattacks.OnePixel(model)))
 
-    for name, attack in attacks:
-        print(name)
-        for i, (input, true_label) in tqdm(enumerate(train_dl)):
-            input = input.to(device)
-            true_label = true_label.to(device)
+    print("FGSM")
+    for i, (input, true_label) in tqdm(enumerate(train_dl)):
+        input = input.to(device)
+        true_label = true_label.to(device)
 
-            adv_input = generate_adversarial_input(input, true_label, attack)
-            
-            benign_feature_map.append([
-                tensor.mean().item() 
-                    for tensor in get_feature_maps(input, model, model_name)
-            ])
-            adversarial_feature_map.append([
-                tensor.mean().item() 
-                    for tensor in get_feature_maps(adv_input, model, model_name)
-            ])
-            
-            if i >= 10000:
-                break
+        adv_input = generate_adversarial_input(input, true_label, fgsm_attack)
+        
+        benign_feature_map.append([
+            tensor.mean().item() 
+                for tensor in get_feature_maps(input, model, model_name)
+        ])
+        adversarial_feature_map.append([
+            tensor.mean().item() 
+                for tensor in get_feature_maps(adv_input, model, model_name)
+        ])
+        
+        if i >= 10000:
+            break
             
         
     
@@ -158,12 +163,11 @@ def main(year, model_name):
     )
     test_benign_feature_map = []
     test_adversarial_feature_map = []
-
     for i, (input, true_label) in tqdm(enumerate(test_dl_2018)):
         input = input.to(device)
         true_label = true_label.to(device)
 
-        adv_input = generate_adversarial_input(input, true_label, attack)
+        adv_input = generate_adversarial_input(input, true_label, cw_attack)
         
         test_benign_feature_map.append([
             tensor.mean().item() 
@@ -173,7 +177,7 @@ def main(year, model_name):
             tensor.mean().item() 
                 for tensor in get_feature_maps(adv_input, model, model_name)
         ])
-    
+        
     # Assuming pca_1_list and pca_2_list are your input features
     benign_features = np.array(test_benign_feature_map)
     adversarial_features = np.array(test_adversarial_feature_map)
@@ -221,11 +225,19 @@ if __name__ == '__main__':
         )
     )
 
+    # Add argument for using augmented dataset
+    parser.add_argument(
+        "--is-augmented",
+        action="store_true",
+        help="Use augmented dataset if specified."
+    )
+
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
     main(
         args.year,
-        args.model
+        args.model,
+        args.is_augmented
     )
