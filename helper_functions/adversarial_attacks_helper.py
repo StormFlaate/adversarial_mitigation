@@ -1,12 +1,64 @@
 import os
+from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torchattacks
+import tqdm
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
+from torch.utils.data import DataLoader
+
+def process_data_loader_and_generate_feature_maps(
+        data_loader: DataLoader,
+        adversarial_attack: Callable,
+        model: torch.nn.Module,
+        model_name: str,
+        device: str,
+        sample_limit: int = None
+) -> tuple[list[list[float]], list[list[float]]]:
+    """
+    Process the data from the data loader, generating benign and adversarial feature
+    maps based on the specified adversarial attack.
+
+    Args:
+        data_loader (DataLoader): The data loader to process.
+        adversarial_attack (Callable): The adversarial attack function to apply.
+        model (Callable): The model to use for generating feature maps.
+        model_name (str): The name of the model being used.
+        device (str): The device where tensors should be moved to ('cuda' or 'cpu').
+        sample_limit (int, optional): The maximum number of samples to process.
+            Defaults to None.
+
+    Returns:
+        tuple[list[list[float]], list[list[float]]]: A tuple containing two lists of
+            lists of float values, where the first list corresponds to benign feature
+            maps and the second list corresponds to adversarial feature maps.
+    """
+    benign_feature_map = []
+    adversarial_feature_map = []
+
+    for i, (input, true_label) in tqdm(enumerate(data_loader)):
+        input = input.to(device)
+        true_label = true_label.to(device)
+
+        adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
+
+        benign_feature_map.append([
+            tensor.mean().item()
+            for tensor in get_feature_maps(input, model, model_name)
+        ])
+        adversarial_feature_map.append([
+            tensor.mean().item()
+            for tensor in get_feature_maps(adv_input, model, model_name)
+        ])
+
+        if sample_limit is not None and i >= sample_limit:
+            break
+
+    return benign_feature_map, adversarial_feature_map
 
 
 def train_and_evaluate_xgboost_classifier(
@@ -43,43 +95,6 @@ def train_and_evaluate_xgboost_classifier(
 
     return model, accuracy
 
-def train_xgboost_classifier(
-    X_train: np.ndarray, y_train: np.ndarray
-) -> xgb.XGBClassifier:
-    """
-    Trains an XGBoost classifier on input training data and returns the trained model.
-
-    Args:
-        X_train (np.ndarray): A 2D numpy array containing the training features.
-        y_train (np.ndarray): A 1D numpy array containing the training labels.
-
-    Returns:
-        xgb.XGBClassifier: The trained XGBoost classifier.
-    """
-    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
-    model.fit(X_train, y_train)
-    return model
-
-
-def evaluate_classifier(
-    model: xgb.XGBClassifier, X_test: np.ndarray, y_test: np.ndarray
-) -> float:
-    """
-    Evaluates the accuracy of the input classifier on the test set.
-
-    Args:
-        model (xgb.XGBClassifier): The trained classifier to be evaluated.
-        X_test (np.ndarray): A 2D numpy array containing the test features.
-        y_test (np.ndarray): A 1D numpy array containing the test labels.
-
-    Returns:
-        float: The accuracy of the classifier on the test set, as a percentage.
-    """
-    y_pred = model.predict(X_test)
-    predictions = [round(value) for value in y_pred]
-    accuracy = accuracy_score(y_test, predictions)
-    return accuracy
-
 
 def prepare_data(
     benign_feature_map: list[list[float]] | np.ndarray,
@@ -111,34 +126,80 @@ def prepare_data(
     benign_features = np.array(benign_feature_map)
     adversarial_features = np.array(adversarial_feature_map)
 
-    X = np.concatenate((benign_features, adversarial_features), axis=0)
-    y = np.concatenate(
+    input_data = np.concatenate((benign_features, adversarial_features), axis=0)
+    labels = np.concatenate(
         (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
         axis=0
     )
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
+        input_data, labels, test_size=test_size, random_state=random_state
     )
 
     return X_train, X_test, y_train, y_test
 
+def train_xgboost_classifier(
+    train_input: np.ndarray,
+    train_labels: np.ndarray
+) -> xgb.XGBClassifier:
+    """
+    Trains an XGBoost classifier on input training data and returns the trained model.
+
+    Args:
+        train_input (np.ndarray): A 2D numpy array containing the training features.
+        train_labels (np.ndarray): A 1D numpy array containing the training labels.
+
+    Returns:
+        xgb.XGBClassifier: The trained XGBoost classifier.
+    """
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+    model.fit(train_input, train_labels)
+    return model
+
+
+def evaluate_classifier(
+    model: xgb.XGBClassifier,
+    test_input: np.ndarray,
+    test_labels: np.ndarray
+) -> float:
+    """
+    Evaluates the accuracy of the input classifier on the test set.
+
+    Args:
+        model (xgb.XGBClassifier): The trained classifier to be evaluated.
+        test_input (np.ndarray): A 2D numpy array containing the test features.
+        test_labels (np.ndarray): A 1D numpy array containing the test labels.
+
+    Returns:
+        float: The accuracy of the classifier on the test set, as a percentage.
+    """
+    y_pred = model.predict(test_input)
+    predictions = [round(value) for value in y_pred]
+    accuracy = accuracy_score(test_labels, predictions)
+    return accuracy
+
 
 def generate_adversarial_input(
-        input,
-        label, 
-        attack
-        ) -> tuple[torch.tensor]:
+    input: torch.Tensor,
+    label: torch.Tensor,
+    attack
+) -> tuple[torch.tensor]:
     """
-        Applies adversarial attack to the input, creating an adversarial example.
+    Applies an adversarial attack to an input tensor and returns the adversarial example.
 
-        Args:
-            input: input image or tensor
-            label: correct label, 1-dimensional format [0,1,0,...]
-            attack: specific attack form torchattacks
+    Args:
+        input (torch.Tensor): The input tensor to attack, with shape
+            (batch_size, channels, height, width).
+        label (torch.Tensor): The true label(s) for the input, with shape
+            (batch_size, num_classes). Each row should be a one-hot vector, with a 1 in
+            the position corresponding to the true class label and 0s elsewhere.
+        attack: An instance of an attack class from the torchattacks library, e.g. FGSM,
+            PGD, etc. This class should take the input and label tensors as arguments
+            and return the corresponding adversarial example(s).
 
-        Returns:
-            (adversarial_input): attack applied to input
+    Returns: The adversarial example(s) generated by the attack, with the same shape as
+        the input tensor. If batch_size > 1, this will be a tensor of shape 
+        (batch_size, channels, height, width).
     """
     # Move inputs and labels to the specified device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

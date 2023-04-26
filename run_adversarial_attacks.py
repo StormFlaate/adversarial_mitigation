@@ -12,8 +12,11 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
+    evaluate_classifier,
     generate_adversarial_input,
     get_feature_maps,
+    prepare_data,
+    process_data_loader_and_generate_feature_maps,
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -136,64 +139,25 @@ def main(year, model_name, is_augmented):
     # attacks.append(("one_pixel",torchattacks.OnePixel(model)))
 
     print("FGSM")
-    for i, (input, true_label) in tqdm(enumerate(train_dl)):
-        input = input.to(device)
-        true_label = true_label.to(device)
-
-        adv_input = generate_adversarial_input(input, true_label, fgsm_attack)
-        
-        benign_feature_map.append([
-            tensor.mean().item() 
-                for tensor in get_feature_maps(input, model, model_name)
-        ])
-        adversarial_feature_map.append([
-            tensor.mean().item() 
-                for tensor in get_feature_maps(adv_input, model, model_name)
-        ])
-        
-        if i >= 10000:
-            break
+    benign_feature_map, adv_feature_map = process_data_loader_and_generate_feature_maps(
+        train_dl, fgsm_attack, model, model_name, device, sample_limit=1000)
             
-        
-    
     xgboost_model, accuracy = train_and_evaluate_xgboost_classifier(
         benign_feature_map,
-        adversarial_feature_map
+        adv_feature_map
     )
-    test_benign_feature_map = []
-    test_adversarial_feature_map = []
-    for i, (input, true_label) in tqdm(enumerate(test_dl_2018)):
-        input = input.to(device)
-        true_label = true_label.to(device)
 
-        adv_input = generate_adversarial_input(input, true_label, cw_attack)
-        
-        test_benign_feature_map.append([
-            tensor.mean().item() 
-                for tensor in get_feature_maps(input, model, model_name)
-        ])
-        test_adversarial_feature_map.append([
-            tensor.mean().item() 
-                for tensor in get_feature_maps(adv_input, model, model_name)
-        ])
-        
-    # Assuming pca_1_list and pca_2_list are your input features
-    benign_features = np.array(test_benign_feature_map)
-    adversarial_features = np.array(test_adversarial_feature_map)
-
-    # Combine the two lists into one and create the corresponding labels
-    X = np.concatenate((benign_features, adversarial_features), axis=0)
-    y = np.concatenate(
-        (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
-        axis=0
-    )
+    test_feature_maps: tuple = process_data_loader_and_generate_feature_maps(
+        test_dl_2018, cw_attack, model, model_name, device)
     
-    # Predict on the test set
-    y_pred = xgboost_model.predict(X)
-    predictions = [round(value) for value in y_pred]
+    
+    test_input, test_label, *_ = prepare_data(
+        *test_feature_maps,
+        test_size=0.0 # since we will use all the data in this set for testing
+    )
 
     # Evaluate the accuracy
-    accuracy = accuracy_score(y, predictions)
+    accuracy = evaluate_classifier(xgboost_model, test_input, test_label)
     print("Accuracy on test dataset: %.2f%%" % (accuracy * 100.0))
 
     
