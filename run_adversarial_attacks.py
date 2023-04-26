@@ -140,13 +140,16 @@ def main(year, model_name, is_augmented):
     test_benign, test_adv = process_data_loader_and_generate_feature_maps(
         test_dl_2018, cw_attack, model, model_name, device)
     
-    
+    print("test_benign shape:", np.array(test_benign).shape)
+    print("test_adv shape:", np.array(test_adv).shape)
     test_input, test_label, *_ = prepare_data(
         test_benign,
         test_adv,
         test_size=0.05 
     )
-
+    print("Shapes after prepare_data:")
+    print("test_input shape:", test_input.shape)
+    print("test_label shape:", test_label.shape)
     # Evaluate the accuracy
     accuracy = evaluate_classifier(xgboost_model, test_input, test_label)
     print("Accuracy on test dataset: %.2f%%" % (accuracy * 100.0))

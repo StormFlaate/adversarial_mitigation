@@ -151,7 +151,7 @@ def train_xgboost_classifier(
     Returns:
         xgb.XGBClassifier: The trained XGBoost classifier.
     """
-    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+    model = xgb.XGBClassifier(eval_metric="logloss")
     model.fit(train_input, train_labels)
     return model
 
@@ -173,6 +173,9 @@ def evaluate_classifier(
         float: The accuracy of the classifier on the test set, as a percentage.
     """
     y_pred = model.predict(test_input)
+    print("Shapes in evaluate_classifier:")
+    print("test_labels shape:", test_labels.shape)
+    print("predictions shape:", y_pred.shape)
     predictions = [round(value) for value in y_pred]
     accuracy = accuracy_score(test_labels, predictions)
     return accuracy
