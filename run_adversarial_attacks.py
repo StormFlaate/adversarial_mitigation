@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torchattacks
 from sklearn.metrics import accuracy_score
-from tqdm import tqdm
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
@@ -13,8 +12,6 @@ from config import (
 )
 from helper_functions.adversarial_attacks_helper import (
     evaluate_classifier,
-    generate_adversarial_input,
-    get_feature_maps,
     prepare_data,
     process_data_loader_and_generate_feature_maps,
     train_and_evaluate_xgboost_classifier,
@@ -101,14 +98,7 @@ def main(year, model_name, is_augmented):
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    # Initialize empty lists
-    # log_distances: list = []
-    # comparison_distances: list = []
-    # correct_labels: list = []
-    # predicted_labels: list = []
-    # predicted_adversarial_labels: list = []
     benign_feature_map: list = []
-    adversarial_feature_map: list = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
