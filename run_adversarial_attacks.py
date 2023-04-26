@@ -179,6 +179,7 @@ if __name__ == '__main__':
     )
 
     # Add argument for using augmented dataset
+    # Default to use the non-augmented dataset
     parser.add_argument(
         "--is-augmented",
         action="store_true",
