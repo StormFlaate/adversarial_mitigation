@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 def process_data_loader_and_generate_feature_maps(
         data_loader: DataLoader,
-        adversarial_attack: Callable,
+        adversarial_attack,
         model: torch.nn.Module,
         model_name: str,
         device: str,
@@ -25,8 +25,8 @@ def process_data_loader_and_generate_feature_maps(
 
     Args:
         data_loader (DataLoader): The data loader to process.
-        adversarial_attack (Callable): The adversarial attack function to apply.
-        model (Callable): The model to use for generating feature maps.
+        adversarial_attack: The adversarial attack function to apply.
+        model (torch.nn.Module): The model to use for generating feature maps.
         model_name (str): The name of the model being used.
         device (str): The device where tensors should be moved to ('cuda' or 'cpu').
         sample_limit (int, optional): The maximum number of samples to process.
