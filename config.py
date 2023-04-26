@@ -29,10 +29,13 @@ SHUFFLE_VAL_DATALOADER: bool = True
 EPOCH_COUNT: int = 50
 
 # 2018: 0.8, 0.2, test_dataset
+TRAIN_SPLIT_2018: float = 0.8
+VAL_SPLIT_2018: float = 0.2
+
 # 2019: 0.7, 0.2, 0.1
-TRAIN_SPLIT_PERCENTAGE: float = 0.7
-VAL_SPLIT_PERCENTAGE: float = 0.2
-TEST_SPLIT_PERCENTAGE: float = 1 - TRAIN_SPLIT_PERCENTAGE - VAL_SPLIT_PERCENTAGE
+TRAIN_SPLIT_2019: float = 0.7
+VAL_SPLIT_2019: float = 0.2
+TEST_SPLIT_2019: float = 1 - TRAIN_SPLIT_2019 - VAL_SPLIT_2019
 
 # NUMBER OF ROWS - can be used if you want to run some simple tests
 TRAIN_NROWS: int = None # SET TO None if you want all samples

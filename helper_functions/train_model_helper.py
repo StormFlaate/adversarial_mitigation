@@ -20,23 +20,24 @@ from config import (
     SHUFFLE_TRAIN_DATALOADER,
     TEST_2018_LABELS,
     TEST_2018_ROOT_DIR,
+    TEST_SPLIT_2019,
     TRAIN_2018_LABELS,
     TRAIN_2018_ROOT_DIR,
     TRAIN_NROWS,
     BATCH_SIZE,
     TEST_NROWS,
     SHUFFLE_VAL_DATALOADER,
-    TEST_SPLIT_PERCENTAGE,
     IMAGE_FILE_TYPE,
-    TRAIN_SPLIT_PERCENTAGE,
-    VAL_SPLIT_PERCENTAGE
+    TRAIN_SPLIT_2018,
+    TRAIN_SPLIT_2019,
+    VAL_SPLIT_2018,
+    VAL_SPLIT_2019
 )
 from torch import randperm
 from torch._utils import _accumulate
 import warnings
 import math
 
-from helper_functions.misc_helper import save_model_and_parameters_to_file
 
 T_co = TypeVar('T_co', covariant=True)
 T = TypeVar('T')
@@ -57,15 +58,21 @@ def train_model(
 
     Args:
         model (Module): The neural network model to train.
-        train_data_loader (DataLoader): The data loader used for iterating over the training dataset.
+        train_data_loader (DataLoader): The data loader used for iterating over the
+            training dataset.
         val_data_loader (DataLoader): The data loader used for validating the training.
-        criterion (Module): The loss function used for calculating the loss between model output and labels.
-        optimizer (torch.optim.Optimizer): The optimizer used for updating the model parameters.
-        scheduler (torch.optim.lr_scheduler): The learning rate scheduler to adjust the learning rate during training.
+        criterion (Module): The loss function used for calculating the loss between
+            model output and labels.
+        optimizer (torch.optim.Optimizer): The optimizer used for updating the model
+            parameters.
+        scheduler (torch.optim.lr_scheduler): The learning rate scheduler to adjust the
+            learning rate during training.
         root_dir (str): The root directory where the model and parameters will be saved.
         writer: A TensorBoard writer object for logging training metrics.
-        model_name (str, optional): The type of the model being used (if applicable). Defaults to "".
-        epoch_count (int, optional): The number of epochs to train the model. Defaults to 20.
+        model_name (str, optional): The type of the model being used (if applicable).
+            Defaults to "".
+        epoch_count (int, optional): The number of epochs to train the model. Defaults
+            to 20.
 
     Returns:
         Module: The trained neural network model.
@@ -443,8 +450,8 @@ def validate_model_during_training(
     # Initialize the dictionary of accuracy for each skin lesion type
     accuracy_by_type = {col: {"correct": 0, "total": 0} for col in df.columns[1:]}
 
-    # Loop over the data in the data loader
-    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
+     # Disable gradient calculation to save memory and speed up validation
+    with torch.no_grad():
         for i, (inputs, labels) in tqdm(enumerate(data_loader, 0)):
 
             # Move inputs and labels to the specified device
@@ -484,9 +491,9 @@ def validate_model_during_training(
 
         # Calculate the accuracy for each skin lesion type
         for col in df.columns[1:]:
+            accuracy_tot = accuracy_by_type[col]["total"]
             if accuracy_by_type[col]["total"]:
-                accuracy = accuracy_by_type[col]["correct"] / accuracy_by_type[col]["total"]
-            else:
+                accuracy = accuracy_by_type[col]["correct"]/accuracy_tot
                 accuracy = 0
             accuracy_by_type_dict[col] = accuracy
         
@@ -499,15 +506,15 @@ def validate_model_accuracy_f1(model, val_data_loader, device):
 
     true_labels = []
     predicted_labels = []
-
-    with torch.no_grad():  # Disable gradient calculation to save memory and speed up validation
+    # Disable gradient calculation to save memory and speed up validation
+    with torch.no_grad(): 
         for val_data in val_data_loader:
             inputs, labels = val_data
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)  # Get the class with the highest probability as predictions
-            _, labels = torch.max(labels, 1)  # Get the class with the highest probability as predictions
+            _, preds = torch.max(outputs, 1)  # Get class with the highest probability
+            _, labels = torch.max(labels, 1)  # Get class with the highest probability
 
             true_labels.extend(labels.cpu().numpy())
             predicted_labels.extend(preds.cpu().numpy())
@@ -573,9 +580,9 @@ def _validate_split_percentages_2019() -> None:
         "The total of train, validation and test percentage should be equal to 1.0"
     )
     split_percentage_sum = sum([
-        TRAIN_SPLIT_PERCENTAGE,
-        TEST_SPLIT_PERCENTAGE,
-        VAL_SPLIT_PERCENTAGE
+        TRAIN_SPLIT_2019,
+        VAL_SPLIT_2019,
+        TEST_SPLIT_2019
     ])
     assert split_percentage_sum == 1.0, assertion_message
 
@@ -594,8 +601,8 @@ def _validate_split_percentages_2018() -> None:
         "The total of train and validation percentage should be equal to 1.0"
     )
     split_percentage_sum = sum([
-        TRAIN_SPLIT_PERCENTAGE,
-        VAL_SPLIT_PERCENTAGE
+        TRAIN_SPLIT_2018,
+        VAL_SPLIT_2018
     ])
     assert split_percentage_sum == 1.0, assertion_message
 
@@ -633,7 +640,7 @@ def _generate_and_split_dataset_2018(
 
     # splits the dataset
     train_dataset, val_dataset = random_split(
-        train_dataset_full, [TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE]
+        train_dataset_full, [TRAIN_SPLIT_2018, VAL_SPLIT_2018]
     )
     test_dataset = Subset(
         test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
@@ -661,7 +668,7 @@ def _generate_and_split_dataset_2019(
     # splits the dataset
     train_validation_test_dataset: tuple = random_split(
         train_dataset_full, [
-            TRAIN_SPLIT_PERCENTAGE, VAL_SPLIT_PERCENTAGE, TEST_SPLIT_PERCENTAGE
+            TRAIN_SPLIT_2019, VAL_SPLIT_2019, TEST_SPLIT_2019
         ]
     )
     return train_validation_test_dataset

@@ -16,8 +16,6 @@ from helper_functions.adversarial_attacks_helper import (
     get_feature_maps,
     train_and_evaluate_xgboost_classifier,
 )
-import xgboost as xgb
-from sklearn.model_selection import train_test_split
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year
 
@@ -101,11 +99,11 @@ def main(year, model_name):
     np.random.seed(RANDOM_SEED)
 
     # Initialize empty lists
-    log_distances: list = []
-    comparison_distances: list = []
-    correct_labels: list = []
-    predicted_labels: list = []
-    predicted_adversarial_labels: list = []
+    # log_distances: list = []
+    # comparison_distances: list = []
+    # correct_labels: list = []
+    # predicted_labels: list = []
+    # predicted_adversarial_labels: list = []
     benign_feature_map: list = []
     adversarial_feature_map: list = []
     attacks: list[tuple] = []

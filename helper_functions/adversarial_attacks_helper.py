@@ -94,33 +94,13 @@ def normalize_features(combined_features):
     normalized_features = scaler.fit_transform(combined_features)
     return normalized_features
 
-def plot_3d_scatter_with_clusters(x, y, z, labels, centroids):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z, c=labels, marker='o', cmap='viridis')
-    ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], c='red', marker='x', s=100)
-    ax.set_xlabel('Max Values')
-    ax.set_ylabel('Min Values')
-    ax.set_zlabel('Avg Values')
-    os.makedirs("./test_images/", exist_ok=True)
-    plt.savefig(os.path.join("./test_images/", "3d_plot.png"))
-    plt.close()
-
-def plot_3d_scatter(x, y, z):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z, c='r', marker='o')
-    ax.set_xlabel('Max Values')
-    ax.set_ylabel('Min Values')
-    ax.set_zlabel('Avg Values')
-    os.makedirs("./test_images/", exist_ok=True)
-    plt.savefig(os.path.join("./test_images/", "3d_plot.png"))
-    plt.close()
 
 
 def reduce_dimensionality(normalized_features_1, normalized_features_2, n_components=2):
     # Combine the normalized features
-    combined_normalized_features = np.vstack((normalized_features_1, normalized_features_2))
+    combined_normalized_features = np.vstack(
+        (normalized_features_1, normalized_features_2)
+    )
 
     # Perform PCA
     pca = PCA(n_components=n_components)
@@ -134,28 +114,15 @@ def reduce_dimensionality(normalized_features_1, normalized_features_2, n_compon
     return reduced_features_1, reduced_features_2
 
 def visualize_2d(reduced_features_1, reduced_features_2):
-    plt.scatter(reduced_features_1[:, 0], reduced_features_1[:, 1], c='blue', label='Input 1')
-    plt.scatter(reduced_features_2[:, 0], reduced_features_2[:, 1], c='red', label='Input 2')
+    plt.scatter(
+        reduced_features_1[:, 0], reduced_features_1[:, 1], c='blue', label='Input 1')
+    plt.scatter(
+        reduced_features_2[:, 0], reduced_features_2[:, 1], c='red', label='Input 2')
     plt.xlabel("PC1")
     plt.ylabel("PC2")
     plt.title("PCA 2D Visualization")
     os.makedirs("./test_images/", exist_ok=True)
     plt.savefig(os.path.join("./test_images/", "pca.png"))
-    plt.close()
-
-
-def visualize_3d(reduced_features_1, reduced_features_2):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(reduced_features_1[:, 0], reduced_features_1[:, 1], reduced_features_1[:, 2], c='blue', label='Input 1')
-    ax.scatter(reduced_features_2[:, 0], reduced_features_2[:, 1], reduced_features_2[:, 2], c='red', label='Input 2')
-    ax.set_xlabel("PC1")
-    ax.set_ylabel("PC2")
-    ax.set_zlabel("PC3")
-    ax.set_title("PCA 3D Visualization")
-    ax.legend()
-    os.makedirs("./test_images/", exist_ok=True)
-    plt.savefig(os.path.join("./test_images/", "pca_3d.png"))
     plt.close()
 
 
