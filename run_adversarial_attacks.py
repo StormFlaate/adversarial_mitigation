@@ -120,9 +120,9 @@ def main(year, model_name):
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(year)
-        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_resnet18("2018")
     elif model_name == INCEPTIONV3_MODEL_NAME:
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(year)
+        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_inception_v3("2018")
     else:
         raise Exception("Not a valid model name")
 
