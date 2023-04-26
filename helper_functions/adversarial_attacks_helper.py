@@ -173,9 +173,6 @@ def evaluate_classifier(
         float: The accuracy of the classifier on the test set, as a percentage.
     """
     y_pred = model.predict(test_input)
-    print("Shapes in evaluate_classifier:")
-    print("test_labels shape:", test_labels.shape)
-    print("predictions shape:", y_pred.shape)
     predictions = [round(value) for value in y_pred]
     accuracy = accuracy_score(test_labels, predictions)
     return accuracy
