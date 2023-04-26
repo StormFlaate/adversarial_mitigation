@@ -184,7 +184,8 @@ def generate_adversarial_input(
     attack
 ) -> tuple[torch.tensor]:
     """
-    Applies an adversarial attack to an input tensor and returns the adversarial example.
+    Applies an adversarial attack to an input tensor and returns the adversarial
+    example.
 
     Args:
         input (torch.Tensor): The input tensor to attack, with shape

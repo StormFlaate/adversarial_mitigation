@@ -137,12 +137,13 @@ def main(year, model_name, is_augmented):
         adv_feature_map
     )
 
-    test_feature_maps: tuple = process_data_loader_and_generate_feature_maps(
+    test_benign, test_adv = process_data_loader_and_generate_feature_maps(
         test_dl_2018, cw_attack, model, model_name, device)
     
     
     test_input, test_label, *_ = prepare_data(
-        *test_feature_maps,
+        test_benign,
+        test_adv,
         test_size=0.05 
     )
 
