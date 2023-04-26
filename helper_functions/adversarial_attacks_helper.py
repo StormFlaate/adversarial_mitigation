@@ -1,10 +1,9 @@
 import os
-from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torchattacks
-import tqdm
+from tqdm import tqdm
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
