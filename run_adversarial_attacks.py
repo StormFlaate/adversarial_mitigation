@@ -106,7 +106,6 @@ def main(year, model_name, is_augmented):
     # predicted_adversarial_labels: list = []
     benign_feature_map: list = []
     adversarial_feature_map: list = []
-    attacks: list[tuple] = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(

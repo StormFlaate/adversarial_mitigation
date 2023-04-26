@@ -1,19 +1,13 @@
-import math
 import os
 from matplotlib import pyplot as plt
-import matplotlib.colors as mcolors
-import matplotlib.cm as cm
 import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.discriminant_analysis import StandardScaler
 import torch
-import torch.nn as nn
 import torchattacks
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
-from sklearn.decomposition import PCA
+
 
 def train_and_evaluate_xgboost_classifier(
     benign_feature_map: list[list[float]] | np.ndarray,
@@ -41,120 +35,93 @@ def train_and_evaluate_xgboost_classifier(
             - accuracy (float): The accuracy of the classifier on the test set, as a
                 percentage.
     """
-    # Assuming pca_1_list and pca_2_list are your input features
+    X_train, X_test, y_train, y_test = prepare_data(
+        benign_feature_map, adversarial_feature_map, test_size, random_state
+    )
+    model = train_xgboost_classifier(X_train, y_train)
+    accuracy = evaluate_classifier(model, X_test, y_test)
+
+    return model, accuracy
+
+def train_xgboost_classifier(
+    X_train: np.ndarray, y_train: np.ndarray
+) -> xgb.XGBClassifier:
+    """
+    Trains an XGBoost classifier on input training data and returns the trained model.
+
+    Args:
+        X_train (np.ndarray): A 2D numpy array containing the training features.
+        y_train (np.ndarray): A 1D numpy array containing the training labels.
+
+    Returns:
+        xgb.XGBClassifier: The trained XGBoost classifier.
+    """
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+    model.fit(X_train, y_train)
+    return model
+
+
+def evaluate_classifier(
+    model: xgb.XGBClassifier, X_test: np.ndarray, y_test: np.ndarray
+) -> float:
+    """
+    Evaluates the accuracy of the input classifier on the test set.
+
+    Args:
+        model (xgb.XGBClassifier): The trained classifier to be evaluated.
+        X_test (np.ndarray): A 2D numpy array containing the test features.
+        y_test (np.ndarray): A 1D numpy array containing the test labels.
+
+    Returns:
+        float: The accuracy of the classifier on the test set, as a percentage.
+    """
+    y_pred = model.predict(X_test)
+    predictions = [round(value) for value in y_pred]
+    accuracy = accuracy_score(y_test, predictions)
+    return accuracy
+
+
+def prepare_data(
+    benign_feature_map: list[list[float]] | np.ndarray,
+    adversarial_feature_map: list[list[float]] | np.ndarray,
+    test_size: float = 0.2,
+    random_state: int = 42
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Combines benign and adversarial feature maps, creates labels, and splits the data
+    into training and testing sets.
+
+    Args:
+        benign_feature_map (list of lists or array-like): A 2D list or array-like object
+            containing the benign features.
+        adversarial_feature_map (list of lists or array-like): A 2D list or array-like
+            object containing the adversarial features.
+        test_size (float, optional): A float between 0 and 1 representing the proportion
+            of the dataset to be used as test set. Defaults to 0.2.
+        random_state (int, optional): A random seed used by the random number generator.
+            Defaults to 42.
+
+    Returns:
+        tuple: A tuple containing:
+            - X_train (np.ndarray): A 2D numpy array containing the training features.
+            - X_test (np.ndarray): A 2D numpy array containing the test features.
+            - y_train (np.ndarray): A 1D numpy array containing the training labels.
+            - y_test (np.ndarray): A 1D numpy array containing the test labels.
+    """
     benign_features = np.array(benign_feature_map)
     adversarial_features = np.array(adversarial_feature_map)
 
-    # Combine the two lists into one and create the corresponding labels
     X = np.concatenate((benign_features, adversarial_features), axis=0)
     y = np.concatenate(
         (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
         axis=0
     )
 
-    # Split the dataset into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
 
-    # Train the XGBoost classifier
-    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
-    model.fit(X_train, y_train)
-
-    # Predict on the test set
-    y_pred = model.predict(X_test)
-    predictions = [round(value) for value in y_pred]
-
-    # Evaluate the accuracy
-    accuracy = accuracy_score(y_test, predictions)
-    print("Accuracy: %.2f%%" % (accuracy * 100.0))
-
-    return model, accuracy
-
-
-def kmeans_clustering(x, y, z, n_clusters=3):
-    data = np.array(list(zip(x, y, z)))
-    kmeans = KMeans(n_clusters=n_clusters)
-    kmeans.fit(data)
-    labels = kmeans.labels_
-    centroids = kmeans.cluster_centers_
-    return labels, centroids
-
-def combine_features(max_values, min_values, avg_values):
-    return list(
-                zip(
-                    max_values,
-                    min_values,
-                    avg_values
-                )
-    )
-
-def normalize_features(combined_features):
-    scaler = StandardScaler()
-    normalized_features = scaler.fit_transform(combined_features)
-    return normalized_features
-
-
-
-def reduce_dimensionality(normalized_features_1, normalized_features_2, n_components=2):
-    # Combine the normalized features
-    combined_normalized_features = np.vstack(
-        (normalized_features_1, normalized_features_2)
-    )
-
-    # Perform PCA
-    pca = PCA(n_components=n_components)
-    reduced_features = pca.fit_transform(combined_normalized_features)
-
-    # Split the reduced features back into two sets
-    split_index = len(normalized_features_1)
-    reduced_features_1 = reduced_features[:split_index]
-    reduced_features_2 = reduced_features[split_index:]
-
-    return reduced_features_1, reduced_features_2
-
-def visualize_2d(reduced_features_1, reduced_features_2):
-    plt.scatter(
-        reduced_features_1[:, 0], reduced_features_1[:, 1], c='blue', label='Input 1')
-    plt.scatter(
-        reduced_features_2[:, 0], reduced_features_2[:, 1], c='red', label='Input 2')
-    plt.xlabel("PC1")
-    plt.ylabel("PC2")
-    plt.title("PCA 2D Visualization")
-    os.makedirs("./test_images/", exist_ok=True)
-    plt.savefig(os.path.join("./test_images/", "pca.png"))
-    plt.close()
-
-
-def extract_features(feature_maps):
-    max_values = []
-    max_indices = []
-    min_values = []
-    min_indices = []
-    avg_values = []
-
-    for feature_map in feature_maps:
-        max_value = torch.max(feature_map)
-        min_value = torch.min(feature_map)
-        avg_value = torch.mean(feature_map)
-        min_index = torch.argmin(feature_map)
-        max_index = torch.argmax(feature_map)
-            
-
-        max_values.append(max_value.item())
-        min_values.append(min_value.item())
-        avg_values.append(avg_value.item())
-        min_indices.append(min_index.item())
-        max_indices.append(max_index.item())
-
-    # max_value_index = max_indices[max_values.index(max(max_values))]
-    # min_value_index = min_indices[min_values.index(min(min_values))]
-    
-    return (
-        max_values,
-        min_values,
-        avg_values
-    )
+    return X_train, X_test, y_train, y_test
 
 
 def generate_adversarial_input(
@@ -238,7 +205,6 @@ def assess_attack_and_log_distances(
     )
 
 
-
 def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tensor]):
     """Calculate the log distance between two lists of feature maps.
 
@@ -285,24 +251,6 @@ def get_normalized_values(data: list) -> list:
     return normalized_distances.tolist()
 
 
-def _flatten_list(list_of_arrays: list[np.array]) -> np.array:
-    # Stack the arrays in the list horizontally
-    stacked_array = np.hstack(list_of_arrays)
-    
-    # Flatten the stacked array into a 1D array
-    flattened_array = stacked_array.flatten()
-    
-    return flattened_array
-
-def _get_normalize_function(row):
-    # Normalize the data to map colors in the color map
-    min_value = min(row)
-    max_value = max(row)
-    norm = mcolors.Normalize(vmin=min_value, vmax=max_value)
-
-    return norm
-
-
 def get_feature_maps(input, model, model_name):
     """Get feature maps from a given model.
 
@@ -320,84 +268,6 @@ def get_feature_maps(input, model, model_name):
         return _get_feature_maps_resnet18(input, model)
     else:
         raise Exception("Not valid model name")
-
-
-def _get_feature_maps_inception_v3(input, model):
-    """Get feature maps from InceptionV3 model.
-
-    Args:
-        input (torch.Tensor): Input tensor of shape (N, C, H, W).
-        model (torch.nn.Module): InceptionV3 model.
-
-    Returns:
-        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
-    """
-    feature_maps = []
-
-    def hook(module, input, output):
-        feature_maps.append(output.detach())
-
-    # List of InceptionV3 layers to extract feature maps from
-    layers = [
-        model.Conv2d_1a_3x3,
-        model.Conv2d_2a_3x3,
-        model.Conv2d_2b_3x3,
-        model.Conv2d_3b_1x1,
-        model.Conv2d_4a_3x3,
-        model.Mixed_5b,
-        model.Mixed_5c,
-        model.Mixed_5d,
-        model.Mixed_6a,
-        model.Mixed_6b,
-        model.Mixed_6c,
-        model.Mixed_6d,
-        model.Mixed_6e,
-        model.Mixed_7a,
-        model.Mixed_7b,
-        model.Mixed_7c
-    ]
-    # Register hook on each layer
-    handles = [layer.register_forward_hook(hook) for layer in layers]
-
-    _ = model(input)
-
-    # Remove hook from each layer
-    for handle in handles:
-        handle.remove()
-
-    return feature_maps
-
-
-def _get_feature_maps_resnet18(input, model):
-    """Get feature maps from ResNet18 model.
-
-    Args:
-        input (torch.Tensor): Input tensor of shape (N, C, H, W).
-        model (torch.nn.Module): ResNet18 model.
-
-    Returns:
-        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
-    """
-    feature_maps = []
-
-    def hook(module, input, output):
-        feature_maps.append(output.detach())
-
-    # List of ResNet18 layers to extract feature maps from
-    layers = [
-        module for _, module in model.named_children() 
-        if isinstance(module, (torch.nn.Conv2d, torch.nn.Sequential))
-    ]
-    # Register hook on each layer
-    handles = [layer.register_forward_hook(hook) for layer in layers]
-
-    _ = model(input)
-
-    # Remove hook from each layer
-    for handle in handles:
-        handle.remove()
-
-    return feature_maps
 
 
 def visualize_feature_maps(feature_maps, ncols=8, output_dir: str="./test_images/"):
@@ -491,293 +361,82 @@ def save_average_line_plots(log_distances, output_dir, file_name):
     plt.close()
 
 
-
-# =======================================
-# ============ OLD FUNCTIONS ============
-# =======================================
-
-def old_calculate_logarithmic_distances(
-        before_attack: list[torch.Tensor],
-        after_attack: list[torch.Tensor]
-    ) -> list[torch.Tensor]:
-    """
-    Calculate logarithmic distances between the feature maps before and after the
-    attack.
+# ======================================================
+# ================ PRIVATE FUNCTIONS ===================
+# ======================================================
+def _get_feature_maps_inception_v3(input, model):
+    """Get feature maps from InceptionV3 model.
 
     Args:
-        before_attack (torch.Tensor): The feature map before the attack.
-        after_attack (torch.Tensor): The feature map after the attack.
-    
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torch.nn.Module): InceptionV3 model.
+
     Returns:
-        A list of logarithmic distances for each layer.
+        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
     """
-    distances = []
+    feature_maps = []
 
-    for filters_before_attack, filters_after_attack in zip(before_attack, after_attack):
-        assert filters_before_attack.shape == filters_after_attack.shape
-        
-        original_shape: torch.Size = filters_before_attack.shape
+    def hook(module, input, output):
+        feature_maps.append(output.detach())
 
-        difference = filters_after_attack.view(-1) - filters_before_attack.view(-1)
-        logarithmic_distance_1_dim = torch.log(torch.abs(difference))
+    # List of InceptionV3 layers to extract feature maps from
+    layers = [
+        model.Conv2d_1a_3x3,
+        model.Conv2d_2a_3x3,
+        model.Conv2d_2b_3x3,
+        model.Conv2d_3b_1x1,
+        model.Conv2d_4a_3x3,
+        model.Mixed_5b,
+        model.Mixed_5c,
+        model.Mixed_5d,
+        model.Mixed_6a,
+        model.Mixed_6b,
+        model.Mixed_6c,
+        model.Mixed_6d,
+        model.Mixed_6e,
+        model.Mixed_7a,
+        model.Mixed_7b,
+        model.Mixed_7c
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
 
-        # will ensure that the values that are 0 are changed to 0 instead of inf/-inf
-        finite_mask = torch.isfinite(logarithmic_distance_1_dim)
-        logarithmic_distance_1_dim[~finite_mask] = 0  # Set non-real values to 0
+    _ = model(input)
 
-        logarithmic_distance_reshaped = logarithmic_distance_1_dim.reshape(
-            original_shape
-        )
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
 
-        mean_logarithmic_distance = torch.mean(
-            logarithmic_distance_reshaped, dim=(2, 3))
-
-        print(mean_logarithmic_distance.shape)
-        distances.append(mean_logarithmic_distance)
-
-
-    return distances
-
-
-
-def old_plot_colored_grid(data: list[np.array], color_map='viridis'):
-    nrows = len(data)
-
-    # Group rows by the number of columns
-    grouped_data = {}
-    for filter_index, arr in enumerate(data):
-        ncols = arr.shape[1]
-        if ncols in grouped_data:
-            grouped_data[ncols].append((filter_index, arr))
-        else:
-            grouped_data[ncols] = [(filter_index, arr)]
-
-    for ncols, grouped_rows in grouped_data.items():
-        nrows = len(grouped_rows)
-        fig, ax = plt.subplots(figsize=(ncols, nrows))
-
-        # Get the colormap object from the colormap name
-        cmap = cm.get_cmap(color_map)
-
-        for i, (filter_index, arr) in enumerate(grouped_rows):
-            current_row = arr.flatten()
-            norm = _get_normalize_function(current_row)
-
-            for j in range(ncols):
-                rect = plt.Rectangle(
-                    (j, i), 1, 1, facecolor=cmap(norm(current_row[j])), edgecolor='k'
-                )
-                ax.add_patch(rect)
-
-                # Add column index as a tick label at the bottom of the grid
-                if i == nrows - 1:  # Only add labels for the last row
-                    ax.text(j+0.5, -0.5, str(j), ha='center', va='top')
-
-            # Add filter index as a tick label to the left of the row
-            ax.text(-0.5, i+0.5, str(filter_index), ha='right', va='center')
-
-        ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
-        ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
-
-        # Remove the major gridlines
-        ax.grid(which='major', visible=False)
-
-        # Set axis limits
-        ax.set_xlim(0, ncols)
-        ax.set_ylim(0, nrows)
-
-        # Remove axis labels and ticks
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_xticks([])
-        ax.set_yticks([])
-
-        # Save the images with different names based on the number of columns
-        output_dir = "./test_images/"
-        os.makedirs(output_dir, exist_ok=True)
-        plt.savefig(os.path.join(output_dir, f"colored_grid_{ncols}_columns.png"))
-        plt.close()
+    return feature_maps
 
 
-
-def old_extract_kernels_from_resnet_architecture(
-    model_children: list[nn.Module],
-    ) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
-    """
-    Extracts the kernel weights and convolutional layers from a ResNet architecture.
+def _get_feature_maps_resnet18(input, model):
+    """Get feature maps from ResNet18 model.
 
     Args:
-        model_children (List[nn.Module]): A list of child modules from the ResNet model.
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torch.nn.Module): ResNet18 model.
 
     Returns:
-        Tuple[List[torch.Tensor], List[nn.Conv2d]]: A tuple containing two lists:
-            1. The weights of the extracted convolutional layers.
-            2. The extracted convolutional layers themselves.
+        List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
     """
+    feature_maps = []
 
-    model_weights = []
-    conv_layers = []
-    # Initialize a counter to keep track of the number of convolutional layers
-    counter = 0 
+    def hook(module, input, output):
+        feature_maps.append(output.detach())
 
-    # Iterate through the model's child modules
-    for i in range(len(model_children)):
-        # Check if the current child module is a convolutional layer
-        if type(model_children[i]) == nn.Conv2d:
-            # Increment the counter for each convolutional layer found
-            counter += 1
-            # Append the current layer's weights to the model_weights list
-            model_weights.append(model_children[i].weight)
-            # Append the current convolutional layer to the conv_layers list
-            conv_layers.append(model_children[i])
+    # List of ResNet18 layers to extract feature maps from
+    layers = [
+        module for _, module in model.named_children() 
+        if isinstance(module, (torch.nn.Conv2d, torch.nn.Sequential))
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
 
-        # Check if the current child module is a sequential layer
-        elif type(model_children[i]) == nn.Sequential:
-            # Iterate through the sub-modules within the sequential layer
-            for j in range(len(model_children[i])):
-                # Iterate through the children of each sub-module
-                for child in model_children[i][j].children():
-                    # Check if the current child is a convolutional layer
-                    if type(child) == nn.Conv2d:
-                        counter += 1
-                        # Append the current layer's weights to the model_weights list
-                        model_weights.append(child.weight)
-                        # Append the current convolutional layer to the conv_layers list
-                        conv_layers.append(child)
+    _ = model(input)
 
-    # Print the total number of convolutional layers found
-    print(f"Total convolutional layers: {counter}")
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
 
-    # Return the updated model_weights and conv_layers lists as a tuple
-    return model_weights, conv_layers
-
-
-def old_extract_kernels_from_inception_v3_architecture(
-    model_children: list[nn.Module],
-) -> tuple[list[torch.Tensor], list[nn.Conv2d]]:
-    """
-    Extracts the kernel weights and convolutional layers from an Inception V3
-    architecture.
-
-    Args:
-        model_children: A list of child modules from the Inception V3 model.
-
-    Returns:
-        A tuple containing two lists:
-            1. The weights of the extracted convolutional layers.
-            2. The extracted convolutional layers themselves.
-    """
-
-    model_weights = []
-    conv_layers = []
-    # Initialize a counter to keep track of the number of convolutional layers
-    counter = 0
-
-    # Recursive function to search for Conv2d layers in nested modules
-    def find_conv_layers(module: nn.Module):
-        nonlocal counter
-
-        for child in module.children():
-            if isinstance(child, nn.Conv2d):
-                counter += 1
-                model_weights.append(child.weight)
-                conv_layers.append(child)
-            else:
-                find_conv_layers(child)
-
-    # Iterate through the model's child modules
-    for i in range(len(model_children)):
-        find_conv_layers(model_children[i])
-
-    # Print the total number of convolutional layers found
-    print(f"Total convolutional layers: {counter}")
-
-    # Return the updated model_weights and conv_layers lists as a tuple
-    return model_weights, conv_layers
-
-
-def old_extract_feature_map_of_convolutional_layers(
-        input_tensor: torch.Tensor,
-        conv_layers: list[nn.Conv2d],
-        model_name: str
-    ) -> list[torch.Tensor]:
-    """
-    Extracts the feature maps of a list of convolutional layers applied to an input
-    tensor.
-
-    Args:
-        input_tensor: The input tensor to pass through the convolutional layers.
-        conv_layers: A list of convolutional layers to apply to the input tensor.
-        model_name: The name of the model. Accepts 'resnet18' or 'inception_v3'.
-
-    Returns:
-        A list containing the feature maps of each convolutional layer applied to the
-            input tensor.
-
-    Raises:
-        TypeError: If the input_tensor is not a torch.Tensor, or if conv_layers is not a
-            list of nn.Conv2d layers.
-
-    """
-
-    if not isinstance(input_tensor, torch.Tensor):
-        raise TypeError("input_tensor must be a torch.Tensor")
-
-    if not all(isinstance(layer, nn.Conv2d) for layer in conv_layers):
-        raise TypeError("conv_layers must be a list of nn.Conv2d layers")
-
-    if model_name not in ['resnet18', 'inception_v3']:
-        raise ValueError("model_name must be either 'resnet18' or 'inception_v3'")
-
-    results = [conv_layers[0](input_tensor)]
-
-    for i in range(1, len(conv_layers)):
-        results.append(conv_layers[i](results[-1]))
-
-    return results
-
-
-
-
-
-def old_visualize_feature_map_of_convolutional_layers(
-        convolutional_outputs: list[torch.Tensor],
-        file_name_prefix: str
-    ) -> None:
-    """Visualizes the feature maps of a list of convolutional layers.
-
-    Args:
-        convolutional_outputs: A list containing the feature maps of each convolutional
-            layer.
-        file_name_prefix: The base name to use when saving the visualizations of the
-            feature maps.
-
-    Returns:
-        None
-
-    Raises:
-        TypeError: If the convolutional_outputs is not a list of torch.Tensor objects, 
-            or if file_name_prefix is not a string.
-    """
-    # visualize features from each layer
-    for num_layer in range(len(convolutional_outputs)):
-        layer_viz = convolutional_outputs[num_layer][0, :, :, :]
-        layer_viz = layer_viz.data
-        num_filters = layer_viz.size(0)
-
-        # Calculate the dimensions of the grid based on the number of filters
-        grid_size = int(math.ceil(math.sqrt(num_filters)))
-
-        plt.figure(figsize=(grid_size * 3, grid_size * 3))
-
-        for i, filter in enumerate(layer_viz):
-            filter = filter.cpu()
-            plt.subplot(grid_size, grid_size, i + 1)
-            plt.imshow(filter)
-            plt.axis("off")
-        
-        print(f"Saving layer {num_layer} feature maps...")
-        plt.savefig(f"./{file_name_prefix}_layer_{num_layer}.png")
-        # plt.show()
-        plt.close()
-
+    return feature_maps
