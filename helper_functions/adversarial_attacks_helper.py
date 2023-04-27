@@ -6,7 +6,7 @@ import torchattacks
 from tqdm import tqdm
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
 
@@ -90,7 +90,7 @@ def train_and_evaluate_xgboost_classifier(
         benign_feature_map, adversarial_feature_map, test_size, random_state
     )
     model = train_xgboost_classifier(X_train, y_train)
-    accuracy = evaluate_classifier(model, X_test, y_test)
+    accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
 
     return model, accuracy
 
@@ -156,7 +156,7 @@ def train_xgboost_classifier(
     return model
 
 
-def evaluate_classifier(
+def evaluate_classifier_accuracy(
     model: xgb.XGBClassifier,
     test_input: np.ndarray,
     test_labels: np.ndarray
@@ -176,6 +176,29 @@ def evaluate_classifier(
     predictions = [round(value) for value in y_pred]
     accuracy = accuracy_score(test_labels, predictions)
     return accuracy
+
+
+def evaluate_classifier_metrics(
+    model: xgb.XGBClassifier,
+    test_input: np.ndarray,
+    test_labels: np.ndarray
+) -> tuple[int, int, int, int]:
+    """
+    Evaluates the classification metrics of the input classifier on the test set.
+
+    Args:
+        model (xgb.XGBClassifier): The trained classifier to be evaluated.
+        test_input (np.ndarray): A 2D numpy array containing the test features.
+        test_labels (np.ndarray): A 1D numpy array containing the test labels.
+
+    Returns:
+        tuple: A tuple containing true positive, true negative, false positive, and
+            false negative values.
+    """
+    y_pred = model.predict(test_input)
+    predictions = [round(value) for value in y_pred]
+    tn, fp, fn, tp = confusion_matrix(test_labels, predictions).ravel()
+    return tp, tn, fp, fn
 
 
 def generate_adversarial_input(

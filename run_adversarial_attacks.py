@@ -11,7 +11,7 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    evaluate_classifier,
+    evaluate_classifier_accuracy,
     prepare_data,
     process_data_loader_and_generate_feature_maps,
     train_and_evaluate_xgboost_classifier,
@@ -33,12 +33,14 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
         model_file_name=model_file_name
     )
 
+
 def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
     return get_data_loaders_by_year(year, PREPROCESS_INCEPTIONV3, is_augmented_dataset)
 
 
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
     return get_data_loaders_by_year(year, PREPROCESS_RESNET18, is_augmented_dataset)
+
 
 def _initialize_device() -> torch.device:
     """
@@ -49,29 +51,6 @@ def _initialize_device() -> torch.device:
     """
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def _print_overall_accuracy(
-        correct_labels: np.ndarray | list,
-        predicted_labels: np.ndarray | list,
-        predicted_adversarial_labels: np.ndarray | list
-    ) -> None:
-    """
-    Calculates and prints the overall accuracy and overall adversarial accuracy.
-
-    Args:
-        correct_labels (np.ndarray): The correct labels.
-        predicted_labels (np.ndarray): The predicted labels.
-        predicted_adversarial_labels (np.ndarray): The predicted adversarial labels.
-
-    Returns:
-        None
-    """
-    overall_accuracy = accuracy_score(correct_labels, predicted_labels)
-    overall_adversarial_accuracy = accuracy_score(
-        correct_labels, predicted_adversarial_labels
-    )
-
-    print("Overall accuracy: ", overall_accuracy)
-    print("Overall adversarial accuracy: ", overall_adversarial_accuracy)
 
 def _get_correct_model_file_name(model_name: str, year: str) -> str:
     if model_name == INCEPTIONV3_MODEL_NAME and year == "2019":
@@ -112,6 +91,9 @@ def main(year, model_name, is_augmented):
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(
             year, is_augmented
         )
+        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_resnet18(
+            "2018", is_augmented
+        )
     elif model_name == INCEPTIONV3_MODEL_NAME:
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(
             year, is_augmented
@@ -124,11 +106,14 @@ def main(year, model_name, is_augmented):
 
     device = _initialize_device()
     fgsm_attack = torchattacks.FGSM(model, eps=2/255)
+    ifgsm_attack = torchattacks.BIM(model, eps=2/255)
     cw_attack = torchattacks.CW(model)
-    #attacks.append(("deepfool",torchattacks.DeepFool(model)))
-    # attacks.append(("one_pixel",torchattacks.OnePixel(model)))
+    deepfool_attack = torchattacks.DeepFool(model)
+    pgd_linf_attack = torchattacks.PGD(model)
+    pgd_l2_attack = torchattacks.PGDL2(model)
+    # autoattack_attack = torchattacks.AutoAttack()
+    
 
-    print("FGSM")
     benign_feature_map, adv_feature_map = process_data_loader_and_generate_feature_maps(
         train_dl, fgsm_attack, model, model_name, device, sample_limit=1000)
             
@@ -138,7 +123,7 @@ def main(year, model_name, is_augmented):
     )
 
     test_benign, test_adv = process_data_loader_and_generate_feature_maps(
-        test_dl_2018, cw_attack, model, model_name, device)
+        test_dl_2018, ifgsm_attack, model, model_name, device)
     
     test_input, _, test_label, __ = prepare_data(
         test_benign,
@@ -147,7 +132,7 @@ def main(year, model_name, is_augmented):
     )
 
     # Evaluate the accuracy
-    accuracy = evaluate_classifier(xgboost_model, test_input, test_label)
+    accuracy = evaluate_classifier_accuracy(xgboost_model, test_input, test_label)
     print("Accuracy on test dataset: %.2f%%" % (accuracy * 100.0))
 
     
