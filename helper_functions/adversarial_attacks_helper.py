@@ -472,9 +472,7 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
 
     def hook(module, input, output):
         feature_maps.append(output.detach())
-        print(f"Layer name: {module.__class__.__name__}")
-        print(f"Tensor size: {output.size()}")
-        print(f"Tensor:\n{output}")
+
     # List of InceptionV3 layers to extract feature maps from
     layers = [
         # model.Conv2d_1a_3x3,
@@ -498,7 +496,7 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
         # model.Mixed_7b,
         # model.Mixed_7c
     ]
-
+    [print(f"{x.size()}\n{x}")for x in layers]
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
 
