@@ -505,6 +505,11 @@ def save_average_line_plots(log_distances, output_dir, file_name):
     plt.savefig(os.path.join(output_dir, file_name))
     plt.close()
 
+def extend_lists(list1, list2):
+    for i in range(len(list1)):
+        list1[i].extend(list2[i])
+    return list1
+
 
 # ======================================================
 # ================ PRIVATE FUNCTIONS ===================
