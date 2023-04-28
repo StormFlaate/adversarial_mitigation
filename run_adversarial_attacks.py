@@ -2,7 +2,6 @@ import argparse
 import numpy as np
 import torch
 import torchattacks
-from sklearn.metrics import accuracy_score
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,

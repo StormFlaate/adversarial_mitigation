@@ -1,6 +1,7 @@
 import os
 from matplotlib import pyplot as plt
 import numpy as np
+from torchvision.models import ResNet, Inception3
 import torch
 import torchattacks
 from tqdm import tqdm
@@ -44,6 +45,14 @@ def process_data_loader_and_generate_feature_maps(
         true_label = true_label.to(device)
 
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
+
+
+        dense_layers_benign = _get_dense_layers_resnet18(input, model)
+        dense_layers_adversarial = _get_dense_layers_resnet18(input, model)
+        print(dense_layers_benign)
+        print()
+        print(dense_layers_adversarial)
+
 
         benign_feature_map.append([
             tensor.mean().item()
@@ -448,12 +457,12 @@ def save_average_line_plots(log_distances, output_dir, file_name):
 # ======================================================
 # ================ PRIVATE FUNCTIONS ===================
 # ======================================================
-def _get_feature_maps_inception_v3(input, model):
+def _get_feature_maps_inception_v3(input, model: Inception3):
     """Get feature maps from InceptionV3 model.
 
     Args:
         input (torch.Tensor): Input tensor of shape (N, C, H, W).
-        model (torch.nn.Module): InceptionV3 model.
+        model (torchvision.models.Inception3): InceptionV3 model.
 
     Returns:
         List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
@@ -462,7 +471,6 @@ def _get_feature_maps_inception_v3(input, model):
 
     def hook(module, input, output):
         feature_maps.append(output.detach())
-
     # List of InceptionV3 layers to extract feature maps from
     layers = [
         model.Conv2d_1a_3x3,
@@ -494,18 +502,17 @@ def _get_feature_maps_inception_v3(input, model):
     return feature_maps
 
 
-def _get_feature_maps_resnet18(input, model):
+def _get_feature_maps_resnet18(input, model: ResNet):
     """Get feature maps from ResNet18 model.
 
     Args:
         input (torch.Tensor): Input tensor of shape (N, C, H, W).
-        model (torch.nn.Module): ResNet18 model.
+        model (torchvision.models.ResNet): ResNet18 model.
 
     Returns:
         List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
     """
     feature_maps = []
-
     def hook(module, input, output):
         feature_maps.append(output.detach())
 
@@ -524,3 +531,34 @@ def _get_feature_maps_resnet18(input, model):
         handle.remove()
 
     return feature_maps
+
+
+def _get_dense_layers_resnet18(input, model: ResNet):
+    """Get dense layers from ResNet18 model.
+
+    Args:
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torchvision.models.ResNet): ResNet18 model.
+
+    Returns:
+        List[torch.Tensor]: List of dense layer outputs.
+    """
+    dense_layers_output = []
+    def hook(module, input, output):
+        dense_layers_output.append(output.detach())
+
+    # List of ResNet18 layers to extract dense layers from
+    layers = [
+        module for _, module in model.named_children()
+        if isinstance(module, torch.nn.Linear)
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
+
+    _ = model(input)
+
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
+
+    return dense_layers_output
