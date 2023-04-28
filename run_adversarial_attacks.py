@@ -76,7 +76,6 @@ def main(year, model_name, is_augmented):
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    benign_feature_map: list = []
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
@@ -104,21 +103,18 @@ def main(year, model_name, is_augmented):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    fgsm_attack = torchattacks.FGSM(model, eps=8/255)
+    # fgsm_attack = torchattacks.FGSM(model, eps=8/255)
     # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
     # cw_attack = torchattacks.CW(model)
-    # deepfool_attack = torchattacks.DeepFool(model)
+    deepfool_attack = torchattacks.DeepFool(model)
     # pgd_linf_attack = torchattacks.PGD(model)
     # pgd_l2_attack = torchattacks.PGDL2(model)
     # autoattack_attack = torchattacks.AutoAttack()
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, fgsm_attack, model, model_name, device, sample_limit=10000)
+        train_dl, deepfool_attack, model, model_name, device, sample_limit=10000)
     
-    benign_feature_map, adv_feature_map = train_process_output[:2]
-    benign_dense_layers, adv_dense_layers = train_process_output[2:]
-
     xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
         train_process_output[0],
         train_process_output[1]
@@ -132,20 +128,20 @@ def main(year, model_name, is_augmented):
     print("xgboost_model_dense_layers: %.2f%%" % (acc_dense_layers * 100.0))
 
 
-    if False:
-        test_benign, test_adv = process_and_extract_components_and_metrics(
-            test_dl_2018, fgsm_attack, model, model_name, device)
 
-        test_input, _, test_label, __ = prepare_data(
-            test_benign,
-            test_adv,
-            test_size=0.05 
-        )
+    # test_benign, test_adv = process_and_extract_components_and_metrics(
+    #     test_dl_2018, deepfool_attack, model, model_name, device)
 
-        # Evaluate the accuracy
-        accuracy = evaluate_classifier_accuracy(
-            xgboost_model_feature_map, test_input, test_label)
-        print("Accuracy: (xgboost_model_feature_map): %.2f%%" % (accuracy * 100.0))
+    # test_input, _, test_label, __ = prepare_data(
+    #     test_benign,
+    #     test_adv,
+    #     test_size=0.05 
+    # )
+
+    # # Evaluate the accuracy
+    # accuracy = evaluate_classifier_accuracy(
+    #     xgboost_model_feature_map, test_input, test_label)
+    # print("Accuracy: (xgboost_model_feature_map): %.2f%%" % (accuracy * 100.0))
 
     
 
