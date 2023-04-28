@@ -114,7 +114,7 @@ def main(year, model_name, is_augmented):
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, fgsm_attack, model, model_name, device, sample_limit=1000)
+        train_dl, fgsm_attack, model, model_name, device, sample_limit=10000)
     
     benign_feature_map, adv_feature_map = train_process_output[:2]
     benign_dense_layers, adv_dense_layers = train_process_output[2:]
