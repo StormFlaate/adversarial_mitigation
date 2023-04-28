@@ -107,7 +107,7 @@ def main(year, model_name, is_augmented):
     # deepfool_attack = torchattacks.DeepFool(model)
     # pgd_linf_attack = torchattacks.PGD(model)
     # pgd_l2_attack = torchattacks.PGDL2(model)
-    autoattack_attack = torchattacks.AutoAttack()
+    autoattack_attack = torchattacks.AutoAttack(model)
     
 
     train_process_output = process_and_extract_components_and_metrics(
