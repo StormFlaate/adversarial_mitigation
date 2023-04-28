@@ -104,8 +104,8 @@ def main(year, model_name, is_augmented):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    fgsm_attack = torchattacks.FGSM(model, eps=2/255)
-    ifgsm_attack = torchattacks.BIM(model, eps=2/255)
+    fgsm_attack = torchattacks.FGSM(model, eps=8/255)
+    ifgsm_attack = torchattacks.BIM(model, eps=8/255)
     cw_attack = torchattacks.CW(model)
     deepfool_attack = torchattacks.DeepFool(model)
     pgd_linf_attack = torchattacks.PGD(model)
