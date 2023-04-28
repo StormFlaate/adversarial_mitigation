@@ -67,7 +67,7 @@ def process_and_extract_components_and_metrics(
         
         # calculates the list of dense layer weigths form specific model
         benign_dense_layers.append(get_dense_layers(input, model, model_name))
-        adv_dense_layers.append(get_dense_layers(input, model, model_name))
+        adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
 
         if sample_limit is not None and i >= sample_limit:
             break
@@ -79,8 +79,8 @@ def process_and_extract_components_and_metrics(
 
 
 def train_and_evaluate_xgboost_classifier(
-    benign_feature_map: list[list[float]] | np.ndarray,
-    adversarial_feature_map: list[list[float]] | np.ndarray,
+    benign_list: list[list[float]] | np.ndarray,
+    adv_list: list[list[float]] | np.ndarray,
     test_size: float = 0.2,
     random_state: int = 42
 ) -> tuple[xgb.XGBClassifier, float]:
@@ -89,9 +89,9 @@ def train_and_evaluate_xgboost_classifier(
     its accuracy, and returns the trained model and accuracy.
 
     Args:
-        benign_feature_map (list of lists or array-like): A 2D list or array-like object
+        benign_list (list of lists or array-like): A 2D list or array-like object
             containing the benign features.
-        adversarial_feature_map (list of lists or array-like): A 2D list or array-like
+        adv_list (list of lists or array-like): A 2D list or array-like
             object containing the adversarial features.
         test_size (float, optional): A float between 0 and 1 representing the proportion
             of the dataset to be used as test set. Defaults to 0.2.
@@ -105,7 +105,7 @@ def train_and_evaluate_xgboost_classifier(
                 percentage.
     """
     X_train, X_test, y_train, y_test = prepare_data(
-        benign_feature_map, adversarial_feature_map, test_size, random_state
+        benign_list, adv_list, test_size, random_state
     )
     model = train_xgboost_classifier(X_train, y_train)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
@@ -114,8 +114,8 @@ def train_and_evaluate_xgboost_classifier(
 
 
 def prepare_data(
-    benign_feature_map: list[list[float]] | np.ndarray,
-    adversarial_feature_map: list[list[float]] | np.ndarray,
+    benign_list: list[list[float]] | np.ndarray,
+    adv_list: list[list[float]] | np.ndarray,
     test_size: float = 0.2,
     random_state: int = 42
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -124,9 +124,9 @@ def prepare_data(
     into training and testing sets.
 
     Args:
-        benign_feature_map (list of lists or array-like): A 2D list or array-like object
+        benign_list (list of lists or array-like): A 2D list or array-like object
             containing the benign features.
-        adversarial_feature_map (list of lists or array-like): A 2D list or array-like
+        adv_list (list of lists or array-like): A 2D list or array-like
             object containing the adversarial features.
         test_size (float, optional): A float between 0 and 1 representing the proportion
             of the dataset to be used as test set. Defaults to 0.2.
@@ -140,12 +140,12 @@ def prepare_data(
             - y_train (np.ndarray): A 1D numpy array containing the training labels.
             - y_test (np.ndarray): A 1D numpy array containing the test labels.
     """
-    benign_features = np.array(benign_feature_map)
-    adversarial_features = np.array(adversarial_feature_map)
+    benign_array = np.array(benign_list)
+    adv_array = np.array(adv_list)
 
-    input_data = np.concatenate((benign_features, adversarial_features), axis=0)
+    input_data = np.concatenate((benign_array, adv_array), axis=0)
     labels = np.concatenate(
-        (np.ones(len(benign_features)), np.zeros(len(adversarial_features))),
+        (np.ones(len(benign_array)), np.zeros(len(adv_array))),
         axis=0
     )
 

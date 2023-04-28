@@ -119,17 +119,17 @@ def main(year, model_name, is_augmented):
     benign_feature_map, adv_feature_map = train_process_output[:2]
     benign_dense_layers, adv_dense_layers = train_process_output[2:]
 
-    xgboost_model_feature_map, accuracy = train_and_evaluate_xgboost_classifier(
-        benign_feature_map,
-        adv_feature_map
+    xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
+        train_process_output[0],
+        train_process_output[1]
     )
-    xgboost_model_dense_layers, accuracy = train_and_evaluate_xgboost_classifier(
-        benign_dense_layers,
-        adv_dense_layers
+    xgboost_model_dense_layers, acc_dense_layers = train_and_evaluate_xgboost_classifier(
+        train_process_output[2],
+        train_process_output[3]
     )
 
-    print("xgboost_model_feature_map: %.2f%%" % (accuracy * 100.0))
-    print("xgboost_model_dense_layers: %.2f%%" % (accuracy * 100.0))
+    print("xgboost_model_feature_map: %.2f%%" % (acc_feature_map * 100.0))
+    print("xgboost_model_dense_layers: %.2f%%" % (acc_dense_layers * 100.0))
 
 
     if False:
