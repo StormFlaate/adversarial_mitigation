@@ -496,11 +496,12 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
         # model.Mixed_7b,
         # model.Mixed_7c
     ]
-    print("LAYERS")
-    [print(x)for x in layers]
+    
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
-
+    print("LAYERS")
+    [print(x)for x in layers]
+    
     _ = model(input)
 
     # Remove hook from each layer
