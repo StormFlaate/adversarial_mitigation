@@ -1,4 +1,5 @@
 import os
+import sys
 from matplotlib import pyplot as plt
 import numpy as np
 from torchvision.models import ResNet, Inception3
@@ -471,30 +472,36 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
 
     def hook(module, input, output):
         feature_maps.append(output.detach())
+        print(f"Layer name: {module.__class__.__name__}")
+        print(f"Tensor size: {output.size()}")
+        print(f"Tensor:\n{output}")
     # List of InceptionV3 layers to extract feature maps from
     layers = [
-        model.Conv2d_1a_3x3,
-        model.Conv2d_2a_3x3,
-        model.Conv2d_2b_3x3,
-        model.Conv2d_3b_1x1,
-        model.Conv2d_4a_3x3,
+        # model.Conv2d_1a_3x3,
+        # model.Conv2d_2a_3x3,
+        # model.Conv2d_2b_3x3,
+        # model.Conv2d_3b_1x1,
+        # model.Conv2d_4a_3x3,
         model.Mixed_5b.branch1x1,
         model.Mixed_5b.branch5x5_1,
         model.Mixed_5b.branch3x3dbl_1,
         model.Mixed_5b.branch3x3dbl_3,
         model.Mixed_5b.branch_pool,
-        model.Mixed_5c,
-        model.Mixed_5d,
-        model.Mixed_6a,
-        model.Mixed_6b,
-        model.Mixed_6c,
-        model.Mixed_6d,
-        model.Mixed_6e,
-        model.Mixed_7a,
-        model.Mixed_7b,
-        model.Mixed_7c
+        # model.Mixed_5c,
+        # model.Mixed_5d,
+        # model.Mixed_6a,
+        # model.Mixed_6b,
+        # model.Mixed_6c,
+        # model.Mixed_6d,
+        # model.Mixed_6e,
+        # model.Mixed_7a,
+        # model.Mixed_7b,
+        # model.Mixed_7c
     ]
+
     print("it worked")
+    print(layers)
+    sys.exit()
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
 
