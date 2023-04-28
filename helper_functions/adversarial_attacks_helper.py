@@ -59,10 +59,10 @@ def process_and_extract_components_and_metrics(
 
         # calculates the list of scalar values based on feature map and metric function
         benign_feature_map.append(
-            _get_feature_map_apply_metric_fn(input, model, model_name, mean_metric)
+            _get_feature_map_apply_metric_fn(input, model, model_name, l2_distance_metric)
         )
         adv_feature_map.append(
-            _get_feature_map_apply_metric_fn(adv_input, model, model_name, mean_metric)
+            _get_feature_map_apply_metric_fn(adv_input, model, model_name, l2_distance_metric)
         )
         
         # calculates the list of dense layer weigths form specific model

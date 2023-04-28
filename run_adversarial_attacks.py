@@ -102,17 +102,17 @@ def main(year, model_name, is_augmented):
 
     device = _initialize_device()
     # fgsm_attack = torchattacks.FGSM(model, eps=8/255)
-    ffgsm_attack = torchattacks.FFGSM(model, eps=8/255)
+    # ffgsm_attack = torchattacks.FFGSM(model, eps=8/255)
     # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
     # cw_attack = torchattacks.CW(model)
-    # deepfool_attack = torchattacks.DeepFool(model)
+    deepfool_attack = torchattacks.DeepFool(model)
     # pgd_linf_attack = torchattacks.PGD(model)
     # pgd_l2_attack = torchattacks.PGDL2(model)
     # autoattack_attack = torchattacks.AutoAttack(model)
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, ffgsm_attack, model, model_name, device, sample_limit=10000)
+        train_dl, deepfool_attack, model, model_name, device, sample_limit=10000)
     
 
     xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
