@@ -115,6 +115,8 @@ def main(year, model_name, is_augmented):
     
     print(len(train_process_output[0]))
     print(len(train_process_output[1]))
+    print(len(train_process_output[0][0]))
+    print(len(train_process_output[1][1]))
     xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
         train_process_output[0],
         train_process_output[1]
