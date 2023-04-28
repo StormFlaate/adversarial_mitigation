@@ -478,7 +478,11 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
         model.Conv2d_2b_3x3,
         model.Conv2d_3b_1x1,
         model.Conv2d_4a_3x3,
-        model.Mixed_5b,
+        model.Mixed_5b.branch1x1,
+        model.Mixed_5b.branch5x5_1,
+        model.Mixed_5b.branch3x3dbl_1,
+        model.Mixed_5b.branch3x3dbl_3,
+        model.Mixed_5b.branch_pool,
         model.Mixed_5c,
         model.Mixed_5d,
         model.Mixed_6a,
@@ -548,6 +552,37 @@ def _get_dense_layers_resnet18(input, model: ResNet):
         dense_layers_output.append(output.detach())
 
     # List of ResNet18 layers to extract dense layers from
+    layers = [
+        module for _, module in model.named_children()
+        if isinstance(module, torch.nn.Linear)
+    ]
+    # Register hook on each layer
+    handles = [layer.register_forward_hook(hook) for layer in layers]
+
+    _ = model(input)
+
+    # Remove hook from each layer
+    for handle in handles:
+        handle.remove()
+
+    return dense_layers_output
+
+
+def _get_dense_layers_inception_v3(input, model: Inception3):
+    """Get dense layers from Inception V3 model.
+
+    Args:
+        input (torch.Tensor): Input tensor of shape (N, C, H, W).
+        model (torchvision.models.Inception3): Inception V3 model.
+
+    Returns:
+        List[torch.Tensor]: List of dense layer outputs.
+    """
+    dense_layers_output = []
+    def hook(module, input, output):
+        dense_layers_output.append(output.detach())
+
+    # List of Inception V3 layers to extract dense layers from
     layers = [
         module for _, module in model.named_children()
         if isinstance(module, torch.nn.Linear)
