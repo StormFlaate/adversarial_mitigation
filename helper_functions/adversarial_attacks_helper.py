@@ -354,15 +354,15 @@ def get_normalized_values(data: list) -> list:
 
 
 def mean_metric(tensor: torch.Tensor) -> float:
-    return tensor.mean()
+    return tensor.mean().item()
 
 
 def l2_distance_metric(tensor: torch.Tensor) -> float:
-    return torch.norm(tensor, p=2)
+    return torch.norm(tensor, p=2).item()
 
 
 def linfinity_distance_metric(tensor: torch.Tensor) -> float:
-    return torch.norm(tensor, p=float('inf'))
+    return torch.norm(tensor, p=float('inf')).item()
 
 
 def get_feature_maps(input, model, model_name):
