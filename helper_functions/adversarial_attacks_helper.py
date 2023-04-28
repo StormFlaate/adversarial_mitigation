@@ -1,5 +1,5 @@
 import os
-import sys
+from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
 from torchvision.models import ResNet, Inception3
@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
 
-def process_data_loader_and_generate_feature_maps(
+def process_and_extract_components_and_metrics(
         data_loader: DataLoader,
         adversarial_attack,
         model: torch.nn.Module,
@@ -22,24 +22,34 @@ def process_data_loader_and_generate_feature_maps(
 ) -> tuple[list[list[float]], list[list[float]]]:
     """
     Process the data from the data loader, generating benign and adversarial feature
-    maps based on the specified adversarial attack.
+    maps based on the specified adversarial attack and extract dense layer weights of
+    the model.
 
     Args:
         data_loader (DataLoader): The data loader to process.
-        adversarial_attack: The adversarial attack function to apply.
-        model (torch.nn.Module): The model to use for generating feature maps.
+        adversarial_attack (Callable): The adversarial attack function to apply.
+        model (torch.nn.Module): The model to use for generating feature maps and
+            extracting dense layer weights.
         model_name (str): The name of the model being used.
         device (str): The device where tensors should be moved to ('cuda' or 'cpu').
         sample_limit (int, optional): The maximum number of samples to process.
             Defaults to None.
 
     Returns:
-        tuple[list[list[float]], list[list[float]]]: A tuple containing two lists of
-            lists of float values, where the first list corresponds to benign feature
-            maps and the second list corresponds to adversarial feature maps.
+        A tuple containing four elements:
+            - A list of lists of float values, where each inner list corresponds to the
+                benign feature maps for a sample.
+            - A list of lists of float values, where each inner list corresponds to the
+                adversarial feature maps for a sample.
+            - A list of list of dense layer weights for the model, corresponding to the
+                benign feature maps.
+            - A list of list of dense layer weights for the model, corresponding to the
+                adversarial feature maps.
     """
     benign_feature_map = []
-    adversarial_feature_map = []
+    adv_feature_map = []
+    benign_dense_layers = []
+    adv_dense_layers = []
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
@@ -47,27 +57,25 @@ def process_data_loader_and_generate_feature_maps(
 
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
 
-
-        dense_layers_benign = _get_dense_layers_resnet18(input, model)
-        dense_layers_adversarial = _get_dense_layers_resnet18(input, model)
-        print(dense_layers_benign)
-        print()
-        print(dense_layers_adversarial)
-
-
-        benign_feature_map.append([
-            tensor.mean().item()
-            for tensor in get_feature_maps(input, model, model_name)
-        ])
-        adversarial_feature_map.append([
-            tensor.mean().item()
-            for tensor in get_feature_maps(adv_input, model, model_name)
-        ])
+        # calculates the list of scalar values based on feature map and metric function
+        benign_feature_map.append(
+            _get_feature_map_apply_metric_fn(input, model, model_name, mean_metric)
+        )
+        adv_feature_map.append(
+            _get_feature_map_apply_metric_fn(adv_input, model, model_name, mean_metric)
+        )
+        
+        # calculates the list of dense layer weigths form specific model
+        benign_dense_layers.append(get_dense_layers(input, model, model_name))
+        adv_dense_layers.append(get_dense_layers(input, model, model_name))
 
         if sample_limit is not None and i >= sample_limit:
             break
 
-    return benign_feature_map, adversarial_feature_map
+    return (
+        benign_feature_map, adv_feature_map,
+        benign_dense_layers, adv_dense_layers
+    )
 
 
 def train_and_evaluate_xgboost_classifier(
@@ -345,6 +353,18 @@ def get_normalized_values(data: list) -> list:
     return normalized_distances.tolist()
 
 
+def mean_metric(tensor: torch.Tensor) -> float:
+    return tensor.mean()
+
+
+def l2_distance_metric(tensor: torch.Tensor) -> float:
+    return torch.norm(tensor, p=2)
+
+
+def linfinity_distance_metric(tensor: torch.Tensor) -> float:
+    return torch.norm(tensor, p=float('inf'))
+
+
 def get_feature_maps(input, model, model_name):
     """Get feature maps from a given model.
 
@@ -360,6 +380,14 @@ def get_feature_maps(input, model, model_name):
         return _get_feature_maps_inception_v3(input, model)
     elif model_name == RESNET18_MODEL_NAME:
         return _get_feature_maps_resnet18(input, model)
+    else:
+        raise Exception("Not valid model name")
+
+def get_dense_layers(input, model, model_name: str):
+    if model_name == INCEPTIONV3_MODEL_NAME:
+        return _get_dense_layers_inception_v3(input, model)
+    elif model_name == RESNET18_MODEL_NAME:
+        return _get_dense_layers_resnet18(input, model)
     else:
         raise Exception("Not valid model name")
 
@@ -472,43 +500,34 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
 
     def hook(module, input, output):
         feature_maps.append(output.detach())
-
     # List of InceptionV3 layers to extract feature maps from
     layers = [
-        # model.Conv2d_1a_3x3,
-        # model.Conv2d_2a_3x3,
-        # model.Conv2d_2b_3x3,
-        # model.Conv2d_3b_1x1,
-        # model.Conv2d_4a_3x3,
-        model.Mixed_5b.branch1x1,
-        model.Mixed_5b.branch5x5_1,
-        model.Mixed_5b.branch3x3dbl_1,
-        model.Mixed_5b.branch3x3dbl_3,
-        model.Mixed_5b.branch_pool,
-        # model.Mixed_5c,
-        # model.Mixed_5d,
-        # model.Mixed_6a,
-        # model.Mixed_6b,
-        # model.Mixed_6c,
-        # model.Mixed_6d,
-        # model.Mixed_6e,
-        # model.Mixed_7a,
-        # model.Mixed_7b,
-        # model.Mixed_7c
+        model.Conv2d_1a_3x3,
+        model.Conv2d_2a_3x3,
+        model.Conv2d_2b_3x3,
+        model.Conv2d_3b_1x1,
+        model.Conv2d_4a_3x3,
+        model.Mixed_5b,
+        model.Mixed_5c,
+        model.Mixed_5d,
+        model.Mixed_6a,
+        model.Mixed_6b,
+        model.Mixed_6c,
+        model.Mixed_6d,
+        model.Mixed_6e,
+        model.Mixed_7a,
+        model.Mixed_7b,
+        model.Mixed_7c
     ]
-    
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
-    
+
     _ = model(input)
 
     # Remove hook from each layer
     for handle in handles:
         handle.remove()
 
-    print("LAYERS")
-    [print(x)for x in feature_maps]
-    sys.exit()
     return feature_maps
 
 
@@ -571,7 +590,12 @@ def _get_dense_layers_resnet18(input, model: ResNet):
     for handle in handles:
         handle.remove()
 
-    return dense_layers_output
+    # Convert dense layer outputs to list of float values
+    return [
+        output.item() 
+            for layer_output in dense_layers_output 
+                for output in layer_output.view(-1)
+    ]
 
 
 def _get_dense_layers_inception_v3(input, model: Inception3):
@@ -602,4 +626,35 @@ def _get_dense_layers_inception_v3(input, model: Inception3):
     for handle in handles:
         handle.remove()
 
-    return dense_layers_output
+    # Convert dense layer outputs to list of float values
+    return [
+        output.item() 
+            for layer_output in dense_layers_output 
+                for output in layer_output.view(-1)
+    ]
+
+
+def _get_feature_map_apply_metric_fn(
+        input: torch.Tensor,
+        model: torch.nn.Module,
+        model_name: str, 
+        metric_fn: Callable[[torch.Tensor], float]
+    ) -> list[float]:
+    """
+    Compute the feature map using a metric function on the given input.
+
+    Args:
+        input (torch.Tensor): The input tensor.
+        model (torch.nn.Module): The model to be used.
+        model_name (str): The name of the model.
+        metric_fn (Callable[[torch.Tensor], float]): The metric function to be used for
+            calculations.
+
+    Returns:
+        list[float]: The computed feature map.
+    """
+
+    return [
+        metric_fn(tensor).item() 
+        for tensor in get_feature_maps(input, model, model_name)
+    ]

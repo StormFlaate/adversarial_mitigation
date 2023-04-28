@@ -12,7 +12,7 @@ from config import (
 from helper_functions.adversarial_attacks_helper import (
     evaluate_classifier_accuracy,
     prepare_data,
-    process_data_loader_and_generate_feature_maps,
+    process_and_extract_components_and_metrics,
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -23,7 +23,7 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
     """
     Initialize the model.
 
-    Returns:
+    Returns
         torch.nn.Module: Trained or default model.
     """
     print("get trained or default model...")
@@ -105,34 +105,47 @@ def main(year, model_name, is_augmented):
 
     device = _initialize_device()
     fgsm_attack = torchattacks.FGSM(model, eps=8/255)
-    ifgsm_attack = torchattacks.BIM(model, eps=8/255)
-    cw_attack = torchattacks.CW(model)
-    deepfool_attack = torchattacks.DeepFool(model)
-    pgd_linf_attack = torchattacks.PGD(model)
-    pgd_l2_attack = torchattacks.PGDL2(model)
+    # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
+    # cw_attack = torchattacks.CW(model)
+    # deepfool_attack = torchattacks.DeepFool(model)
+    # pgd_linf_attack = torchattacks.PGD(model)
+    # pgd_l2_attack = torchattacks.PGDL2(model)
     # autoattack_attack = torchattacks.AutoAttack()
     
 
-    benign_feature_map, adv_feature_map = process_data_loader_and_generate_feature_maps(
+    train_process_output = process_and_extract_components_and_metrics(
         train_dl, fgsm_attack, model, model_name, device, sample_limit=1000)
-            
-    xgboost_model, accuracy = train_and_evaluate_xgboost_classifier(
+    
+    benign_feature_map, adv_feature_map = train_process_output[:2]
+    benign_dense_layers, adv_dense_layers = train_process_output[2:]
+
+    xgboost_model_feature_map, accuracy = train_and_evaluate_xgboost_classifier(
         benign_feature_map,
         adv_feature_map
     )
-
-    test_benign, test_adv = process_data_loader_and_generate_feature_maps(
-        test_dl_2018, ifgsm_attack, model, model_name, device)
-    
-    test_input, _, test_label, __ = prepare_data(
-        test_benign,
-        test_adv,
-        test_size=0.05 
+    xgboost_model_dense_layers, accuracy = train_and_evaluate_xgboost_classifier(
+        benign_dense_layers,
+        adv_dense_layers
     )
 
-    # Evaluate the accuracy
-    accuracy = evaluate_classifier_accuracy(xgboost_model, test_input, test_label)
-    print("Accuracy on test dataset: %.2f%%" % (accuracy * 100.0))
+    print("xgboost_model_feature_map: %.2f%%" % (accuracy * 100.0))
+    print("xgboost_model_dense_layers: %.2f%%" % (accuracy * 100.0))
+
+
+    if False:
+        test_benign, test_adv = process_and_extract_components_and_metrics(
+            test_dl_2018, fgsm_attack, model, model_name, device)
+
+        test_input, _, test_label, __ = prepare_data(
+            test_benign,
+            test_adv,
+            test_size=0.05 
+        )
+
+        # Evaluate the accuracy
+        accuracy = evaluate_classifier_accuracy(
+            xgboost_model_feature_map, test_input, test_label)
+        print("Accuracy: (xgboost_model_feature_map): %.2f%%" % (accuracy * 100.0))
 
     
 
