@@ -655,6 +655,6 @@ def _get_feature_map_apply_metric_fn(
     """
 
     return [
-        metric_fn(tensor).item() 
+        metric_fn(tensor)
         for tensor in get_feature_maps(input, model, model_name)
     ]
