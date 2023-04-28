@@ -263,7 +263,7 @@ def assess_attack_and_log_distances(
         true_label: torch.Tensor,
         attack: torchattacks.attack, 
         model_name: str
-    ) -> tuple[list[torch.Tensor], np.intp, np.intp, np.intp]:
+) -> tuple[list[torch.Tensor], np.intp, np.intp, np.intp]:
     """
     This is a function in Python that assesses the effect of an attack on an input
     image. It calculates the logarithmic distance between feature maps, true label,
@@ -305,6 +305,29 @@ def assess_attack_and_log_distances(
         np.argmax(predicted_label.detach().cpu().numpy()),
         np.argmax(predicted_adversarial_label.detach().cpu().numpy())
     )
+
+def assess_attack(
+    model: torch.nn.Module,
+    device: torch.device,
+    input: torch.Tensor,
+    adv_input: torch.Tensor,
+    true_label: torch.Tensor
+) -> tuple[np.intp, np.intp, np.intp]:
+    
+    input = input.to(device)
+    true_label = true_label.to(device)
+
+    # evaluates the input using the trained model
+    predicted_label = model(input)
+    predicted_adversarial_label = model(adv_input)
+
+    return (
+        np.argmax(true_label.detach().cpu().numpy()),
+        np.argmax(predicted_label.detach().cpu().numpy()),
+        np.argmax(predicted_adversarial_label.detach().cpu().numpy())
+    )
+
+
 
 
 def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tensor]):
@@ -653,7 +676,7 @@ def _get_feature_map_apply_metric_fn(
     Returns:
         list[float]: The computed feature map.
     """
-
+    
     return [
         metric_fn(tensor)
         for tensor in get_feature_maps(input, model, model_name)

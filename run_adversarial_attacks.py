@@ -10,8 +10,6 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    evaluate_classifier_accuracy,
-    prepare_data,
     process_and_extract_components_and_metrics,
     train_and_evaluate_xgboost_classifier,
 )
@@ -113,8 +111,10 @@ def main(year, model_name, is_augmented):
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, deepfool_attack, model, model_name, device, sample_limit=10000)
+        train_dl, deepfool_attack, model, model_name, device, sample_limit=100)
     
+    print(len(train_process_output[0]))
+    print(len(train_process_output[1]))
     xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
         train_process_output[0],
         train_process_output[1]
