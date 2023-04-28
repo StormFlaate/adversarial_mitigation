@@ -103,15 +103,15 @@ def main(year, model_name, is_augmented):
     device = _initialize_device()
     # fgsm_attack = torchattacks.FGSM(model, eps=8/255)
     # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
-    # cw_attack = torchattacks.CW(model)
-    deepfool_attack = torchattacks.DeepFool(model)
+    cw_attack = torchattacks.CW(model)
+    # deepfool_attack = torchattacks.DeepFool(model)
     # pgd_linf_attack = torchattacks.PGD(model)
     # pgd_l2_attack = torchattacks.PGDL2(model)
     # autoattack_attack = torchattacks.AutoAttack()
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, deepfool_attack, model, model_name, device, sample_limit=100)
+        train_dl, cw_attack, model, model_name, device, sample_limit=100)
     
     print(len(train_process_output[0]))
     print(len(train_process_output[1]))
