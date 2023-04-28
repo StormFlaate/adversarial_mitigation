@@ -104,26 +104,26 @@ def main(year, model_name, is_augmented):
     # fgsm_attack = torchattacks.FGSM(model, eps=8/255)
     # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
     # cw_attack = torchattacks.CW(model)
-    deepfool_attack = torchattacks.DeepFool(model)
+    # deepfool_attack = torchattacks.DeepFool(model)
     # pgd_linf_attack = torchattacks.PGD(model)
     # pgd_l2_attack = torchattacks.PGDL2(model)
-    # autoattack_attack = torchattacks.AutoAttack()
+    autoattack_attack = torchattacks.AutoAttack()
     
 
     train_process_output = process_and_extract_components_and_metrics(
-        train_dl, deepfool_attack, model, model_name, device, sample_limit=100)
+        train_dl, autoattack_attack, model, model_name, device, sample_limit=100)
     
     print(len(train_process_output[0]))
     print(len(train_process_output[1]))
     print(len(train_process_output[0][0]))
     print(len(train_process_output[1][1]))
-    xgboost_model_dense_layers, acc_dense_layers = train_and_evaluate_xgboost_classifier(
-        train_process_output[2],
-        train_process_output[3]
-    )
     xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
         train_process_output[0],
         train_process_output[1]
+    )
+    xgboost_model_dense_layers, acc_dense_layers = train_and_evaluate_xgboost_classifier(
+        train_process_output[2],
+        train_process_output[3]
     )
 
     print("xgboost_model_feature_map: %.2f%%" % (acc_feature_map * 100.0))
