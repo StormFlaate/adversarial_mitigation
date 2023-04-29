@@ -585,6 +585,30 @@ def extend_lists(list1, list2):
     return list1
 
 
+def select_attack(model, attack_name):
+    eps = 8/255
+    attack_name = attack_name.lower()
+
+    if attack_name == 'fgsm':
+        return torchattacks.FGSM(model, eps=eps)
+    elif attack_name == 'ffgsm':
+        return torchattacks.FFGSM(model, eps=eps)
+    elif attack_name == 'bim':
+        return torchattacks.BIM(model, eps=eps)
+    elif attack_name == 'cw':
+        return torchattacks.CW(model)
+    elif attack_name == 'deepfool':
+        return torchattacks.DeepFool(model)
+    elif attack_name == 'pgd':
+        return torchattacks.PGD(model)
+    elif attack_name == 'pgdl2':
+        return torchattacks.PGDL2(model)
+    elif attack_name == 'autoattack':
+        return torchattacks.AutoAttack(model)
+    else:
+        raise ValueError(f"Unsupported attack name: {attack_name}")
+
+
 # ======================================================
 # ================ PRIVATE FUNCTIONS ===================
 # ======================================================

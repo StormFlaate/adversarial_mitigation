@@ -12,6 +12,7 @@ from config import (
 from helper_functions.adversarial_attacks_helper import (
     assess_attack,
     process_and_extract_components_and_metrics,
+    select_attack,
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
@@ -68,7 +69,7 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
 
 
 
-def main(year, model_name, is_augmented, samples):
+def main(year, model_name, is_augmented, samples, attack):
     mp.freeze_support()
     mp.set_start_method('spawn')
     # Set the randomness seeds
@@ -102,14 +103,7 @@ def main(year, model_name, is_augmented, samples):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    attack = torchattacks.FGSM(model, eps=8/255)
-    # attack = torchattacks.FFGSM(model, eps=8/255)
-    # attack = torchattacks.BIM(model, eps=8/255)
-    # attack = torchattacks.CW(model)
-    # attack = torchattacks.DeepFool(model)
-    # attack = torchattacks.PGD(model)
-    # attack = torchattacks.PGDL2(model)
-    # attack = torchattacks.AutoAttack(model)
+    attack = select_attack(model, attack)
     
 
     *output_before_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
@@ -247,6 +241,13 @@ if __name__ == '__main__':
         type=int
     )
 
+    # Number of samples
+    parser.add_argument(
+        "--attack",
+        required=True,
+        type=str
+    )
+
     # Add argument for using augmented dataset
     # Default to use the non-augmented dataset
     parser.add_argument(
@@ -263,5 +264,6 @@ if __name__ == '__main__':
         args.year,
         args.model,
         args.is_augmented,
-        args.samples
+        args.samples,
+        args.attack
     )
