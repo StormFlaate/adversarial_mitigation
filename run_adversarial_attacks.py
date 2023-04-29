@@ -10,7 +10,6 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
-    extend_lists,
     process_and_extract_components_and_metrics,
     train_and_evaluate_xgboost_classifier,
 )
@@ -112,26 +111,54 @@ def main(year, model_name, is_augmented):
     # autoattack_attack = torchattacks.AutoAttack(model)
     
 
-    train_process_output = process_and_extract_components_and_metrics(
-        train_dl, cw_attack, model, model_name, device, sample_limit=10000)
+    output_before_activation_fn = process_and_extract_components_and_metrics(
+        train_dl, cw_attack, model, model_name, device, True, sample_limit=10000,
+        include_dense_layers=True
+    )
     
-
-    xgboost_model_feature_map, acc_feature_map = train_and_evaluate_xgboost_classifier(
-        train_process_output[0],
-        train_process_output[1]
-    )
-    xgboost_model_dense_layers, acc_dense_layers = train_and_evaluate_xgboost_classifier(
-        train_process_output[2],
-        train_process_output[3]
-    )
-    xgboost_model_dense_layers, acc_combined = train_and_evaluate_xgboost_classifier(
-        extend_lists(train_process_output[0],train_process_output[2]),
-        extend_lists(train_process_output[1],train_process_output[3])
+    output_after_activation_fn = process_and_extract_components_and_metrics(
+        train_dl, cw_attack, model, model_name, device, True, sample_limit=10000,
+        include_dense_layers=False    
     )
 
-    print("xgboost_model_feature_map: %.2f%%" % (acc_feature_map * 100.0))
-    print("xgboost_model_dense_layers: %.2f%%" % (acc_dense_layers * 100.0))
-    print("xgboost_model_combined: %.2f%%" % (acc_combined * 100.0))
+    _, acc_feature_map_mean = train_and_evaluate_xgboost_classifier(
+        output_before_activation_fn[0],
+        output_before_activation_fn[1]
+    )
+    _, acc_feature_map_l2 = train_and_evaluate_xgboost_classifier(
+        output_before_activation_fn[2],
+        output_before_activation_fn[3]
+    )
+    _, acc_feature_map_inf = train_and_evaluate_xgboost_classifier(
+        output_before_activation_fn[4],
+        output_before_activation_fn[5]
+    )
+    _, acc_dense_layers = train_and_evaluate_xgboost_classifier(
+        output_before_activation_fn[6],
+        output_before_activation_fn[7]
+    )
+    # after activation 
+    _, acc_activations_mean = train_and_evaluate_xgboost_classifier(
+        output_after_activation_fn[0],
+        output_after_activation_fn[1]
+    )
+    _, acc_activations_l2 = train_and_evaluate_xgboost_classifier(
+        output_after_activation_fn[2],
+        output_after_activation_fn[3]
+    )
+    _, acc_activations_linf = train_and_evaluate_xgboost_classifier(
+        output_after_activation_fn[4],
+        output_after_activation_fn[5]
+    )
+    
+    print("Feature map mean: %.2f%%" % (acc_feature_map_mean * 100.0))
+    print("Feature map L2: %.2f%%" % (acc_feature_map_l2 * 100.0))
+    print("Feature map Linf: %.2f%%" % (acc_feature_map_inf * 100.0))
+    print("Activations mean: %.2f%%" % (acc_activations_mean * 100.0))
+    print("Activations L2: %.2f%%" % (acc_activations_l2 * 100.0))
+    print("Activations Linf: %.2f%%" % (acc_activations_linf * 100.0))
+    print("Dense layers : %.2f%%" % (acc_dense_layers * 100.0))
+    
 
 
 

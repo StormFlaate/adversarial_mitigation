@@ -18,8 +18,10 @@ def process_and_extract_components_and_metrics(
         model: torch.nn.Module,
         model_name: str,
         device: str,
-        sample_limit: int = None
-) -> tuple[list[list[float]], list[list[float]]]:
+        before_activation_fn: bool,
+        sample_limit: int = None,
+        include_dense_layers: bool=False
+) -> tuple:
     """
     Process the data from the data loader, generating benign and adversarial feature
     maps based on the specified adversarial attack and extract dense layer weights of
@@ -46,8 +48,12 @@ def process_and_extract_components_and_metrics(
             - A list of list of dense layer weights for the model, corresponding to the
                 adversarial feature maps.
     """
-    benign_feature_map = []
-    adv_feature_map = []
+    benign_feature_map_mean = []
+    adv_feature_map_mean = []
+    benign_feature_map_l2 = []
+    adv_feature_map_l2 = []
+    benign_feature_map_linf = []
+    adv_feature_map_linf = []
     benign_dense_layers = []
     adv_dense_layers = []
 
@@ -58,23 +64,46 @@ def process_and_extract_components_and_metrics(
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
 
         # calculates the list of scalar values based on feature map and metric function
-        benign_feature_map.append(
-            _get_feature_map_apply_metric_fn(input, model, model_name, l2_distance_metric)
-        )
-        adv_feature_map.append(
-            _get_feature_map_apply_metric_fn(adv_input, model, model_name, l2_distance_metric)
-        )
+        benign_feature_map_mean.append(
+            _get_feature_map_apply_metric_fn(
+                input, model, model_name, l2_distance_metric, before_activation_fn))
+        adv_feature_map_mean.append(
+            _get_feature_map_apply_metric_fn(
+                adv_input, model, model_name, l2_distance_metric, before_activation_fn))
+        benign_feature_map_l2.append(
+            _get_feature_map_apply_metric_fn(
+                input, model, model_name, mean_metric, before_activation_fn))
+        adv_feature_map_l2.append(
+            _get_feature_map_apply_metric_fn(
+                adv_input, model, model_name, mean_metric, before_activation_fn))
+        benign_feature_map_linf.append(
+            _get_feature_map_apply_metric_fn(
+                input, model, model_name, linfinity_distance_metric,
+                before_activation_fn
+            ))
+        adv_feature_map_linf.append(
+            _get_feature_map_apply_metric_fn(
+                adv_input, model, model_name, linfinity_distance_metric,
+                before_activation_fn
+            ))
         
-        # calculates the list of dense layer weigths form specific model
-        benign_dense_layers.append(get_dense_layers(input, model, model_name))
-        adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
+        if include_dense_layers:
+            # calculates the list of dense layer weigths form specific model
+            benign_dense_layers.append(get_dense_layers(input, model, model_name))
+            adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
 
         if sample_limit is not None and i >= sample_limit:
             break
 
     return (
-        benign_feature_map, adv_feature_map,
-        benign_dense_layers, adv_dense_layers
+        benign_feature_map_mean,
+        adv_feature_map_mean,
+        benign_feature_map_l2,
+        adv_feature_map_l2,
+        benign_feature_map_linf,
+        adv_feature_map_linf,
+        benign_dense_layers,
+        adv_dense_layers
     )
 
 
@@ -388,7 +417,7 @@ def linfinity_distance_metric(tensor: torch.Tensor) -> float:
     return torch.norm(tensor, p=float('inf')).item()
 
 
-def get_feature_maps(input, model, model_name):
+def get_feature_maps(input, model, model_name, before_activation_fn):
     """Get feature maps from a given model.
 
     Args:
@@ -400,9 +429,9 @@ def get_feature_maps(input, model, model_name):
         List[torch.Tensor]: List of feature maps of shape (N, C, H, W).
     """
     if model_name == INCEPTIONV3_MODEL_NAME:
-        return _get_feature_maps_inception_v3(input, model)
+        return _get_feature_maps_inception_v3(input, model, before_activation_fn)
     elif model_name == RESNET18_MODEL_NAME:
-        return _get_feature_maps_resnet18(input, model)
+        return _get_feature_maps_resnet18(input, model, before_activation_fn)
     else:
         raise Exception("Not valid model name")
 
@@ -514,7 +543,7 @@ def extend_lists(list1, list2):
 # ======================================================
 # ================ PRIVATE FUNCTIONS ===================
 # ======================================================
-def _get_feature_maps_inception_v3(input, model: Inception3):
+def _get_feature_maps_inception_v3(input, model: Inception3, before_activation_fn: bool):
     """Get feature maps from InceptionV3 model.
 
     Args:
@@ -527,7 +556,10 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
     feature_maps = []
 
     def hook(module, input, output):
-        feature_maps.append(output.detach())
+        if before_activation_fn:
+            feature_maps.append(input[0].detach())
+        else:
+            feature_maps.append(output.detach())
     # List of InceptionV3 layers to extract feature maps from
     layers = [
         model.Conv2d_1a_3x3,
@@ -559,7 +591,7 @@ def _get_feature_maps_inception_v3(input, model: Inception3):
     return feature_maps
 
 
-def _get_feature_maps_resnet18(input, model: ResNet):
+def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool):
     """Get feature maps from ResNet18 model.
 
     Args:
@@ -571,7 +603,10 @@ def _get_feature_maps_resnet18(input, model: ResNet):
     """
     feature_maps = []
     def hook(module, input, output):
-        feature_maps.append(output.detach())
+        if before_activation_fn:
+            feature_maps.append(input[0].detach())
+        else:
+            feature_maps.append(output.detach())
 
     # List of ResNet18 layers to extract feature maps from
     layers = [
@@ -666,7 +701,8 @@ def _get_feature_map_apply_metric_fn(
         input: torch.Tensor,
         model: torch.nn.Module,
         model_name: str, 
-        metric_fn: Callable[[torch.Tensor], float]
+        metric_fn: Callable[[torch.Tensor], float],
+        before_activation_fn: bool
     ) -> list[float]:
     """
     Compute the feature map using a metric function on the given input.
@@ -684,5 +720,5 @@ def _get_feature_map_apply_metric_fn(
     
     return [
         metric_fn(tensor)
-        for tensor in get_feature_maps(input, model, model_name)
+        for tensor in get_feature_maps(input, model, model_name, before_activation_fn)
     ]
