@@ -110,25 +110,25 @@ def main(year, model_name, is_augmented, samples, attack):
     )
     print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
 
-    model, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
+    _, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
         train_and_evaluate_xgboost_classifier(
             output_before_activation_fn[0],
             output_before_activation_fn[1]
         )
     )
-    model, acc_feature_map_l2, tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2 = (
+    _, acc_feature_map_l2, tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2 = (
         train_and_evaluate_xgboost_classifier(
             output_before_activation_fn[2],
             output_before_activation_fn[3]
         )
     )
-    model, acc_feature_map_inf, tp_fm_inf, tn_fm_inf, fp_fm_inf, fn_fm_inf = (
+    _, acc_feature_map_inf, tp_fm_inf, tn_fm_inf, fp_fm_inf, fn_fm_inf = (
         train_and_evaluate_xgboost_classifier(
             output_before_activation_fn[4],
             output_before_activation_fn[5]
         )
     )
-    model, acc_dense_layers, tp_dl, tn_dl, fp_dl, fn_dl = (
+    _, acc_dense_layers, tp_dl, tn_dl, fp_dl, fn_dl = (
         train_and_evaluate_xgboost_classifier(
             output_before_activation_fn[6],
             output_before_activation_fn[7]
@@ -146,19 +146,19 @@ def main(year, model_name, is_augmented, samples, attack):
     # =======================================
     # ========== after activation ==========
     # =======================================
-    model, acc_activations_mean, tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean = (
+    _, acc_activations_mean, tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean = (
         train_and_evaluate_xgboost_classifier(
             output_after_activation_fn[0],
             output_after_activation_fn[1]
         )
     )
-    model, acc_activations_l2, tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2 = (
+    _, acc_activations_l2, tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2 = (
         train_and_evaluate_xgboost_classifier(
             output_after_activation_fn[2],
             output_after_activation_fn[3]
         )
     )
-    model, acc_activations_linf, tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf = (
+    _, acc_activations_linf, tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf = (
         train_and_evaluate_xgboost_classifier(
             output_after_activation_fn[4],
             output_after_activation_fn[5]
