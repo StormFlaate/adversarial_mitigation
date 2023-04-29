@@ -122,7 +122,7 @@ def main(year, model_name, is_augmented, samples):
         model, device, all_inputs, all_adv_inputs, all_true_labels)
     print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
 
-    output_after_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
+    *output_after_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
         process_and_extract_components_and_metrics(
             train_dl, attack, model, model_name, device, True, sample_limit=samples,
             include_dense_layers=False
@@ -131,7 +131,7 @@ def main(year, model_name, is_augmented, samples):
     fooling_rate = assess_attack(
         model, device, all_inputs, all_adv_inputs, all_true_labels)
     print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
-    
+
     # before activation
     model, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
         train_and_evaluate_xgboost_classifier(
