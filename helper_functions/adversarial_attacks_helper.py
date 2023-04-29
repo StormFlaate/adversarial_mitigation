@@ -56,12 +56,19 @@ def process_and_extract_components_and_metrics(
     adv_feature_map_linf = []
     benign_dense_layers = []
     adv_dense_layers = []
+    all_inputs = []
+    all_adv_inputs = []
+    all_true_labels = []
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
         true_label = true_label.to(device)
 
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
+        
+        all_inputs.append(input)
+        all_adv_inputs.append(adv_input)
+        all_true_labels.append(true_label)
 
         # calculates the list of scalar values based on feature map and metric function
         benign_feature_map_mean.append(
@@ -103,7 +110,10 @@ def process_and_extract_components_and_metrics(
         benign_feature_map_linf,
         adv_feature_map_linf,
         benign_dense_layers,
-        adv_dense_layers
+        adv_dense_layers,
+        all_inputs,
+        all_adv_inputs,
+        all_true_labels
     )
 
 
@@ -112,10 +122,11 @@ def train_and_evaluate_xgboost_classifier(
     adv_list: list[list[float]] | np.ndarray,
     test_size: float = 0.2,
     random_state: int = 42
-) -> tuple[xgb.XGBClassifier, float]:
+) -> tuple[xgb.XGBClassifier, float, float, float, float, float]:
     """
     Trains an XGBoost classifier on input benign and adversarial feature maps, evaluates
-    its accuracy, and returns the trained model and accuracy.
+    its performance using confusion matrix, and returns the trained model along with the
+    performance metrics.
 
     Args:
         benign_list (list of lists or array-like): A 2D list or array-like object
@@ -132,14 +143,24 @@ def train_and_evaluate_xgboost_classifier(
             - model (xgb.XGBClassifier): The trained XGBoost classifier.
             - accuracy (float): The accuracy of the classifier on the test set, as a
                 percentage.
+            - tp (int): The number of true positive predictions.
+            - tn (int): The number of true negative predictions.
+            - fp (int): The number of false positive predictions.
+            - fn (int): The number of false negative predictions.
     """
+
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
     model = train_xgboost_classifier(X_train, y_train)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
+    tp, tn, fp, tn = evaluate_classifier_metrics(model, X_test, y_test)
 
-    return model, accuracy
+    return (
+        model,
+        accuracy,
+        tp, tn, fp, tn 
+    )
 
 
 def prepare_data(
@@ -335,28 +356,52 @@ def assess_attack_and_log_distances(
         np.argmax(predicted_adversarial_label.detach().cpu().numpy())
     )
 
+
 def assess_attack(
     model: torch.nn.Module,
     device: torch.device,
-    input: torch.Tensor,
-    adv_input: torch.Tensor,
-    true_label: torch.Tensor
-) -> tuple[np.intp, np.intp, np.intp]:
-    
-    input = input.to(device)
-    true_label = true_label.to(device)
+    inputs: list[torch.Tensor],
+    adv_inputs: list[torch.Tensor],
+    true_labels: list[torch.Tensor],
+) -> float:
+    """
+    Calculates the fooling rate for images that are correctly labeled by the model.
 
-    # evaluates the input using the trained model
-    predicted_label = model(input)
-    predicted_adversarial_label = model(adv_input)
+    Args:
+        model (torch.nn.Module): The trained model for evaluation.
+        device (torch.device): The device (CPU or GPU) to perform the calculations on.
+        inputs (list[torch.Tensor]): A list of input tensors.
+        adv_inputs (list[torch.Tensor]): A list of adversarial input tensors.
+        true_labels (list[torch.Tensor]): A list of true label tensors.
 
-    return (
-        np.argmax(true_label.detach().cpu().numpy()),
-        np.argmax(predicted_label.detach().cpu().numpy()),
-        np.argmax(predicted_adversarial_label.detach().cpu().numpy())
-    )
+    Returns:
+        float: The fooling rate for images that are correctly labeled by the model.
+    """
 
+    correct = 0
+    fooled = 0
 
+    for input, adv_input, true_label in zip(inputs, adv_inputs, true_labels):
+        input = input.to(device)
+        true_label = true_label.to(device)
+
+        predicted_label = model(input)
+        predicted_adversarial_label = model(adv_input)
+
+        pred_label = np.argmax(predicted_label.detach().cpu().numpy())
+        true_label_val = np.argmax(true_label.detach().cpu().numpy())
+        pred_adv_label = np.argmax(predicted_adversarial_label.detach().cpu().numpy())
+
+        if pred_label == true_label_val:
+            correct += 1
+            if pred_adv_label != true_label_val:
+                fooled += 1
+
+    if correct == 0:
+        return 0.0
+
+    fooling_rate = fooled / correct
+    return fooling_rate
 
 
 def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tensor]):

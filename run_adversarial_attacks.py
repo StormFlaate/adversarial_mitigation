@@ -10,6 +10,7 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
+    assess_attack,
     process_and_extract_components_and_metrics,
     train_and_evaluate_xgboost_classifier,
 )
@@ -67,7 +68,7 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
 
 
 
-def main(year, model_name, is_augmented):
+def main(year, model_name, is_augmented, samples):
     mp.freeze_support()
     mp.set_start_method('spawn')
     # Set the randomness seeds
@@ -101,64 +102,99 @@ def main(year, model_name, is_augmented):
         raise Exception("Not a valid model name")
 
     device = _initialize_device()
-    # fgsm_attack = torchattacks.FGSM(model, eps=8/255)
-    # ffgsm_attack = torchattacks.FFGSM(model, eps=8/255)
-    # ifgsm_attack = torchattacks.BIM(model, eps=8/255)
-    cw_attack = torchattacks.CW(model)
-    # deepfool_attack = torchattacks.DeepFool(model)
-    # pgd_linf_attack = torchattacks.PGD(model)
-    # pgd_l2_attack = torchattacks.PGDL2(model)
-    # autoattack_attack = torchattacks.AutoAttack(model)
+    attack = torchattacks.FGSM(model, eps=8/255)
+    # attack = torchattacks.FFGSM(model, eps=8/255)
+    # attack = torchattacks.BIM(model, eps=8/255)
+    # attack = torchattacks.CW(model)
+    # attack = torchattacks.DeepFool(model)
+    # attack = torchattacks.PGD(model)
+    # attack = torchattacks.PGDL2(model)
+    # attack = torchattacks.AutoAttack(model)
     
 
-    output_before_activation_fn = process_and_extract_components_and_metrics(
-        train_dl, cw_attack, model, model_name, device, True, sample_limit=10000,
-        include_dense_layers=True
+    *output_before_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
+        process_and_extract_components_and_metrics(
+            train_dl, attack, model, model_name, device, True, sample_limit=samples,
+            include_dense_layers=True
+        )
     )
+    fooling_rate = assess_attack(
+        model, device, all_inputs, all_adv_inputs, all_true_labels)
+    print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
+
+    output_after_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
+        process_and_extract_components_and_metrics(
+            train_dl, attack, model, model_name, device, True, sample_limit=samples,
+            include_dense_layers=False
+        )
+    )
+    fooling_rate = assess_attack(
+        model, device, all_inputs, all_adv_inputs, all_true_labels)
+    print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
     
-    output_after_activation_fn = process_and_extract_components_and_metrics(
-        train_dl, cw_attack, model, model_name, device, True, sample_limit=10000,
-        include_dense_layers=False    
+    # before activation
+    model, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
+        train_and_evaluate_xgboost_classifier(
+            output_before_activation_fn[0],
+            output_before_activation_fn[1]
+        )
+    )
+    model, acc_feature_map_l2, tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2 = (
+        train_and_evaluate_xgboost_classifier(
+            output_before_activation_fn[2],
+            output_before_activation_fn[3]
+        )
+    )
+    model, acc_feature_map_inf, tp_fm_inf, tn_fm_inf, fp_fm_inf, fn_fm_inf = (
+        train_and_evaluate_xgboost_classifier(
+            output_before_activation_fn[4],
+            output_before_activation_fn[5]
+        )
+    )
+    model, acc_dense_layers, tp_dl, tn_dl, fp_dl, fn_dl = (
+        train_and_evaluate_xgboost_classifier(
+            output_before_activation_fn[6],
+            output_before_activation_fn[7]
+        )
     )
 
-    _, acc_feature_map_mean = train_and_evaluate_xgboost_classifier(
-        output_before_activation_fn[0],
-        output_before_activation_fn[1]
+    # after activation
+    model, acc_activations_mean, tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean = (
+        train_and_evaluate_xgboost_classifier(
+            output_after_activation_fn[0],
+            output_after_activation_fn[1]
+        )
     )
-    _, acc_feature_map_l2 = train_and_evaluate_xgboost_classifier(
-        output_before_activation_fn[2],
-        output_before_activation_fn[3]
+    model, acc_activations_l2, tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2 = (
+        train_and_evaluate_xgboost_classifier(
+            output_after_activation_fn[2],
+            output_after_activation_fn[3]
+        )
     )
-    _, acc_feature_map_inf = train_and_evaluate_xgboost_classifier(
-        output_before_activation_fn[4],
-        output_before_activation_fn[5]
+    model, acc_activations_linf, tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf = (
+        train_and_evaluate_xgboost_classifier(
+            output_after_activation_fn[4],
+            output_after_activation_fn[5]
+        )
     )
-    _, acc_dense_layers = train_and_evaluate_xgboost_classifier(
-        output_before_activation_fn[6],
-        output_before_activation_fn[7]
-    )
-    # after activation 
-    _, acc_activations_mean = train_and_evaluate_xgboost_classifier(
-        output_after_activation_fn[0],
-        output_after_activation_fn[1]
-    )
-    _, acc_activations_l2 = train_and_evaluate_xgboost_classifier(
-        output_after_activation_fn[2],
-        output_after_activation_fn[3]
-    )
-    _, acc_activations_linf = train_and_evaluate_xgboost_classifier(
-        output_after_activation_fn[4],
-        output_after_activation_fn[5]
-    )
+
+
     
     print("Feature map mean: %.2f%%" % (acc_feature_map_mean * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean))
     print("Feature map L2: %.2f%%" % (acc_feature_map_l2 * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2))
     print("Feature map Linf: %.2f%%" % (acc_feature_map_inf * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_fm_inf, tn_fm_inf, fp_fm_inf, fn_fm_inf))
     print("Activations mean: %.2f%%" % (acc_activations_mean * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean))
     print("Activations L2: %.2f%%" % (acc_activations_l2 * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2))
     print("Activations Linf: %.2f%%" % (acc_activations_linf * 100.0))
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf))
     print("Dense layers : %.2f%%" % (acc_dense_layers * 100.0))
-    
+    print("TP: %d, TN: %d, FP: %d, FN: %d" % (tp_dl, tn_dl, fp_dl, fn_dl))
+
 
 
 
@@ -204,6 +240,13 @@ if __name__ == '__main__':
         )
     )
 
+    # Number of samples
+    parser.add_argument(
+        "--samples",
+        required=True,
+        type=int
+    )
+
     # Add argument for using augmented dataset
     # Default to use the non-augmented dataset
     parser.add_argument(
@@ -219,5 +262,6 @@ if __name__ == '__main__':
     main(
         args.year,
         args.model,
-        args.is_augmented
+        args.is_augmented,
+        args.samples
     )
