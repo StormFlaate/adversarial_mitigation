@@ -56,9 +56,8 @@ def process_and_extract_components_and_metrics(
     adv_feature_map_linf = []
     benign_dense_layers = []
     adv_dense_layers = []
-    all_inputs = []
-    all_adv_inputs = []
-    all_true_labels = []
+    correct = 0
+    fooled = 0
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
@@ -66,9 +65,9 @@ def process_and_extract_components_and_metrics(
 
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
         
-        all_inputs.append(input)
-        all_adv_inputs.append(adv_input)
-        all_true_labels.append(true_label)
+        correct, fooled = assess_attack_single_input(
+            model, device, input, adv_input, true_label, (correct, fooled)
+        )
 
         # calculates the list of scalar values based on feature map and metric function
         benign_feature_map_mean.append(
@@ -101,6 +100,12 @@ def process_and_extract_components_and_metrics(
 
         if sample_limit is not None and i >= sample_limit:
             break
+    
+    if correct == 0:
+        return 0.0
+
+    fooling_rate = fooled / correct
+
 
     return (
         benign_feature_map_mean,
@@ -111,9 +116,7 @@ def process_and_extract_components_and_metrics(
         adv_feature_map_linf,
         benign_dense_layers,
         adv_dense_layers,
-        all_inputs,
-        all_adv_inputs,
-        all_true_labels
+        fooling_rate
     )
 
 
@@ -402,6 +405,52 @@ def assess_attack(
 
     fooling_rate = fooled / correct
     return fooling_rate
+
+
+def assess_attack_single_input(
+    model: torch.nn.Module,
+    device: torch.device,
+    input: torch.Tensor,
+    adv_input: torch.Tensor,
+    true_label: torch.Tensor,
+    current_counters: tuple[int, int],
+) -> tuple[int, int]:
+    """
+    Updates the fooling rate counters for a single input that is correctly labeled by
+    the model.
+
+    Args:
+        model (torch.nn.Module): The trained model for evaluation.
+        device (torch.device): The device (CPU or GPU) to perform the calculations on.
+        input (torch.Tensor): An input tensor.
+        adv_input (torch.Tensor): An adversarial input tensor.
+        true_label (torch.Tensor): A true label tensor.
+        current_counters (tuple[int, int]): A tuple containing the current counter
+            values (correct, fooled).
+
+    Returns:
+        tuple[int, int]: The updated counter values (correct, fooled).
+    """
+
+    correct, fooled = current_counters
+
+    input = input.to(device)
+    adv_input = adv_input.to(device)
+    true_label = true_label.to(device)
+
+    predicted_label = model(input)
+    predicted_adversarial_label = model(adv_input)
+
+    pred_label = np.argmax(predicted_label.detach().cpu().numpy())
+    true_label_val = np.argmax(true_label.detach().cpu().numpy())
+    pred_adv_label = np.argmax(predicted_adversarial_label.detach().cpu().numpy())
+
+    if pred_label == true_label_val:
+        correct += 1
+        if pred_adv_label != true_label_val:
+            fooled += 1
+
+    return correct, fooled
 
 
 def calculate_log_distances(a_list: list[torch.Tensor], b_list: list[torch.Tensor]):

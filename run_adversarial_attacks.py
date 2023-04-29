@@ -89,15 +89,9 @@ def main(year, model_name, is_augmented, samples, attack):
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(
             year, is_augmented
         )
-        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_resnet18(
-            "2018", is_augmented
-        )
     elif model_name == INCEPTIONV3_MODEL_NAME:
         train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(
             year, is_augmented
-        )
-        train_dl, val_dl, test_dl_2018, _ = _initialize_data_loader_inception_v3(
-            "2018", is_augmented
         )
     else:
         raise Exception("Not a valid model name")
@@ -105,28 +99,17 @@ def main(year, model_name, is_augmented, samples, attack):
     device = _initialize_device()
     attack = select_attack(model, attack)
     
-
-    *output_before_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
+    # =======================================
+    # ========== before activation ==========s
+    # =======================================
+    *output_before_activation_fn, fooling_rate = (
         process_and_extract_components_and_metrics(
             train_dl, attack, model, model_name, device, True, sample_limit=samples,
             include_dense_layers=True
         )
     )
-    fooling_rate = assess_attack(
-        model, device, all_inputs, all_adv_inputs, all_true_labels)
     print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
 
-    *output_after_activation_fn, all_inputs, all_adv_inputs, all_true_labels = (
-        process_and_extract_components_and_metrics(
-            train_dl, attack, model, model_name, device, True, sample_limit=samples,
-            include_dense_layers=False
-        )
-    )
-    fooling_rate = assess_attack(
-        model, device, all_inputs, all_adv_inputs, all_true_labels)
-    print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
-
-    # before activation
     model, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
         train_and_evaluate_xgboost_classifier(
             output_before_activation_fn[0],
@@ -151,8 +134,18 @@ def main(year, model_name, is_augmented, samples, attack):
             output_before_activation_fn[7]
         )
     )
+    *output_after_activation_fn, fooling_rate = (
+        process_and_extract_components_and_metrics(
+            train_dl, attack, model, model_name, device, True, sample_limit=samples,
+            include_dense_layers=False
+        )
+    )
+    print("Fooling rate: %.2f%%" % (fooling_rate * 100.0))
 
-    # after activation
+
+    # =======================================
+    # ========== after activation ==========
+    # =======================================
     model, acc_activations_mean, tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean = (
         train_and_evaluate_xgboost_classifier(
             output_after_activation_fn[0],
