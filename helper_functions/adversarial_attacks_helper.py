@@ -18,42 +18,27 @@ def process_and_extract_components_and_metrics(
         model: torch.nn.Module,
         model_name: str,
         device: str,
-        before_activation_fn: bool,
         sample_limit: int = None,
-        include_dense_layers: bool=False
+        include_dense_layers: bool = False
 ) -> tuple:
-    """
-    Process the data from the data loader, generating benign and adversarial feature
-    maps based on the specified adversarial attack and extract dense layer weights of
-    the model.
+    
+    def update_feature_maps(
+            feature_maps, input_data, model, model_name, metrics, before_activation):
+        for metric_name, metric_fn in metrics.items():
+            feature_map = _get_feature_map_apply_metric_fn(
+                input_data, model, model_name, metric_fn, before_activation)
+            feature_maps[metric_name].append(feature_map)
 
-    Args:
-        data_loader (DataLoader): The data loader to process.
-        adversarial_attack (Callable): The adversarial attack function to apply.
-        model (torch.nn.Module): The model to use for generating feature maps and
-            extracting dense layer weights.
-        model_name (str): The name of the model being used.
-        device (str): The device where tensors should be moved to ('cuda' or 'cpu').
-        sample_limit (int, optional): The maximum number of samples to process.
-            Defaults to None.
+    metrics = {
+        'mean': l2_distance_metric,
+        'l2': mean_metric,
+        'linf': linfinity_distance_metric
+    }
 
-    Returns:
-        A tuple containing four elements:
-            - A list of lists of float values, where each inner list corresponds to the
-                benign feature maps for a sample.
-            - A list of lists of float values, where each inner list corresponds to the
-                adversarial feature maps for a sample.
-            - A list of list of dense layer weights for the model, corresponding to the
-                benign feature maps.
-            - A list of list of dense layer weights for the model, corresponding to the
-                adversarial feature maps.
-    """
-    benign_feature_map_mean = []
-    adv_feature_map_mean = []
-    benign_feature_map_l2 = []
-    adv_feature_map_l2 = []
-    benign_feature_map_linf = []
-    adv_feature_map_linf = []
+    benign_feature_maps_before = {key: [] for key in metrics.keys()}
+    adv_feature_maps_before = {key: [] for key in metrics.keys()}
+    benign_feature_maps_after = {key: [] for key in metrics.keys()}
+    adv_feature_maps_after = {key: [] for key in metrics.keys()}
     benign_dense_layers = []
     adv_dense_layers = []
     correct = 0
@@ -64,60 +49,51 @@ def process_and_extract_components_and_metrics(
         true_label = true_label.to(device)
 
         adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
-        
+
         correct, fooled = assess_attack_single_input(
             model, device, input, adv_input, true_label, (correct, fooled)
         )
 
-        # calculates the list of scalar values based on feature map and metric function
-        benign_feature_map_mean.append(
-            _get_feature_map_apply_metric_fn(
-                input, model, model_name, l2_distance_metric, before_activation_fn))
-        adv_feature_map_mean.append(
-            _get_feature_map_apply_metric_fn(
-                adv_input, model, model_name, l2_distance_metric, before_activation_fn))
-        benign_feature_map_l2.append(
-            _get_feature_map_apply_metric_fn(
-                input, model, model_name, mean_metric, before_activation_fn))
-        adv_feature_map_l2.append(
-            _get_feature_map_apply_metric_fn(
-                adv_input, model, model_name, mean_metric, before_activation_fn))
-        benign_feature_map_linf.append(
-            _get_feature_map_apply_metric_fn(
-                input, model, model_name, linfinity_distance_metric,
-                before_activation_fn
-            ))
-        adv_feature_map_linf.append(
-            _get_feature_map_apply_metric_fn(
-                adv_input, model, model_name, linfinity_distance_metric,
-                before_activation_fn
-            ))
-        
+        update_feature_maps(
+            benign_feature_maps_before, input, model, model_name, metrics,
+            before_activation=True)
+        update_feature_maps(
+            adv_feature_maps_before, adv_input, model, model_name, metrics,
+            before_activation=True)
+        update_feature_maps(
+            benign_feature_maps_after, input, model, model_name, metrics,
+            before_activation=False)
+        update_feature_maps(
+            adv_feature_maps_after, adv_input, model, model_name, metrics,
+            before_activation=False)
+
         if include_dense_layers:
-            # calculates the list of dense layer weigths form specific model
             benign_dense_layers.append(get_dense_layers(input, model, model_name))
             adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
 
         if sample_limit is not None and i >= sample_limit:
             break
-    
+
     if correct == 0:
         return 0.0
 
     fooling_rate = fooled / correct
 
+    return {
+        "before_activation": {
+            "benign_feature_maps": benign_feature_maps_before,
+            "adv_feature_maps": adv_feature_maps_before
+        },
+        "after_activation": {
+            "benign_feature_maps": benign_feature_maps_after,
+            "adv_feature_maps": adv_feature_maps_after,
+        },
+        "fooling_rate": fooling_rate,
+        "benign_dense_layers": benign_dense_layers,
+        "adv_dense_layers": adv_dense_layers
+    }
 
-    return (
-        benign_feature_map_mean,
-        adv_feature_map_mean,
-        benign_feature_map_l2,
-        adv_feature_map_l2,
-        benign_feature_map_linf,
-        adv_feature_map_linf,
-        benign_dense_layers,
-        adv_dense_layers,
-        fooling_rate
-    )
+
 
 
 def train_and_evaluate_xgboost_classifier(
@@ -656,6 +632,11 @@ def select_attack(model, attack_name):
         return torchattacks.AutoAttack(model)
     else:
         raise ValueError(f"Unsupported attack name: {attack_name}")
+
+
+def print_result(title, acc, tp, tn, fp, fn):
+        print(f"{title}: {acc:.2f}%")
+        print(f"TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}")
 
 
 # ======================================================
