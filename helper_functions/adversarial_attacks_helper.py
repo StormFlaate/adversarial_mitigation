@@ -172,6 +172,8 @@ def prepare_data(
     """
     benign_array = np.array(benign_list)
     adv_array = np.array(adv_list)
+    print(benign_array.shape)
+    print(adv_array.shape)
 
     input_data = np.concatenate((benign_array, adv_array), axis=0)
     labels = np.concatenate(
