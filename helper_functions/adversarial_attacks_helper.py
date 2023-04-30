@@ -131,15 +131,16 @@ def train_and_evaluate_xgboost_classifier(
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
+    
     model = train_xgboost_classifier(X_train, y_train)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
     
-    tp, tn, fp, tn = evaluate_classifier_metrics(model, X_test, y_test)
+    tp, tn, fp, fn = evaluate_classifier_metrics(model, X_test, y_test)
 
     return (
         model,
         accuracy,
-        tp, tn, fp, tn 
+        tp, tn, fp, fn
     )
 
 
