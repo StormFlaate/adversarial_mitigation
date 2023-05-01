@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
 
+
 def process_and_extract_components_and_metrics(
         data_loader: DataLoader,
         adversarial_attack,
@@ -30,8 +31,9 @@ def process_and_extract_components_and_metrics(
             feature_maps[metric_name].append(feature_map)
 
     metrics = {
-        'mean': l2_distance_metric,
-        'l2': mean_metric,
+        'mean': mean_metric,
+        'l1': l1_distance_metric,
+        'l2': l2_distance_metric,
         'linf': linfinity_distance_metric
     }
 
@@ -480,6 +482,8 @@ def get_normalized_values(data: list) -> list:
 def mean_metric(tensor: torch.Tensor) -> float:
     return tensor.mean().item()
 
+def l1_distance_metric(tensor: torch.Tensor) -> float:
+    return torch.norm(tensor, p=1).item()
 
 def l2_distance_metric(tensor: torch.Tensor) -> float:
     return torch.norm(tensor, p=2).item()
@@ -638,13 +642,18 @@ def select_attack(model, attack_name):
 
 def print_result(title, acc, tp, tn, fp, fn):
         print(f"{title}: {acc:.2f}%")
-        print(f"TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}")
+        print(f"TP:{tp}, TN:{tn}, FP:{fp}, FN:{fn} ")
+        print(f" {tp} & {tn} & {fp} & {fn} ")
 
 
 # ======================================================
 # ================ PRIVATE FUNCTIONS ===================
 # ======================================================
-def _get_feature_maps_inception_v3(input, model: Inception3, before_activation_fn: bool):
+def _get_feature_maps_inception_v3(
+        input,
+        model: Inception3,
+        before_activation_fn: bool
+):
     """Get feature maps from InceptionV3 model.
 
     Args:
