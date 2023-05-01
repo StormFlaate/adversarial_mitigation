@@ -103,8 +103,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     else:
         attacks.append(attack_name)
 
-    for attack in attacks:
-        select_attack(model, attack)
+    for attack_name in attacks:
+        attack = select_attack(model, attack_name)
         result = (
             process_and_extract_components_and_metrics(
                 train_dl, attack, model, model_name, device, sample_limit=samples,
