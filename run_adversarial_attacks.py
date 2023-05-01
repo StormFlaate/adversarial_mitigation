@@ -104,6 +104,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attacks.append(attack_name)
 
     for attack_name in attacks:
+        print(f"Attack: {attack_name}")
         attack = select_attack(model, attack_name)
         result = (
             process_and_extract_components_and_metrics(
