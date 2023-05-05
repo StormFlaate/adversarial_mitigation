@@ -48,12 +48,11 @@ def process_and_extract_components_and_metrics(
     fooled = 0
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
-        print(true_label)
         input = input.to(device)
         true_label = true_label.to(device)
 
         adv_input = generate_adversarial_input(
-            input, true_label, adversarial_attack, attack_name)
+            input, true_label[0], adversarial_attack, attack_name)
 
         correct, fooled = assess_attack_single_input(
             model, device, input, adv_input, true_label, (correct, fooled)
