@@ -341,6 +341,36 @@ def get_data_loaders_2019(
     return (*data_loaders, root_dir)
 
 
+def get_data_loader(
+        dataset: data.Dataset, print_count_dict: bool=False
+) -> data.DataLoader:
+    """
+    Returns a PyTorch DataLoader for a given dataset.
+    
+    Args:
+        dataset (torch.utils.data.Dataset): The dataset to create a dataloader for.
+    
+    Returns:
+        torch.utils.data.DataLoader: A dataloader for the given dataset.
+    """
+    
+    dataloader = data.DataLoader(
+        dataset, 
+        batch_size=BATCH_SIZE, 
+        shuffle=SHUFFLE_TRAIN_DATALOADER,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY_TRAIN_DATALOADER
+    )
+    if print_count_dict:
+        # Print distribution of skin lesion categories
+        count_dict = get_category_counts(dataloader)
+        
+        print("Dataloader - distribution of the skin lesion categories")
+        print(count_dict)
+
+    return dataloader
+
+
 def get_data_loaders(
     train_dataset: data.Dataset,
     val_dataset: data.Dataset,
