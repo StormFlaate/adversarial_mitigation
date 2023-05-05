@@ -436,7 +436,9 @@ def get_data_loaders(
     
     return train_data_loader, val_data_loader, test_data_loader
 
-def get_data_loaders_by_year(year, transform, is_augmented_dataset):
+def get_data_loaders_by_year(
+        year, transform, is_augmented_dataset
+) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     if year == "2018":
         return get_data_loaders_2018(
             transform=transform,
