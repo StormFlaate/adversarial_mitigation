@@ -181,6 +181,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             )
         )
 
+
         _, acc_combination_dense_act_l2, tp_comb, tn_comb, fp_comb, fn_comb = (
             train_and_evaluate_xgboost_classifier(
                 extend_lists(result["after_activation"]["benign_feature_maps"]["l2"],result["benign_dense_layers"]),
@@ -188,6 +189,25 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             )
         )
 
+
+        _, acc_combination_dense_act_l2_fm_linf, tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double = (
+            train_and_evaluate_xgboost_classifier(
+                extend_lists(
+                    extend_lists(
+                        result["after_activation"]["benign_feature_maps"]["l2"],
+                        result["benign_dense_layers"]
+                    ),
+                    result["before_activation"]["benign_feature_maps"]["l2"]
+                ),
+                extend_lists(
+                    extend_lists(
+                        result["after_activation"]["adv_feature_maps"]["l2"],
+                        result["adv_dense_layers"]
+                    ),
+                    result["before_activation"]["benign_feature_maps"]["l2"]
+                )
+            )
+        )
 
         print_result(
             "Feature map mean", acc_feature_map_mean * 100.0, tp_fm_mean, tn_fm_mean,
@@ -228,7 +248,12 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             "Combination of dense layers and activations L2",
             acc_combination_dense_act_l2 * 100.0,
             tp_comb, tn_comb, fp_comb, fn_comb)
-
+        
+        print_result(
+            "Combination of dense layers, activations L2 and feature maps Linf",
+            acc_combination_dense_act_l2_fm_linf * 100.0,
+            tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double)
+    
 
 
 
