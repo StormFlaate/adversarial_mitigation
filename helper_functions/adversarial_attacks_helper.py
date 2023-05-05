@@ -282,8 +282,8 @@ def generate_adversarial_input(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input = input.to(device)
     label = label.to(device)    
-
-    adversarial_input = attack(input, label)
+    
+    adversarial_input = attack(input, label.float())
     
     return adversarial_input
 
