@@ -106,7 +106,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     attacks: list = []
 
     if all_attacks:
-        attacks.extend(["fgsm", "bim", "cw", "pgd", "deepfool"])
+        attacks.extend(["fgsm", "bim", "cw", "pgd"])
     else:
         attacks.append(attack_name)
 
