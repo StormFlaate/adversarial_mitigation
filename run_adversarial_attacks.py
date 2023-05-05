@@ -192,7 +192,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         )
 
 
-        _, acc_combination_dense_act_l2_fm_linf, tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double = (
+        combo_model, acc_combination_dense_act_l2_fm_linf, tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double = (
             train_and_evaluate_xgboost_classifier(
                 extend_lists(
                     extend_lists(
@@ -286,7 +286,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             ),
             0.01
         )
-        accuracy_transfer = evaluate_classifier_accuracy(model, X_transfer, y_transfer)
+        accuracy_transfer = evaluate_classifier_accuracy(
+            combo_model, X_transfer, y_transfer)
         print(f"Transfer accuracy: {accuracy_transfer}")
 
 
