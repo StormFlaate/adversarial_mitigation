@@ -769,22 +769,10 @@ def _generate_dataset_2018(
         nrows=TRAIN_NROWS
     )
 
-    test_dataset_full = ISICDataset(
-        csv_file=labels_test, 
-        root_dir=root_dir_test, 
-        transform=transform,
-        image_file_type=IMAGE_FILE_TYPE,
-        nrows=TEST_NROWS
-    )
-
     train_dataset = Subset(
         train_dataset_full, indices=[x for x in range(len(train_dataset_full))]
     )
-    test_dataset = Subset(
-        test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
-    )
-    combined_dataset = ConcatDataset([train_dataset, test_dataset])
-    return combined_dataset
+    return train_dataset
 
 def _generate_dataset_2019(
         labels: str,
