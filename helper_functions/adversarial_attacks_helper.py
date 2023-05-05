@@ -283,13 +283,6 @@ def generate_adversarial_input(
     input = input.to(device)
     label = label.to(device)    
 
-    # turns 1-dimensional list into 0-dimensional scalar, needed for attack
-    # label_argmax = torch.argmax(label, 1)
-    
-    # if attack_name == "deepfool":
-    #     label_argmax = (label_argmax+1)%label_argmax
-
-    # generate the adver
     adversarial_input = attack(input, label)
     
     return adversarial_input
