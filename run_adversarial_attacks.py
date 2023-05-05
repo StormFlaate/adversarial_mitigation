@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import torch
-from torch.utils.data import Dataset, Subset, ConcatDataset
+from torch.utils.data import Subset, ConcatDataset
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
@@ -36,7 +36,7 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
 def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
     train, val, test, _ =  get_data_loaders_by_year(
         year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, remove_print=True)
-    concatenated_dataset = Dataset([train.dataset, val.dataset, test.dataset])
+    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
     dataset = Subset(
         concatenated_dataset, indices=[x for x in range(len(concatenated_dataset))]
     )
@@ -46,7 +46,7 @@ def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
     train, val, test, _ = get_data_loaders_by_year(
         year, PREPROCESS_RESNET18, is_augmented_dataset, remove_print=True)
-    concatenated_dataset = Dataset([train.dataset, val.dataset, test.dataset])
+    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
     dataset = Subset(
         concatenated_dataset, indices=[x for x in range(len(concatenated_dataset))]
     )
