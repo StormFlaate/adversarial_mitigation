@@ -269,7 +269,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
         print("Fooling rate: %.2f%%" % (result_transfer["fooling_rate"] * 100.0))
-        X_transfer, _, y_transfer, __ = prepare_data(
+        output = prepare_data(
             extend_lists(
                 extend_lists(
                     result_transfer["after_activation"]["benign_feature_maps"]["l2"],
@@ -285,12 +285,11 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 result_transfer["before_activation"]["benign_feature_maps"]["l2"]
             )
         )
-        print(X_transfer.size)
-        print(y_transfer.size)
+        print(output)
 
 
-        accuracy_transfer = evaluate_classifier_accuracy(
-            combo_model, X_transfer, y_transfer)
+        # accuracy_transfer = evaluate_classifier_accuracy(
+        #     combo_model, X_transfer, y_transfer)
         print(f"Transfer accuracy: {accuracy_transfer}")
 
 
