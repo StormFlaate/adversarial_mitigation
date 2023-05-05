@@ -298,7 +298,8 @@ def random_split(
 
 def get_data_loaders_2018(
         transform,
-        is_augmented_dataset: bool
+        is_augmented_dataset: bool,
+        remove_print: bool=False
     ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
     _validate_split_percentages_2018()
@@ -309,19 +310,23 @@ def get_data_loaders_2018(
         labels_train = AUGMENTED_TRAIN_2018_LABELS
         root_dir_train = AUGMENTED_TRAIN_2018_ROOT_DIR
     
-    data_loaders = get_data_loaders(*_generate_and_split_dataset_2018(
-        labels_train,
-        root_dir_train,
-        TEST_2018_LABELS,
-        TEST_2018_ROOT_DIR,
-        transform
-    ))
+    data_loaders = get_data_loaders(
+        *_generate_and_split_dataset_2018(
+            labels_train,
+            root_dir_train,
+            TEST_2018_LABELS,
+            TEST_2018_ROOT_DIR,
+            transform
+        ),
+        remove_print=remove_print
+    )
     
     return (*data_loaders, root_dir_train)
 
 def get_data_loaders_2019(
         transform,
-        is_augmented_dataset: bool
+        is_augmented_dataset: bool,
+        remove_print: bool=True
     ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
     _validate_split_percentages_2019()
@@ -332,17 +337,21 @@ def get_data_loaders_2019(
         labels = AUGMENTED_DATASET_2019_LABELS
         root_dir = AUGMENTED_DATASET_2019_ROOT_DIR
 
-    data_loaders = get_data_loaders(*_generate_and_split_dataset_2019(
-        labels,
-        root_dir,
-        transform
-    ))
+    data_loaders = get_data_loaders(
+        *_generate_and_split_dataset_2019(
+            labels,
+            root_dir,
+            transform
+        ),
+        remove_print=remove_print
+    )
 
     return (*data_loaders, root_dir)
 
 
 def get_data_loader(
-        dataset: data.Dataset, print_count_dict: bool=False
+        dataset: data.Dataset, 
+        remove_print: bool=False,
 ) -> data.DataLoader:
     """
     Returns a PyTorch DataLoader for a given dataset.
@@ -361,7 +370,7 @@ def get_data_loader(
         num_workers=NUM_WORKERS,
         pin_memory=PIN_MEMORY_TRAIN_DATALOADER
     )
-    if print_count_dict:
+    if not remove_print:
         # Print distribution of skin lesion categories
         count_dict = get_category_counts(dataloader)
         
@@ -375,6 +384,7 @@ def get_data_loaders(
     train_dataset: data.Dataset,
     val_dataset: data.Dataset,
     test_dataset: data.Dataset,
+    remove_print: bool=False
 ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
     """
     Returns train_data_loader, val_data_loader, and test_data_loader.
@@ -389,12 +399,9 @@ def get_data_loaders(
             train_data_loader, val_data_loader, and test_data_loader.
     """
     
-    print(f"Train dataset length: {len(train_dataset)}")
-    print(f"Validation dataset length: {len(val_dataset)}")
-    print(f"Test dataset length: {len(test_dataset)}")
 
     # Define train data loader
-    print("Defining train data loader...")
+    if not remove_print: print("Defining train data loader...")
     train_data_loader = data.DataLoader(
         train_dataset, 
         batch_size=BATCH_SIZE, 
@@ -404,7 +411,7 @@ def get_data_loaders(
     )
 
     # Define validation data loader
-    print("Defining validation data loader...")
+    if not remove_print: print("Defining validation data loader...")
     val_data_loader = data.DataLoader(
         val_dataset, 
         batch_size=BATCH_SIZE, 
@@ -414,7 +421,7 @@ def get_data_loaders(
     )
 
     # Define test data loader
-    print("Defining test data loader...")
+    if not remove_print: print("Defining test data loader...")
     test_data_loader = data.DataLoader(
         test_dataset, 
         batch_size=1, 
@@ -426,28 +433,36 @@ def get_data_loaders(
     train_count_dict = get_category_counts(train_data_loader)
     val_count_dict = get_category_counts(val_data_loader)
     test_count_dict = get_category_counts(test_data_loader)
-    
-    print("Train data loader - distribution of the skin lesion categories")
-    print(train_count_dict)
-    print("Validation data loader - distribution of the skin lesion categories")
-    print(val_count_dict)
-    print("Test data loader - distribution of the skin lesion categories")
-    print(test_count_dict)
+    if not remove_print:
+        print(f"Train dataset length: {len(train_dataset)}")
+        print(f"Validation dataset length: {len(val_dataset)}")
+        print(f"Test dataset length: {len(test_dataset)}")
+        print("Train data loader - distribution of the skin lesion categories")
+        print(train_count_dict)
+        print("Validation data loader - distribution of the skin lesion categories")
+        print(val_count_dict)
+        print("Test data loader - distribution of the skin lesion categories")
+        print(test_count_dict)
     
     return train_data_loader, val_data_loader, test_data_loader
 
 def get_data_loaders_by_year(
-        year, transform, is_augmented_dataset
+        year,
+        transform,
+        is_augmented_dataset,
+        remove_print: bool=False
 ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     if year == "2018":
         return get_data_loaders_2018(
             transform=transform,
-            is_augmented_dataset=is_augmented_dataset
+            is_augmented_dataset=is_augmented_dataset,
+            remove_print=remove_print
         )
     elif year == "2019":
         return get_data_loaders_2019(
             transform=transform,
-            is_augmented_dataset=is_augmented_dataset
+            is_augmented_dataset=is_augmented_dataset,
+            remove_print=remove_print
         )
     else:
         raise Exception("Need to choose dataset year...")
