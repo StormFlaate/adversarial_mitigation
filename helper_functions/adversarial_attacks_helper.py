@@ -7,13 +7,12 @@ import torch
 import torchattacks
 from tqdm import tqdm
 import xgboost as xgb
-from numba import jit
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
 
-@jit
+
 def process_and_extract_components_and_metrics(
         data_loader: DataLoader,
         adversarial_attack,
@@ -148,7 +147,7 @@ def train_and_evaluate_xgboost_classifier(
         tp, tn, fp, fn
     )
 
-@jit
+
 def prepare_data(
     benign_list: list[list[float]] | np.ndarray,
     adv_list: list[list[float]] | np.ndarray,
@@ -343,7 +342,7 @@ def assess_attack_and_log_distances(
         np.argmax(predicted_adversarial_label.detach().cpu().numpy())
     )
 
-@jit
+
 def assess_attack(
     model: torch.nn.Module,
     device: torch.device,
@@ -390,7 +389,7 @@ def assess_attack(
     fooling_rate = fooled / correct
     return fooling_rate
 
-@jit
+
 def assess_attack_single_input(
     model: torch.nn.Module,
     device: torch.device,
@@ -496,7 +495,7 @@ def l2_distance_metric(tensor: torch.Tensor) -> float:
 def linfinity_distance_metric(tensor: torch.Tensor) -> float:
     return torch.norm(tensor, p=float('inf')).item()
 
-@jit
+
 def get_feature_maps(input, model, model_name, before_activation_fn):
     """Get feature maps from a given model.
 
