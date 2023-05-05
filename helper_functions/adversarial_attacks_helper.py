@@ -286,8 +286,8 @@ def generate_adversarial_input(
     # turns 1-dimensional list into 0-dimensional scalar, needed for attack
     label_argmax = torch.argmax(label, 1)
     
-    if attack_name == "deepfool":
-        label_argmax = label
+    # if attack_name == "deepfool":
+    #     label_argmax = label
     print(label_argmax)
 
     # generate the adver
