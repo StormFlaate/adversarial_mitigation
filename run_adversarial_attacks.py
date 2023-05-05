@@ -180,6 +180,13 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             )
         )
 
+        _, acc_combination_dense_act_l2, tp_comb, tn_comb, fp_comb, fn_comb = (
+            train_and_evaluate_xgboost_classifier(
+                result["after_activation"]["benign_feature_maps"]["l2"]+result["benign_dense_layers"],
+                result["after_activation"]["adv_feature_maps"]["l2"]+result["adv_dense_layers"],
+            )
+        )
+
 
         print_result(
             "Feature map mean", acc_feature_map_mean * 100.0, tp_fm_mean, tn_fm_mean,
@@ -215,6 +222,11 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         )
         print_result(
             "Dense layers", acc_dense_layers * 100.0, tp_dl, tn_dl, fp_dl, fn_dl)
+        
+        print_result(
+            "Combination of dense layers and activations L2",
+            acc_combination_dense_act_l2 * 100.0,
+            tp_comb, tn_comb, fp_comb, fn_comb)
 
 
 
