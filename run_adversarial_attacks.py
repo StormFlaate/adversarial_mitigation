@@ -283,9 +283,12 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                     result_transfer["adv_dense_layers"]
                 ),
                 result_transfer["before_activation"]["benign_feature_maps"]["l2"]
-            ),
-            0.3
+            )
         )
+        print(X_transfer.size)
+        print(y_transfer.size)
+
+
         accuracy_transfer = evaluate_classifier_accuracy(
             combo_model, X_transfer, y_transfer)
         print(f"Transfer accuracy: {accuracy_transfer}")
