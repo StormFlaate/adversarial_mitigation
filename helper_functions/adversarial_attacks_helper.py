@@ -283,7 +283,7 @@ def generate_adversarial_input(
     input = input.to(device)
     label = label.to(device)    
     if attack_name == "deepfool":
-        label = torch.argmax(label, 1)
+        label = torch.argmax(label, 1).item()
     adversarial_input = attack(input, label)
 
     
