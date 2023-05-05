@@ -19,6 +19,7 @@ def process_and_extract_components_and_metrics(
         model: torch.nn.Module,
         model_name: str,
         device: str,
+        attack_name: str,
         sample_limit: int = None,
         include_dense_layers: bool = False
 ) -> tuple:
@@ -50,7 +51,8 @@ def process_and_extract_components_and_metrics(
         input = input.to(device)
         true_label = true_label.to(device)
 
-        adv_input = generate_adversarial_input(input, true_label, adversarial_attack)
+        adv_input = generate_adversarial_input(
+            input, true_label, adversarial_attack, attack_name)
 
         correct, fooled = assess_attack_single_input(
             model, device, input, adv_input, true_label, (correct, fooled)
@@ -255,7 +257,8 @@ def evaluate_classifier_metrics(
 def generate_adversarial_input(
     input: torch.Tensor,
     label: torch.Tensor,
-    attack
+    attack,
+    attack_name: str
 ) -> tuple[torch.tensor]:
     """
     Applies an adversarial attack to an input tensor and returns the adversarial
@@ -281,6 +284,8 @@ def generate_adversarial_input(
     label = label.to(device)    
 
     # turns 1-dimensional list into 0-dimensional scalar, needed for attack
+    if attack_name == "deepfool":
+        label_argmax = label
     print(label)
     label_argmax = torch.argmax(label, 1)
 

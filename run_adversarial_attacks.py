@@ -115,8 +115,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attack = select_attack(model, attack_name)
         result = (
             process_and_extract_components_and_metrics(
-                dataloader, attack, model, model_name, device, sample_limit=samples,
-                include_dense_layers=True
+                dataloader, attack, model, model_name, device, attack_name,
+                sample_limit=samples, include_dense_layers=True
             )
         )
         print("Fooling rate: %.2f%%" % (result["fooling_rate"] * 100.0))
