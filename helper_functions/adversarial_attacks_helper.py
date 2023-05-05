@@ -48,6 +48,7 @@ def process_and_extract_components_and_metrics(
     fooled = 0
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
+        print(true_label)
         input = input.to(device)
         true_label = true_label.to(device)
 
@@ -285,6 +286,7 @@ def generate_adversarial_input(
 
     # turns 1-dimensional list into 0-dimensional scalar, needed for attack
     label_argmax = torch.argmax(label, 1)
+    
     if attack_name == "deepfool":
         label_argmax = (label_argmax+1)%label_argmax
 
