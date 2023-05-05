@@ -10,7 +10,9 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
+    evaluate_classifier_accuracy,
     extend_lists,
+    prepare_data,
     print_result,
     process_and_extract_components_and_metrics,
     select_attack,
@@ -210,49 +212,84 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         )
 
         print_result(
-            "Feature map mean", acc_feature_map_mean * 100.0, tp_fm_mean, tn_fm_mean,
-            fp_fm_mean, fn_fm_mean
+            "Feature map mean", acc_feature_map_mean * 100.0,
+            tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean
         )
         print_result(
-            "Feature map L1", acc_feature_map_l1 * 100.0, tp_fm_l1, tn_fm_l1, fp_fm_l1,
-            fn_fm_l1
+            "Feature map L1", acc_feature_map_l1 * 100.0,
+            tp_fm_l1, tn_fm_l1, fp_fm_l1, fn_fm_l1
         )
         print_result(
-            "Feature map L2", acc_feature_map_l2 * 100.0, tp_fm_l2, tn_fm_l2, fp_fm_l2,
-            fn_fm_l2
+            "Feature map L2", acc_feature_map_l2 * 100.0,
+            tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2
         )
         print_result(
-            "Feature map Linf", acc_feature_map_linf * 100.0, tp_fm_linf, tn_fm_linf,
-            fp_fm_linf, fn_fm_linf
+            "Feature map Linf", acc_feature_map_linf * 100.0,
+            tp_fm_linf, tn_fm_linf, fp_fm_linf, fn_fm_linf
         )
         print_result(
-            "Activations mean", acc_activations_mean * 100.0, tp_act_mean, tn_act_mean,
-            fp_act_mean, fn_act_mean
+            "Activations mean", acc_activations_mean * 100.0,
+            tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean
         )
         print_result(
-            "Activations L1", acc_activations_l1*100.0, tp_act_l1, tn_act_l1, fp_act_l1,
-            fn_act_l1
+            "Activations L1", acc_activations_l1*100.0,
+            tp_act_l1, tn_act_l1, fp_act_l1, fn_act_l1
         )
         print_result(
-            "Activations L2", acc_activations_l2*100.0, tp_act_l2, tn_act_l2, fp_act_l2,
-            fn_act_l2
+            "Activations L2", acc_activations_l2*100.0,
+            tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2
         )
         print_result(
-            "Activations Linf", acc_activations_linf*100.0, tp_act_linf, tn_act_linf,
-            fp_act_linf, fn_act_linf
+            "Activations Linf", acc_activations_linf*100.0,
+            tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf
         )
         print_result(
-            "Dense layers", acc_dense_layers * 100.0, tp_dl, tn_dl, fp_dl, fn_dl)
-        
+            "Dense layers", acc_dense_layers * 100.0, tp_dl, tn_dl, fp_dl, fn_dl
+        )
         print_result(
             "Combination of dense layers and activations L2",
             acc_combination_dense_act_l2 * 100.0,
-            tp_comb, tn_comb, fp_comb, fn_comb)
-        
+            tp_comb, tn_comb, fp_comb, fn_comb
+        )
         print_result(
             "Combination of dense layers, activations L2 and feature maps Linf",
             acc_combination_dense_act_l2_fm_linf * 100.0,
-            tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double)
+            tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double
+        )
+
+
+        attack_name_transfer = "fgsm"
+        attack_transfer = select_attack(model, "fgsm")
+        result_transfer = (
+            process_and_extract_components_and_metrics(
+                dataloader, attack_transfer, model, model_name, device,
+                attack_name_transfer, sample_limit=samples, include_dense_layers=True
+            )
+        )
+
+
+        print("Fooling rate: %.2f%%" % (result_transfer["fooling_rate"] * 100.0))
+        X_transfer, _, y_transfer, _ = prepare_data(
+            extend_lists(
+                extend_lists(
+                    result["after_activation"]["benign_feature_maps"]["l2"],
+                    result["benign_dense_layers"]
+                ),
+                result["before_activation"]["benign_feature_maps"]["l2"]
+            ),
+            extend_lists(
+                extend_lists(
+                    result["after_activation"]["adv_feature_maps"]["l2"],
+                    result["adv_dense_layers"]
+                ),
+                result["before_activation"]["benign_feature_maps"]["l2"]
+            ),
+            0.01
+        )
+        accuracy_transfer = evaluate_classifier_accuracy(model, X_transfer, y_transfer)
+        print(f"Transfer accuracy: {accuracy_transfer}")
+
+
     
 
 

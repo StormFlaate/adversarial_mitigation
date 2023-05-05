@@ -2,7 +2,7 @@ from typing import Dict, List, Sequence, Union, Tuple, TypeVar
 import pandas as pd
 import torch
 import torch.utils.data as data
-from torch.utils.data import Dataset, Subset, ConcatDataset
+from torch.utils.data import Dataset, Subset
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
