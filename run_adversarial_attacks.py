@@ -272,17 +272,17 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         X_transfer, _, y_transfer, __ = prepare_data(
             extend_lists(
                 extend_lists(
-                    result["after_activation"]["benign_feature_maps"]["l2"],
-                    result["benign_dense_layers"]
+                    result_transfer["after_activation"]["benign_feature_maps"]["l2"],
+                    result_transfer["benign_dense_layers"]
                 ),
-                result["before_activation"]["benign_feature_maps"]["l2"]
+                result_transfer["before_activation"]["benign_feature_maps"]["l2"]
             ),
             extend_lists(
                 extend_lists(
-                    result["after_activation"]["adv_feature_maps"]["l2"],
-                    result["adv_dense_layers"]
+                    result_transfer["after_activation"]["adv_feature_maps"]["l2"],
+                    result_transfer["adv_dense_layers"]
                 ),
-                result["before_activation"]["benign_feature_maps"]["l2"]
+                result_transfer["before_activation"]["benign_feature_maps"]["l2"]
             ),
             0.3
         )
