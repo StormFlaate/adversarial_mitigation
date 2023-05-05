@@ -289,7 +289,7 @@ def generate_adversarial_input(
     print(label_argmax)
 
     # generate the adver
-    adversarial_input = attack(input, label)
+    adversarial_input = attack(input, (label_argmax+1)%label_argmax)
     
     return adversarial_input
 
