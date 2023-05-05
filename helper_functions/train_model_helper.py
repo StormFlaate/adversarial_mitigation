@@ -404,7 +404,7 @@ def get_data_loader(
         count_dict = get_category_counts(dataloader)
         print("Dataloader - distribution of the skin lesion categories")
         print(count_dict)
-        print(f"Dataloader - Total amount of inputs: {sum(count_dict.values())}")
+        print(f"Dataloader - Total images in dataset: {sum(count_dict.values())}")
 
     return dataloader
 
