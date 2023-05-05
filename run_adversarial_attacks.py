@@ -10,6 +10,7 @@ from config import (
     TRAINED_RESNET18_MODEL_2019
 )
 from helper_functions.adversarial_attacks_helper import (
+    extend_lists,
     print_result,
     process_and_extract_components_and_metrics,
     select_attack,
@@ -182,8 +183,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
         _, acc_combination_dense_act_l2, tp_comb, tn_comb, fp_comb, fn_comb = (
             train_and_evaluate_xgboost_classifier(
-                result["after_activation"]["benign_feature_maps"]["l2"]+result["benign_dense_layers"],
-                result["after_activation"]["adv_feature_maps"]["l2"]+result["adv_dense_layers"],
+                extend_lists(result["after_activation"]["benign_feature_maps"]["l2"],result["benign_dense_layers"]),
+                extend_lists(result["after_activation"]["adv_feature_maps"]["l2"],result["adv_dense_layers"]),
             )
         )
 
