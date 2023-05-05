@@ -253,7 +253,7 @@ def evaluate_classifier_metrics(
     tn, fp, fn, tp = confusion_matrix(test_labels, predictions).ravel()
     return tp, tn, fp, fn
 
-@jit
+
 def generate_adversarial_input(
     input: torch.Tensor,
     label: torch.Tensor,
