@@ -37,14 +37,14 @@ def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
     train, val, test, _ =  get_data_loaders_by_year(
         year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, remove_print=True)
     concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
-    return get_data_loader(concatenated_dataset)
+    return get_data_loader(concatenated_dataset.datasets)
 
 
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
     train, val, test, _ = get_data_loaders_by_year(
         year, PREPROCESS_RESNET18, is_augmented_dataset, remove_print=True)
     concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
-    return get_data_loader(concatenated_dataset)
+    return get_data_loader(concatenated_dataset.datasets)
 
 
 def _initialize_device() -> torch.device:
