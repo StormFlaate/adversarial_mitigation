@@ -286,8 +286,6 @@ def generate_adversarial_input(
     # turns 1-dimensional list into 0-dimensional scalar, needed for attack
     label_argmax = torch.argmax(label, 1)
 
-    print(label_argmax)
-
     # generate the adver
     adversarial_input = attack(input, (label_argmax+1)%label_argmax)
     
