@@ -370,8 +370,6 @@ def get_data_loaders_2019(
             _generate_dataset_2019(
                 labels,
                 root_dir,
-                TEST_2018_LABELS,
-                TEST_2018_ROOT_DIR,
                 transform
             )
         )
