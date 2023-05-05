@@ -34,23 +34,16 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
 
 
 def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
-    train, val, test, _ =  get_data_loaders_by_year(
-        year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, remove_print=True)
-    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
-    dataset = Subset(
-        concatenated_dataset, indices=[x for x in range(len(concatenated_dataset))]
-    )
-    return get_data_loader(dataset)
+    dataloader, _ =  get_data_loaders_by_year(
+        year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, split_dataset=False)
+    return dataloader
 
 
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
-    train, val, test, _ = get_data_loaders_by_year(
-        year, PREPROCESS_RESNET18, is_augmented_dataset, remove_print=True)
-    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
-    dataset = Subset(
-        concatenated_dataset, indices=[x for x in range(len(concatenated_dataset))]
-    )
-    return get_data_loader(dataset)
+    dataloader, _ = get_data_loaders_by_year(
+        year, PREPROCESS_RESNET18, is_augmented_dataset, split_dataset=False)
+    return dataloader
+    
 
 
 def _initialize_device() -> torch.device:

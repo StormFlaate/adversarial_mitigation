@@ -2,7 +2,7 @@ from typing import Dict, List, Sequence, Union, Tuple, TypeVar
 import pandas as pd
 import torch
 import torch.utils.data as data
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset, Subset, ConcatDataset
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -299,7 +299,8 @@ def random_split(
 def get_data_loaders_2018(
         transform,
         is_augmented_dataset: bool,
-        remove_print: bool=False
+        remove_print: bool=False,
+        split_dataset: bool=True
     ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
     _validate_split_percentages_2018()
@@ -310,24 +311,38 @@ def get_data_loaders_2018(
         labels_train = AUGMENTED_TRAIN_2018_LABELS
         root_dir_train = AUGMENTED_TRAIN_2018_ROOT_DIR
     
-    data_loaders = get_data_loaders(
-        *_generate_and_split_dataset_2018(
-            labels_train,
-            root_dir_train,
-            TEST_2018_LABELS,
-            TEST_2018_ROOT_DIR,
-            transform
-        ),
-        remove_print=remove_print
-    )
+    if split_dataset:
+        data_loaders = get_data_loaders(
+            *_generate_and_split_dataset_2018(
+                labels_train,
+                root_dir_train,
+                TEST_2018_LABELS,
+                TEST_2018_ROOT_DIR,
+                transform
+            ),
+            remove_print=remove_print
+        )
     
-    return (*data_loaders, root_dir_train)
+        return (*data_loaders, root_dir_train)
+    else:
+        data_loader = get_data_loader(
+            _generate_dataset_2018(
+                labels_train,
+                root_dir_train,
+                TEST_2018_LABELS,
+                TEST_2018_ROOT_DIR,
+                transform
+            )
+        )
+        return (data_loader, root_dir_train)
+
 
 def get_data_loaders_2019(
         transform,
         is_augmented_dataset: bool,
-        remove_print: bool=True
-    ) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
+        remove_print: bool=True,
+        split_dataset: bool=True
+    ) -> tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
     
     _validate_split_percentages_2019()
 
@@ -337,16 +352,28 @@ def get_data_loaders_2019(
         labels = AUGMENTED_DATASET_2019_LABELS
         root_dir = AUGMENTED_DATASET_2019_ROOT_DIR
 
-    data_loaders = get_data_loaders(
-        *_generate_and_split_dataset_2019(
-            labels,
-            root_dir,
-            transform
-        ),
-        remove_print=remove_print
-    )
+    if split_dataset:
+        data_loaders = get_data_loaders(
+            *_generate_and_split_dataset_2019(
+                labels,
+                root_dir,
+                transform
+            ),
+            remove_print=remove_print
+        )
 
-    return (*data_loaders, root_dir)
+        return (*data_loaders, root_dir)
+    else:
+        data_loader = get_data_loader(
+            _generate_dataset_2019(
+                labels,
+                root_dir,
+                TEST_2018_LABELS,
+                TEST_2018_ROOT_DIR,
+                transform
+            )
+        )
+        return (data_loader, root_dir)
 
 
 def get_data_loader(
@@ -385,7 +412,7 @@ def get_data_loaders(
     val_dataset: data.Dataset,
     test_dataset: data.Dataset,
     remove_print: bool=False
-) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
+) -> tuple[data.DataLoader, data.DataLoader, data.DataLoader]:
     """
     Returns train_data_loader, val_data_loader, and test_data_loader.
 
@@ -450,19 +477,22 @@ def get_data_loaders_by_year(
         year,
         transform,
         is_augmented_dataset,
-        remove_print: bool=False
-) -> Tuple[data.DataLoader, data.DataLoader, data.DataLoader, str]:
+        remove_print: bool=False,
+        split_dataset: bool=True
+) -> tuple[data.DataLoader, data.DataLoader, data.DataLoader, str] | tuple[data.DataLoader, str]:
     if year == "2018":
         return get_data_loaders_2018(
             transform=transform,
             is_augmented_dataset=is_augmented_dataset,
-            remove_print=remove_print
+            remove_print=remove_print,
+            split_dataset=split_dataset
         )
     elif year == "2019":
         return get_data_loaders_2019(
             transform=transform,
             is_augmented_dataset=is_augmented_dataset,
-            remove_print=remove_print
+            remove_print=remove_print,
+            split_dataset=split_dataset
         )
     else:
         raise Exception("Need to choose dataset year...")
@@ -660,7 +690,7 @@ def _generate_and_split_dataset_2018(
         labels_test: str,
         root_dir_test: str,
         transform
-    ) -> Tuple[Subset, Subset, Subset]:
+    ) -> tuple[Subset, Subset, Subset]:
     """
     Splits the dataset into train, validation and test based on the provided split
         percentages.
@@ -699,7 +729,7 @@ def _generate_and_split_dataset_2019(
         labels: str,
         root_dir: str,
         transform
-    ) -> Tuple[Subset, Subset, Subset]:
+    ) -> tuple[Subset, Subset, Subset]:
 
     _validate_split_percentages_2019()
     
@@ -719,3 +749,60 @@ def _generate_and_split_dataset_2019(
         ]
     )
     return train_validation_test_dataset
+
+
+
+def _generate_dataset_2018(
+        labels_train: str,
+        root_dir_train: str,
+        labels_test: str,
+        root_dir_test: str,
+        transform
+    ) -> Subset:
+
+    print("Loading datasets...")
+    train_dataset_full = ISICDataset(
+        csv_file=labels_train, 
+        root_dir=root_dir_train, 
+        transform=transform,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TRAIN_NROWS
+    )
+
+    test_dataset_full = ISICDataset(
+        csv_file=labels_test, 
+        root_dir=root_dir_test, 
+        transform=transform,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TEST_NROWS
+    )
+
+    train_dataset = Subset(
+        train_dataset_full, indices=[x for x in range(len(train_dataset_full))]
+    )
+    test_dataset = Subset(
+        test_dataset_full, indices=[x for x in range(len(test_dataset_full))]
+    )
+    combined_dataset = ConcatDataset([train_dataset, test_dataset])
+    return combined_dataset
+
+def _generate_dataset_2019(
+        labels: str,
+        root_dir: str,
+        transform
+    ) -> Subset:
+    
+    print("Loading datasets...")
+    train_dataset_full = ISICDataset(
+        csv_file=labels, 
+        root_dir=root_dir, 
+        transform=transform,
+        image_file_type=IMAGE_FILE_TYPE,
+        nrows=TRAIN_NROWS
+    )
+
+    train_dataset = Subset(
+        train_dataset_full, indices=[x for x in range(len(train_dataset_full))]
+    )
+
+    return train_dataset
