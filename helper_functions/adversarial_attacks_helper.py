@@ -282,7 +282,7 @@ def generate_adversarial_input(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input = input.to(device)
     label = label.to(device)    
-    if attack_name == "deepfol":
+    if attack_name == "deepfool":
         label = torch.argmax(label, 1)
     adversarial_input = attack(input, label.float())
 
