@@ -325,6 +325,7 @@ def get_data_loaders_2018(
     
         return (*data_loaders, root_dir_train)
     else:
+        print("Not splitting dataset")
         data_loader = get_data_loader(
             _generate_dataset_2018(
                 labels_train,
@@ -364,6 +365,7 @@ def get_data_loaders_2019(
 
         return (*data_loaders, root_dir)
     else:
+        print("Not splitting dataset")
         data_loader = get_data_loader(
             _generate_dataset_2019(
                 labels,
@@ -400,9 +402,9 @@ def get_data_loader(
     if not remove_print:
         # Print distribution of skin lesion categories
         count_dict = get_category_counts(dataloader)
-        
         print("Dataloader - distribution of the skin lesion categories")
         print(count_dict)
+        print(f"Dataloader - Total amount of inputs: {sum(count_dict.values())}")
 
     return dataloader
 
