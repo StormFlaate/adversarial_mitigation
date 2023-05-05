@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import torch
+from torch.utils.data import DataLoader, ConcatDataset
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
@@ -15,7 +16,7 @@ from helper_functions.adversarial_attacks_helper import (
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
-from helper_functions.train_model_helper import get_data_loaders_by_year
+from helper_functions.train_model_helper import get_data_loader, get_data_loaders_by_year
 
 
 def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
@@ -33,11 +34,17 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
 
 
 def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
-    return get_data_loaders_by_year(year, PREPROCESS_INCEPTIONV3, is_augmented_dataset)
+    train, val, test, _ =  get_data_loaders_by_year(
+        year, PREPROCESS_INCEPTIONV3, is_augmented_dataset)
+    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
+    return get_data_loader(concatenated_dataset)
 
 
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
-    return get_data_loaders_by_year(year, PREPROCESS_RESNET18, is_augmented_dataset)
+    train, val, test, _ = get_data_loaders_by_year(
+        year, PREPROCESS_RESNET18, is_augmented_dataset)
+    concatenated_dataset = ConcatDataset([train.dataset, val.dataset, test.dataset])
+    return get_data_loader(concatenated_dataset)
 
 
 def _initialize_device() -> torch.device:
@@ -85,11 +92,12 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
-        train_dl, val_dl, test_dl, _ = _initialize_data_loader_resnet18(
+        dataloader = _initialize_data_loader_resnet18(
             year, is_augmented
         )
+        
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        train_dl, val_dl, test_dl, _ = _initialize_data_loader_inception_v3(
+        dataloader = _initialize_data_loader_inception_v3(
             year, is_augmented
         )
     else:
@@ -108,7 +116,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attack = select_attack(model, attack_name)
         result = (
             process_and_extract_components_and_metrics(
-                train_dl, attack, model, model_name, device, sample_limit=samples,
+                dataloader, attack, model, model_name, device, sample_limit=samples,
                 include_dense_layers=True
             )
         )

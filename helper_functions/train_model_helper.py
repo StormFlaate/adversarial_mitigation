@@ -460,7 +460,7 @@ def get_data_loaders_by_year(
 def validate_model_during_training(
         model: torch.nn.Module,
         data_loader: DataLoader[Subset[ISICDataset]]
-    ) -> tuple:
+) -> tuple:
     """Tests the accuracy of a trained neural network model.
 
     Args:
