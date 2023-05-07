@@ -293,13 +293,13 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             result_transfer["before_activation"]["adv_feature_maps"]["l2"]
         )
         
-        print(len(result_transfer["after_activation"]["benign_feature_maps"]["l2"]))
-        print(len(result_transfer["benign_dense_layers"]))
-        print(len(result_transfer["before_activation"]["benign_feature_maps"]["l2"]))
+        print(len(result_transfer["after_activation"]["benign_feature_maps"]["l2"][0]))
+        print(len(result_transfer["benign_dense_layers"][0]))
+        print(len(result_transfer["before_activation"]["benign_feature_maps"]["l2"][0]))
         
-        print(len(result_transfer["after_activation"]["adv_feature_maps"]["l2"]))
-        print(len(result_transfer["adv_dense_layers"]))
-        print(len(result_transfer["before_activation"]["adv_feature_maps"]["l2"]))
+        print(len(result_transfer["after_activation"]["adv_feature_maps"]["l2"][0]))
+        print(len(result_transfer["adv_dense_layers"][0]))
+        print(len(result_transfer["before_activation"]["adv_feature_maps"]["l2"][0]))
 
 
         print(len(benign_list_transfer[0]))
