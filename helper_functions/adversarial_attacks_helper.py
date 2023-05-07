@@ -22,7 +22,7 @@ def process_and_extract_components_and_metrics(
         attack_name: str,
         sample_limit: int = None,
         include_dense_layers: bool = False
-) -> tuple:
+) -> dict:
     
     def update_feature_maps(
             feature_maps, input_data, model, model_name, metrics, before_activation):
@@ -622,10 +622,8 @@ def save_average_line_plots(log_distances, output_dir, file_name):
 
 def extend_lists(list1, list2):
     result = []
-    for i in list1:
-        result.append(i)
-    for i in list2:
-        result.append(i)
+    result.extend(list(list1))
+    result.extend(list(list2))
     return result
 
 
