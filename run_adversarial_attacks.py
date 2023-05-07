@@ -156,6 +156,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         )
 
         for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
+            print("Original attack: ", attack_name)
+            print("Transfer attack: ", attack_name_transfer)
             attack_transfer = select_attack(model, attack_name_transfer)
             res_transfer: ProcessResults = process_and_extract_components_and_metrics(
                 dataloader, attack_transfer, model, model_name, device,
@@ -183,7 +185,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 combo_dense_act_l2_fm_linf.model, output[0], output[2])
 
             print_result(
-                attack_name_transfer,
+                attack_name_transfer*100.0,
                 transfer_accuracy,
                 *transfer_confusion_matrix
             )
