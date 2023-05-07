@@ -132,18 +132,14 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
         benign_combo_list = extend_lists(
-            extend_lists(
-                after_activation.benign_feature_maps.l2,
-                result.benign_dense_layers
-            ),
+            after_activation.benign_feature_maps.l2,
+            result.benign_dense_layers,
             before_activation.benign_feature_maps.linf
         )
 
         adv_combo_list = extend_lists(
-            extend_lists(
-                after_activation.adv_feature_maps.l2,
-                result.adv_dense_layers
-            ),
+            after_activation.adv_feature_maps.l2,
+            result.adv_dense_layers,
             before_activation.adv_feature_maps.linf
         )
 
@@ -168,19 +164,13 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
         benign_list_transfer = extend_lists(
-            extend_lists(
-                result_transfer.after_activation.benign_feature_maps.l2,
-                result_transfer.benign_dense_layers
-            ),
+            result_transfer.after_activation.benign_feature_maps.l2,
+            result_transfer.benign_dense_layers,
             result_transfer.before_activation.benign_feature_maps.l2
         )
-
-
         adv_list_transfer = extend_lists(
-            extend_lists(
-                result_transfer.after_activation.adv_feature_maps.l2,
-                result_transfer.adv_dense_layers
-            ),
+            result_transfer.after_activation.adv_feature_maps.l2,
+            result_transfer.adv_dense_layers,
             result_transfer.before_activation.adv_feature_maps.l2
         )
         

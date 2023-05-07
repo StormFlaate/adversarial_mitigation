@@ -625,26 +625,29 @@ def save_average_line_plots(log_distances, output_dir, file_name):
     plt.close()
 
 
-def extend_lists(
-    list1: list[list[float]] | np.ndarray,
-    list2: list[list[float]] | np.ndarray
-) -> list[list[float]]:
+def extend_lists(*args: list[list[float]] | np.ndarray) -> list[list[float]]:
     """
-    Concatenates the elements of two lists of lists or 2D arrays element-wise.
+    Concatenates the elements of multiple lists of lists or 2D arrays element-wise.
 
     Args:
-        list1 (list of lists or 2D array): A 2D list or array-like object.
-        list2 (list of lists or 2D array): A 2D list or array-like object with
-            the same number of elements as list1.
+        *args (list of lists or 2D array): A variable number of 2D list or array-like
+            objects.
 
     Returns:
         list: A new list of lists where each element is the concatenation of the
-            corresponding elements from list1 and list2.
+            corresponding elements from each of the input lists.
     """
-    if len(list1) != len(list2):
-        raise ValueError("Both input lists must have the same length.")
-
-    extended_list = [list1[i] + list2[i] for i in range(len(list1))]
+    if len(args) < 2:
+        raise ValueError("At least two input lists are required.")
+    
+    list_lengths = [len(lst) for lst in args]
+    if not all(l == list_lengths[0] for l in list_lengths):
+        raise ValueError("All input lists must have the same length.")
+    
+    extended_list = [
+        [elem for sublist in [lst[i] for lst in args] for elem in sublist]
+        for i in range(list_lengths[0])
+    ]
     return extended_list
 
 
