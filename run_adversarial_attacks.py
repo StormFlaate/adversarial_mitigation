@@ -13,6 +13,7 @@ from data_classes import ProcessResults
 from helper_functions.adversarial_attacks_helper import (
     evaluate_attack_metrics,
     evaluate_classifier_accuracy,
+    evaluate_classifier_metrics,
     extend_lists,
     prepare_data,
     print_result,
@@ -154,38 +155,33 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             combo_dense_act_l2_fm_linf.fn
         )
 
-        continue
-        attack_name_transfer = "fgsm"
-        attack_transfer = select_attack(model, "fgsm")
-        result_transfer: ProcessResults = (
-            process_and_extract_components_and_metrics(
+        for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
+            attack_transfer = select_attack(model, attack_name_transfer)
+            res_transfer: ProcessResults = process_and_extract_components_and_metrics(
                 dataloader, attack_transfer, model, model_name, device,
-                attack_name_transfer, sample_limit=samples, include_dense_layers=True
+                attack_name_transfer, sample_limit=625, include_dense_layers=True
             )
-        )
-        print("Fooling rate: %.2f%%" % (result_transfer.fooling_rate * 100.0))
+            print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
 
+            benign_list_transfer = extend_lists(
+                res_transfer.after_activation.benign_feature_maps.l2,
+                res_transfer.benign_dense_layers,
+                res_transfer.before_activation.benign_feature_maps.linf
+            )
+            adv_list_transfer = extend_lists(
+                res_transfer.after_activation.adv_feature_maps.l2,
+                res_transfer.adv_dense_layers,
+                res_transfer.before_activation.adv_feature_maps.linf
+            )
+                    
+            output = prepare_data(benign_list_transfer, adv_list_transfer)
 
+            transfer_accuracy = evaluate_classifier_accuracy(
+                combo_dense_act_l2_fm_linf.model, output[0], output[2])
+            transfer_confusion = evaluate_classifier_metrics(
+                combo_dense_act_l2_fm_linf.model, output[0], output[2])
 
-        benign_list_transfer = extend_lists(
-            result_transfer.after_activation.benign_feature_maps.l2,
-            result_transfer.benign_dense_layers,
-            result_transfer.before_activation.benign_feature_maps.linf
-        )
-        adv_list_transfer = extend_lists(
-            result_transfer.after_activation.adv_feature_maps.l2,
-            result_transfer.adv_dense_layers,
-            result_transfer.before_activation.adv_feature_maps.linf
-        )
-        
-    
-        output = prepare_data(benign_list_transfer, adv_list_transfer)
-
-
-        accuracy_transfer = evaluate_classifier_accuracy(
-            combo_dense_act_l2_fm_linf.model, output[0], output[2])
-        print(f"Transfer accuracy: {accuracy_transfer}")
-
+            print_result(attack_name_transfer, transfer_accuracy, *transfer_confusion)
 
     
 

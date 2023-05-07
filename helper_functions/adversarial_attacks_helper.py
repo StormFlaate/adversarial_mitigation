@@ -37,13 +37,16 @@ def process_and_extract_components_and_metrics(
         'mean': mean_metric,
         'l1': l1_distance_metric,
         'l2': l2_distance_metric,
-        'linf': linfinity_distance_metric
+        'linf': linfinity_distance_metric,
+        'std': std_dev_metric,
+        'var': variance_metric,
+        'fro': frobenius_norm_metric,
     }
 
-    benign_feature_maps_before = Metric([], [], [], [])
-    adv_feature_maps_before = Metric([], [], [], [])
-    benign_feature_maps_after = Metric([], [], [], [])
-    adv_feature_maps_after = Metric([], [], [], [])
+    benign_feature_maps_before = Metric([], [], [], [], [], [], [])
+    adv_feature_maps_before = Metric([], [], [], [], [], [], [])
+    benign_feature_maps_after = Metric([], [], [], [], [], [], [])
+    adv_feature_maps_after = Metric([], [], [], [], [], [], [])
     benign_dense_layers = []
     adv_dense_layers = []
     correct = 0
@@ -129,14 +132,7 @@ def train_and_evaluate_xgboost_classifier(
             Defaults to 42.
 
     Returns:
-        tuple: A tuple containing:
-            - model (xgb.XGBClassifier): The trained XGBoost classifier.
-            - accuracy (float): The accuracy of the classifier on the test set, as a
-                percentage.
-            - tp (int): The number of true positive predictions.
-            - tn (int): The number of true negative predictions.
-            - fp (int): The number of false positive predictions.
-            - fn (int): The number of false negative predictions.
+        An instance of XGBoostClassifierResults dataclass
     """
 
     X_train, X_test, y_train, y_test = prepare_data(
@@ -502,9 +498,17 @@ def l1_distance_metric(tensor: torch.Tensor) -> float:
 def l2_distance_metric(tensor: torch.Tensor) -> float:
     return torch.norm(tensor, p=2).item()
 
-
 def linfinity_distance_metric(tensor: torch.Tensor) -> float:
     return torch.norm(tensor, p=float('inf')).item()
+
+def std_dev_metric(tensor: torch.Tensor) -> float:
+    return torch.std(tensor).item()
+
+def variance_metric(tensor: torch.Tensor) -> float:
+    return torch.var(tensor).item()
+
+def frobenius_norm_metric(tensor: torch.Tensor) -> float:
+    return torch.norm(tensor, p='fro').item()
 
 
 def get_feature_maps(input, model, model_name, before_activation_fn):
@@ -685,10 +689,16 @@ def print_results(*results_list):
         "Feature map L1",
         "Feature map L2",
         "Feature map Linf",
+        "Feature map std",
+        "Feature map var",
+        "Feature map fro",
         "Activations mean",
         "Activations L1",
         "Activations L2",
         "Activations Linf",
+        "Activations std",
+        "Activations var",
+        "Activations fro",
         "Dense layers"
     ]
 
@@ -722,6 +732,15 @@ def evaluate_attack_metrics(results: ProcessResults):
         'feature_map_linf': train_and_evaluate(
             before_activation.benign_feature_maps.linf,
             before_activation.adv_feature_maps.linf),
+        'feature_map_std': train_and_evaluate(
+            before_activation.benign_feature_maps.std,
+            before_activation.adv_feature_maps.std),
+        'feature_map_var': train_and_evaluate(
+            before_activation.benign_feature_maps.var,
+            before_activation.adv_feature_maps.var),
+        'feature_map_fro': train_and_evaluate(
+            before_activation.benign_feature_maps.fro,
+            before_activation.adv_feature_maps.fro),
         'activations_mean': train_and_evaluate(
             after_activation.benign_feature_maps.mean,
             after_activation.adv_feature_maps.mean),
@@ -734,6 +753,15 @@ def evaluate_attack_metrics(results: ProcessResults):
         'activations_linf': train_and_evaluate(
             after_activation.benign_feature_maps.linf,
             after_activation.adv_feature_maps.linf),
+        'activations_std': train_and_evaluate(
+            after_activation.benign_feature_maps.std,
+            after_activation.adv_feature_maps.std),
+        'activations_var': train_and_evaluate(
+            after_activation.benign_feature_maps.var,
+            after_activation.adv_feature_maps.var),
+        'activations_fro': train_and_evaluate(
+            after_activation.benign_feature_maps.fro,
+            after_activation.adv_feature_maps.fro),
         'dense_layers': train_and_evaluate(
             results.benign_dense_layers, results.adv_dense_layers)
     }
@@ -742,10 +770,16 @@ def evaluate_attack_metrics(results: ProcessResults):
         metrics["feature_map_l2"],
         metrics["feature_map_l1"],
         metrics["feature_map_linf"],
+        metrics["feature_map_std"],
+        metrics["feature_map_var"],
+        metrics["feature_map_fro"],
         metrics["activations_mean"],
         metrics["activations_l1"],
         metrics["activations_l2"],
         metrics["activations_linf"],
+        metrics["activations_std"],
+        metrics["activations_var"],
+        metrics["activations_fro"],
         metrics["dense_layers"]
     )
 
