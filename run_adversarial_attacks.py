@@ -198,7 +198,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             ),
             result["before_activation"]["benign_feature_maps"]["l2"]
         )
-        
+
         adv_combo_list = extend_lists(
             extend_lists(
                 result["after_activation"]["adv_feature_maps"]["l2"],
@@ -275,6 +275,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
         print("Fooling rate: %.2f%%" % (result_transfer["fooling_rate"] * 100.0))
+
         benign_list_transfer = extend_lists(
             extend_lists(
                 result_transfer["after_activation"]["benign_feature_maps"]["l2"],
@@ -283,6 +284,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             result_transfer["before_activation"]["benign_feature_maps"]["l2"]
         )
 
+
         adv_list_transfer = extend_lists(
             extend_lists(
                 result_transfer["after_activation"]["adv_feature_maps"]["l2"],
@@ -290,6 +292,15 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             ),
             result_transfer["before_activation"]["adv_feature_maps"]["l2"]
         )
+        
+        print(len(result_transfer["after_activation"]["benign_feature_maps"]["l2"]))
+        print(len(result_transfer["benign_dense_layers"]))
+        print(len(result_transfer["before_activation"]["benign_feature_maps"]["l2"]))
+        
+        print(len(result_transfer["after_activation"]["adv_feature_maps"]["l2"]))
+        print(len(result_transfer["adv_dense_layers"]))
+        print(len(result_transfer["before_activation"]["adv_feature_maps"]["l2"]))
+
 
         print(len(benign_list_transfer[0]))
         print(len(adv_list_transfer[0]))
