@@ -286,7 +286,10 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             )
         )
         print(output)
-
+        print(len(output[0]))
+        print(len(output[1]))
+        print(len(output[2]))
+        print(len(output[3]))
 
         accuracy_transfer = evaluate_classifier_accuracy(
             combo_model, output[0], output[2])
