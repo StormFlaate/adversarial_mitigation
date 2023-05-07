@@ -129,7 +129,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         before_activation = result.before_activation
         after_activation = result.after_activation
         evaluate_attack_metrics(result)
-        
+
 
         combo_dense_act_l2 = train_and_evaluate_xgboost_classifier(
             extend_lists(after_activation.benign_feature_maps.l2,
@@ -166,15 +166,15 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
         attack_name_transfer = "fgsm"
         attack_transfer = select_attack(model, "fgsm")
-        result_transfer = (
+        result_transfer: ProcessResults = (
             process_and_extract_components_and_metrics(
                 dataloader, attack_transfer, model, model_name, device,
                 attack_name_transfer, sample_limit=samples, include_dense_layers=True
             )
         )
+        print("Fooling rate: %.2f%%" % (result_transfer.fooling_rate * 100.0))
 
 
-        print("Fooling rate: %.2f%%" % (result_transfer["fooling_rate"] * 100.0))
 
         benign_list_transfer = extend_lists(
             extend_lists(

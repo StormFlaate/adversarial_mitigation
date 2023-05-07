@@ -697,7 +697,7 @@ def print_results(*results_list):
             result.fp, result.fn
         )
 
-def evaluate_attack_metrics(results):
+def evaluate_attack_metrics(results: ProcessResults):
     fooling_rate = results.fooling_rate * 100.0
     print("Fooling rate: %.2f%%" % fooling_rate)
 
@@ -745,7 +745,7 @@ def evaluate_attack_metrics(results):
         metrics["activations_l2"],
         metrics["activations_linf"],
         metrics["dense_layers"]
-        )
+    )
 
     return metrics
 
