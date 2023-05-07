@@ -269,22 +269,24 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
         print("Fooling rate: %.2f%%" % (result_transfer["fooling_rate"] * 100.0))
-        output = prepare_data(
+        benign_list_transfer = extend_lists(
             extend_lists(
-                extend_lists(
-                    result_transfer["after_activation"]["benign_feature_maps"]["l2"],
-                    result_transfer["benign_dense_layers"]
-                ),
-                result_transfer["before_activation"]["benign_feature_maps"]["l2"]
+                result_transfer["after_activation"]["benign_feature_maps"]["l2"],
+                result_transfer["benign_dense_layers"]
             ),
-            extend_lists(
-                extend_lists(
-                    result_transfer["after_activation"]["adv_feature_maps"]["l2"],
-                    result_transfer["adv_dense_layers"]
-                ),
-                result_transfer["before_activation"]["benign_feature_maps"]["l2"]
-            )
+            result_transfer["before_activation"]["benign_feature_maps"]["l2"]
         )
+
+        adv_list_transfer = extend_lists(
+            extend_lists(
+                result_transfer["after_activation"]["adv_feature_maps"]["l2"],
+                result_transfer["adv_dense_layers"]
+            ),
+            result_transfer["before_activation"]["benign_feature_maps"]["l2"]
+        )
+
+        output = prepare_data(benign_list_transfer, adv_list_transfer)
+
         #print(output)
         print(len(output[0]))
         print(len(output[1]))
