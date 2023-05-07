@@ -12,6 +12,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
 
+from data_classes import ActivationResults, Metric, ProcessResults, XGBoostClassifierResults
+
 
 def process_and_extract_components_and_metrics(
         data_loader: DataLoader,
@@ -22,14 +24,14 @@ def process_and_extract_components_and_metrics(
         attack_name: str,
         sample_limit: int = None,
         include_dense_layers: bool = False
-) -> dict:
+) -> ProcessResults:
     
     def update_feature_maps(
-            feature_maps, input_data, model, model_name, metrics, before_activation):
+            feature_maps: Metric, input_data, model, model_name, metrics, before_activation):
         for metric_name, metric_fn in metrics.items():
             feature_map = _get_feature_map_apply_metric_fn(
                 input_data, model, model_name, metric_fn, before_activation)
-            feature_maps[metric_name].append(feature_map)
+            getattr(feature_maps, metric_name).append(feature_map)
 
     metrics = {
         'mean': mean_metric,
@@ -38,10 +40,10 @@ def process_and_extract_components_and_metrics(
         'linf': linfinity_distance_metric
     }
 
-    benign_feature_maps_before = {key: [] for key in metrics.keys()}
-    adv_feature_maps_before = {key: [] for key in metrics.keys()}
-    benign_feature_maps_after = {key: [] for key in metrics.keys()}
-    adv_feature_maps_after = {key: [] for key in metrics.keys()}
+    benign_feature_maps_before = Metric([], [], [], [])
+    adv_feature_maps_before = Metric([], [], [], [])
+    benign_feature_maps_after = Metric([], [], [], [])
+    adv_feature_maps_after = Metric([], [], [], [])
     benign_dense_layers = []
     adv_dense_layers = []
     correct = 0
@@ -83,19 +85,23 @@ def process_and_extract_components_and_metrics(
 
     fooling_rate = fooled / correct
 
-    return {
-        "before_activation": {
-            "benign_feature_maps": benign_feature_maps_before,
-            "adv_feature_maps": adv_feature_maps_before
-        },
-        "after_activation": {
-            "benign_feature_maps": benign_feature_maps_after,
-            "adv_feature_maps": adv_feature_maps_after,
-        },
-        "fooling_rate": fooling_rate,
-        "benign_dense_layers": benign_dense_layers,
-        "adv_dense_layers": adv_dense_layers
-    }
+    results = ProcessResults(
+        before_activation=ActivationResults(
+            benign_feature_maps=benign_feature_maps_before,
+            adv_feature_maps=adv_feature_maps_before
+        ),
+        after_activation=ActivationResults(
+            benign_feature_maps=benign_feature_maps_after,
+            adv_feature_maps=adv_feature_maps_after
+        ),
+        fooling_rate=fooling_rate,
+        benign_dense_layers=benign_dense_layers,
+        adv_dense_layers=adv_dense_layers
+    )
+
+    return results
+
+
 
 
 
@@ -105,7 +111,8 @@ def train_and_evaluate_xgboost_classifier(
     adv_list: list[list[float]] | np.ndarray,
     test_size: float = 0.2,
     random_state: int = 42
-) -> tuple[xgb.XGBClassifier, float, float, float, float, float]:
+) -> XGBoostClassifierResults:
+
     """
     Trains an XGBoost classifier on input benign and adversarial feature maps, evaluates
     its performance using confusion matrix, and returns the trained model along with the
@@ -141,11 +148,15 @@ def train_and_evaluate_xgboost_classifier(
     
     tp, tn, fp, fn = evaluate_classifier_metrics(model, X_test, y_test)
 
-    return (
-        model,
-        accuracy,
-        tp, tn, fp, fn
+    return XGBoostClassifierResults(
+        model=model,
+        accuracy=accuracy,
+        tp=tp,
+        tn=tn,
+        fp=fp,
+        fn=fn
     )
+
 
 
 def prepare_data(
@@ -225,11 +236,8 @@ def evaluate_classifier_accuracy(
     Returns:
         float: The accuracy of the classifier on the test set, as a percentage.
     """
-    print("test_input.shape:", test_input.shape)
     y_pred = model.predict(test_input)
-    print("y_pred.shape:",y_pred.shape)
     predictions = [round(value) for value in y_pred]
-    print("len(predictions):",len(predictions))
     accuracy = accuracy_score(test_labels, predictions)
     return accuracy
 
@@ -252,11 +260,8 @@ def evaluate_classifier_metrics(
             false negative values.
     """
     
-    print("test_input.shape:", test_input.shape)
     y_pred = model.predict(test_input)
-    print("y_pred.shape:",y_pred.shape)
     predictions = [round(value) for value in y_pred]
-    print("len(predictions):",len(predictions))
     tn, fp, fn, tp = confusion_matrix(test_labels, predictions).ravel()
     return tp, tn, fp, fn
 
@@ -671,6 +676,78 @@ def print_result(title, acc, tp, tn, fp, fn):
         print(f"{title}: {acc:.2f}%")
         print(f"TP:{tp}, TN:{tn}, FP:{fp}, FN:{fn} ")
         print(f" {tp} & {tn} & {fp} & {fn} ")
+
+def print_results(*results_list):
+    labels = [
+        "Feature map mean",
+        "Feature map L1",
+        "Feature map L2",
+        "Feature map Linf",
+        "Activations mean",
+        "Activations L1",
+        "Activations L2",
+        "Activations Linf",
+        "Dense layers"
+    ]
+
+    for label, result in zip(labels, results_list):
+        print_result(
+            label, result.accuracy * 100.0,
+            result.tp, result.tn,
+            result.fp, result.fn
+        )
+
+def evaluate_attack_metrics(results):
+    fooling_rate = results.fooling_rate * 100.0
+    print("Fooling rate: %.2f%%" % fooling_rate)
+
+    before_activation = results.before_activation
+    after_activation = results.after_activation
+
+    def train_and_evaluate(feature_map_1, feature_map_2):
+        return train_and_evaluate_xgboost_classifier(feature_map_1, feature_map_2)
+
+    metrics = {
+        'feature_map_mean': train_and_evaluate(
+            before_activation.benign_feature_maps.mean,
+            before_activation.adv_feature_maps.mean),
+        'feature_map_l1': train_and_evaluate(
+            before_activation.benign_feature_maps.l1, 
+            before_activation.adv_feature_maps.l1),
+        'feature_map_l2': train_and_evaluate(
+            before_activation.benign_feature_maps.l2, 
+            before_activation.adv_feature_maps.l2),
+        'feature_map_linf': train_and_evaluate(
+            before_activation.benign_feature_maps.linf,
+            before_activation.adv_feature_maps.linf),
+        'activations_mean': train_and_evaluate(
+            after_activation.benign_feature_maps.mean,
+            after_activation.adv_feature_maps.mean),
+        'activations_l1': train_and_evaluate(
+            after_activation.benign_feature_maps.l1,
+            after_activation.adv_feature_maps.l1),
+        'activations_l2': train_and_evaluate(
+            after_activation.benign_feature_maps.l2,
+            after_activation.adv_feature_maps.l2),
+        'activations_linf': train_and_evaluate(
+            after_activation.benign_feature_maps.linf,
+            after_activation.adv_feature_maps.linf),
+        'dense_layers': train_and_evaluate(
+            results.benign_dense_layers, results.adv_dense_layers)
+    }
+    print_results(
+        metrics["feature_map_mean"],
+        metrics["feature_map_l2"],
+        metrics["feature_map_l1"],
+        metrics["feature_map_linf"],
+        metrics["activations_mean"],
+        metrics["activations_l1"],
+        metrics["activations_l2"],
+        metrics["activations_linf"],
+        metrics["dense_layers"]
+        )
+
+    return metrics
 
 
 # ======================================================

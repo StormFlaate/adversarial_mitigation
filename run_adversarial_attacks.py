@@ -9,11 +9,14 @@ from config import (
     TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018,
     TRAINED_RESNET18_MODEL_2019
 )
+from data_classes import ProcessResults
 from helper_functions.adversarial_attacks_helper import (
+    evaluate_attack_metrics,
     evaluate_classifier_accuracy,
     extend_lists,
     prepare_data,
     print_result,
+    print_results,
     process_and_extract_components_and_metrics,
     select_attack,
     train_and_evaluate_xgboost_classifier,
@@ -116,152 +119,49 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     for attack_name in attacks:
         print(f"Attack: {attack_name}")
         attack = select_attack(model, attack_name)
-        result = (
-            process_and_extract_components_and_metrics(
-                dataloader, attack, model, model_name, device, attack_name,
-                sample_limit=samples, include_dense_layers=True
+        
+        result: ProcessResults = (
+        process_and_extract_components_and_metrics(
+            dataloader, attack, model, model_name, device, attack_name,
+            sample_limit=samples, include_dense_layers=True
             )
         )
-        print("Fooling rate: %.2f%%" % (result["fooling_rate"] * 100.0))
+        before_activation = result.before_activation
+        after_activation = result.after_activation
+        evaluate_attack_metrics(result)
+        
 
-
-        _, acc_feature_map_mean, tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean = (
-            train_and_evaluate_xgboost_classifier(
-                result["before_activation"]["benign_feature_maps"]["mean"],
-                result["before_activation"]["adv_feature_maps"]["mean"]
-            )
-        )
-        _, acc_feature_map_l1, tp_fm_l1, tn_fm_l1, fp_fm_l1, fn_fm_l1 = (
-            train_and_evaluate_xgboost_classifier(
-                result["before_activation"]["benign_feature_maps"]["l1"],
-                result["before_activation"]["adv_feature_maps"]["l1"]
-            )
-        )
-        _, acc_feature_map_l2, tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2 = (
-            train_and_evaluate_xgboost_classifier(
-                result["before_activation"]["benign_feature_maps"]["l2"],
-                result["before_activation"]["adv_feature_maps"]["l2"]
-            )
-        )
-        _, acc_feature_map_linf, tp_fm_linf, tn_fm_linf, fp_fm_linf, fn_fm_linf = (
-            train_and_evaluate_xgboost_classifier(
-                result["before_activation"]["benign_feature_maps"]["linf"],
-                result["before_activation"]["adv_feature_maps"]["linf"]
-            )
+        combo_dense_act_l2 = train_and_evaluate_xgboost_classifier(
+            extend_lists(after_activation.benign_feature_maps.l2,
+                         result.benign_dense_layers),
+            extend_lists(after_activation.adv_feature_maps.l2,
+                         result.adv_dense_layers)
         )
 
-        _, acc_activations_mean, tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean = (
-            train_and_evaluate_xgboost_classifier(
-                result["after_activation"]["benign_feature_maps"]["mean"],
-                result["after_activation"]["adv_feature_maps"]["mean"]
-            )
-        )
-
-        _, acc_activations_l1, tp_act_l1, tn_act_l1, fp_act_l1, fn_act_l1 = (
-            train_and_evaluate_xgboost_classifier(
-                result["after_activation"]["benign_feature_maps"]["l1"],
-                result["after_activation"]["adv_feature_maps"]["l1"]
-            )
-        )
-        _, acc_activations_l2, tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2 = (
-            train_and_evaluate_xgboost_classifier(
-                result["after_activation"]["benign_feature_maps"]["l2"],
-                result["after_activation"]["adv_feature_maps"]["l2"]
-            )
-        )
-        _, acc_activations_linf, tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf = (
-            train_and_evaluate_xgboost_classifier(
-                result["after_activation"]["benign_feature_maps"]["linf"],
-                result["after_activation"]["adv_feature_maps"]["linf"]
-            )
-        )
-
-        _, acc_dense_layers, tp_dl, tn_dl, fp_dl, fn_dl = (
-            train_and_evaluate_xgboost_classifier(
-                result["benign_dense_layers"],
-                result["adv_dense_layers"]
-            )
-        )
-
-
-        _, acc_combination_dense_act_l2, tp_comb, tn_comb, fp_comb, fn_comb = (
-            train_and_evaluate_xgboost_classifier(
-                extend_lists(result["after_activation"]["benign_feature_maps"]["l2"],result["benign_dense_layers"]),
-                extend_lists(result["after_activation"]["adv_feature_maps"]["l2"],result["adv_dense_layers"]),
-            )
-        )
+        
 
         benign_combo_list = extend_lists(
             extend_lists(
-                result["after_activation"]["benign_feature_maps"]["l2"],
-                result["benign_dense_layers"]
+                after_activation.benign_feature_maps.l2,
+                result.benign_dense_layers
             ),
-            result["before_activation"]["benign_feature_maps"]["l2"]
+            before_activation.benign_feature_maps.l2
         )
 
         adv_combo_list = extend_lists(
             extend_lists(
-                result["after_activation"]["adv_feature_maps"]["l2"],
-                result["adv_dense_layers"]
+                after_activation.adv_feature_maps.l2,
+                result.adv_dense_layers
             ),
-            result["before_activation"]["adv_feature_maps"]["l2"]
+            before_activation.adv_feature_maps.l2
         )
 
-        print(len(benign_combo_list[0]))
-        print(len(adv_combo_list[0]))
-
-        combo_model, acc_combination_dense_act_l2_fm_linf, tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double = (
-            train_and_evaluate_xgboost_classifier(
-                benign_combo_list,
-                adv_combo_list
-            )
+        combo_dense_act_l2_fm_linf = train_and_evaluate_xgboost_classifier(
+            benign_combo_list,
+            adv_combo_list
         )
 
-        print_result(
-            "Feature map mean", acc_feature_map_mean * 100.0,
-            tp_fm_mean, tn_fm_mean, fp_fm_mean, fn_fm_mean
-        )
-        print_result(
-            "Feature map L1", acc_feature_map_l1 * 100.0,
-            tp_fm_l1, tn_fm_l1, fp_fm_l1, fn_fm_l1
-        )
-        print_result(
-            "Feature map L2", acc_feature_map_l2 * 100.0,
-            tp_fm_l2, tn_fm_l2, fp_fm_l2, fn_fm_l2
-        )
-        print_result(
-            "Feature map Linf", acc_feature_map_linf * 100.0,
-            tp_fm_linf, tn_fm_linf, fp_fm_linf, fn_fm_linf
-        )
-        print_result(
-            "Activations mean", acc_activations_mean * 100.0,
-            tp_act_mean, tn_act_mean, fp_act_mean, fn_act_mean
-        )
-        print_result(
-            "Activations L1", acc_activations_l1*100.0,
-            tp_act_l1, tn_act_l1, fp_act_l1, fn_act_l1
-        )
-        print_result(
-            "Activations L2", acc_activations_l2*100.0,
-            tp_act_l2, tn_act_l2, fp_act_l2, fn_act_l2
-        )
-        print_result(
-            "Activations Linf", acc_activations_linf*100.0,
-            tp_act_linf, tn_act_linf, fp_act_linf, fn_act_linf
-        )
-        print_result(
-            "Dense layers", acc_dense_layers * 100.0, tp_dl, tn_dl, fp_dl, fn_dl
-        )
-        print_result(
-            "Combination of dense layers and activations L2",
-            acc_combination_dense_act_l2 * 100.0,
-            tp_comb, tn_comb, fp_comb, fn_comb
-        )
-        print_result(
-            "Combination of dense layers, activations L2 and feature maps Linf",
-            acc_combination_dense_act_l2_fm_linf * 100.0,
-            tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double
-        )
+        
 
 
         attack_name_transfer = "fgsm"
@@ -278,39 +178,27 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
         benign_list_transfer = extend_lists(
             extend_lists(
-                result_transfer["after_activation"]["benign_feature_maps"]["l2"],
-                result_transfer["benign_dense_layers"]
+                result_transfer.after_activation.benign_feature_maps.l2,
+                result_transfer.benign_dense_layers
             ),
-            result_transfer["before_activation"]["benign_feature_maps"]["l2"]
+            result_transfer.before_activation.benign_feature_maps.l2
         )
 
 
         adv_list_transfer = extend_lists(
             extend_lists(
-                result_transfer["after_activation"]["adv_feature_maps"]["l2"],
-                result_transfer["adv_dense_layers"]
+                result_transfer.after_activation.adv_feature_maps.l2,
+                result_transfer.adv_dense_layers
             ),
-            result_transfer["before_activation"]["adv_feature_maps"]["l2"]
+            result_transfer.before_activation.adv_feature_maps.l2
         )
         
-        print(len(result_transfer["after_activation"]["benign_feature_maps"]["l2"][0]))
-        print(len(result_transfer["benign_dense_layers"][0]))
-        print(len(result_transfer["before_activation"]["benign_feature_maps"]["l2"][0]))
-        
-        print(len(result_transfer["after_activation"]["adv_feature_maps"]["l2"][0]))
-        print(len(result_transfer["adv_dense_layers"][0]))
-        print(len(result_transfer["before_activation"]["adv_feature_maps"]["l2"][0]))
-
-
-        print(len(benign_list_transfer[0]))
-        print(len(adv_list_transfer[0]))
-        
-
+    
         output = prepare_data(benign_list_transfer, adv_list_transfer)
 
 
         accuracy_transfer = evaluate_classifier_accuracy(
-            combo_model, output[0], output[2])
+            combo_dense_act_l2_fm_linf.model, output[0], output[2])
         print(f"Transfer accuracy: {accuracy_transfer}")
 
 
