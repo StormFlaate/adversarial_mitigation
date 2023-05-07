@@ -185,8 +185,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 combo_dense_act_l2_fm_linf.model, output[0], output[2])
 
             print_result(
-                attack_name_transfer*100.0,
-                transfer_accuracy,
+                attack_name_transfer,
+                transfer_accuracy*100.0,
                 *transfer_confusion_matrix
             )
 
