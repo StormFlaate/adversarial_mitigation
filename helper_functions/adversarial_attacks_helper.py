@@ -620,11 +620,27 @@ def save_average_line_plots(log_distances, output_dir, file_name):
     plt.close()
 
 
-def extend_lists(list1, list2):
-    result = []
-    result.extend(list(list1))
-    result.extend(list(list2))
-    return result
+def extend_lists(
+    list1: list[list[float]] | np.ndarray,
+    list2: list[list[float]] | np.ndarray
+) -> list[list[float]]:
+    """
+    Concatenates the elements of two lists of lists or 2D arrays element-wise.
+
+    Args:
+        list1 (list of lists or 2D array): A 2D list or array-like object.
+        list2 (list of lists or 2D array): A 2D list or array-like object with
+            the same number of elements as list1.
+
+    Returns:
+        list: A new list of lists where each element is the concatenation of the
+            corresponding elements from list1 and list2.
+    """
+    if len(list1) != len(list2):
+        raise ValueError("Both input lists must have the same length.")
+
+    extended_list = [list1[i] + list2[i] for i in range(len(list1))]
+    return extended_list
 
 
 def select_attack(model, attack_name):
