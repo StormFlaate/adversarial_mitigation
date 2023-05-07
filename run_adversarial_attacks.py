@@ -87,7 +87,6 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
-
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
@@ -250,11 +249,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
-    main(
-        args.year,
-        args.model,
-        args.is_augmented,
-        args.samples,
-        args.attack,
-        args.all_attacks
-    )
+    # main(
+    #     args.year,
+    #     args.model,
+    #     args.is_augmented,
+    #     args.samples,
+    #     args.attack,
+    #     args.all_attacks
+    # )
+
+    for model_name in ["resnet18", "inception_v3"]:
+        for year in ["2018", "2019"]:
+            main(year, model_name, False, 10000, "bim", True)
