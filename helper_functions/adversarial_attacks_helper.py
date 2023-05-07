@@ -673,8 +673,7 @@ def select_attack(model, attack_name):
 
 
 def print_result(title, acc, tp, tn, fp, fn):
-        print(f"{title}: {acc:.2f}%")
-        print(f"TP:{tp}, TN:{tn}, FP:{fp}, FN:{fn} ")
+        print(f"\n{title}: {acc:.2f}%")
         print(f" {tp} & {tn} & {fp} & {fn} ")
 
 def print_results(*results_list):
