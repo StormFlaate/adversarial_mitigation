@@ -197,7 +197,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 result["benign_dense_layers"]
             ),
             result["before_activation"]["benign_feature_maps"]["l2"]
-        ),
+        )
         adv_combo_list = extend_lists(
             extend_lists(
                 result["after_activation"]["adv_feature_maps"]["l2"],
