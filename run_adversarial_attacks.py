@@ -144,10 +144,10 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             benign_combo_list,
             adv_combo_list
         )
-        
+
         print_result(
             "combo_dense_act_l2_fm_linf",
-            combo_dense_act_l2_fm_linf.accuracy,
+            combo_dense_act_l2_fm_linf.accuracy*100,
             combo_dense_act_l2_fm_linf.tp,
             combo_dense_act_l2_fm_linf.tn,
             combo_dense_act_l2_fm_linf.fp,
