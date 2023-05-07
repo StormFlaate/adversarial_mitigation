@@ -288,8 +288,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         print(output)
 
 
-        # accuracy_transfer = evaluate_classifier_accuracy(
-        #     combo_model, X_transfer, y_transfer)
+        accuracy_transfer = evaluate_classifier_accuracy(
+            combo_model, output[0], output[2])
         print(f"Transfer accuracy: {accuracy_transfer}")
 
 
