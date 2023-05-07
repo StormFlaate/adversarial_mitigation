@@ -131,21 +131,12 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         evaluate_attack_metrics(result)
 
 
-        combo_dense_act_l2 = train_and_evaluate_xgboost_classifier(
-            extend_lists(after_activation.benign_feature_maps.l2,
-                         result.benign_dense_layers),
-            extend_lists(after_activation.adv_feature_maps.l2,
-                         result.adv_dense_layers)
-        )
-
-        
-
         benign_combo_list = extend_lists(
             extend_lists(
                 after_activation.benign_feature_maps.l2,
                 result.benign_dense_layers
             ),
-            before_activation.benign_feature_maps.l2
+            before_activation.benign_feature_maps.linf
         )
 
         adv_combo_list = extend_lists(
@@ -153,7 +144,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 after_activation.adv_feature_maps.l2,
                 result.adv_dense_layers
             ),
-            before_activation.adv_feature_maps.l2
+            before_activation.adv_feature_maps.linf
         )
 
         combo_dense_act_l2_fm_linf = train_and_evaluate_xgboost_classifier(
