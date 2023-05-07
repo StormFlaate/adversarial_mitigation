@@ -206,10 +206,10 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             result["before_activation"]["benign_feature_maps"]["l2"]
         )
 
-        print(benign_combo_list[0])
-        print(benign_combo_list[0][0])
-        print(adv_combo_list[0])
-        print(adv_combo_list[0][0])
+        print(len(benign_combo_list[0]))
+        print(len(benign_combo_list[0][0]))
+        print(len(adv_combo_list[0]))
+        print(len(adv_combo_list[0][0]))
 
         combo_model, acc_combination_dense_act_l2_fm_linf, tp_comb_double, tn_comb_double, fp_comb_double, fn_comb_double = (
             train_and_evaluate_xgboost_classifier(
@@ -292,10 +292,10 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             result_transfer["before_activation"]["benign_feature_maps"]["l2"]
         )
 
-        print(benign_list_transfer[0])
-        print(benign_list_transfer[0][0])
-        print(adv_list_transfer[0])
-        print(adv_list_transfer[0][0])
+        print(len(benign_list_transfer[0]))
+        print(len(benign_list_transfer[0][0]))
+        print(len(adv_list_transfer[0]))
+        print(len(adv_list_transfer[0][0]))
         
 
         output = prepare_data(benign_list_transfer, adv_list_transfer)
