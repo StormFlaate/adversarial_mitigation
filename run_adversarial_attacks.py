@@ -198,12 +198,13 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             ),
             result["before_activation"]["benign_feature_maps"]["l2"]
         )
+        
         adv_combo_list = extend_lists(
             extend_lists(
                 result["after_activation"]["adv_feature_maps"]["l2"],
                 result["adv_dense_layers"]
             ),
-            result["before_activation"]["benign_feature_maps"]["l2"]
+            result["before_activation"]["adv_feature_maps"]["l2"]
         )
 
         print(len(benign_combo_list[0]))
@@ -287,7 +288,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 result_transfer["after_activation"]["adv_feature_maps"]["l2"],
                 result_transfer["adv_dense_layers"]
             ),
-            result_transfer["before_activation"]["benign_feature_maps"]["l2"]
+            result_transfer["before_activation"]["adv_feature_maps"]["l2"]
         )
 
         print(len(benign_list_transfer[0]))
