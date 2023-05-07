@@ -252,7 +252,7 @@ def evaluate_classifier_metrics(
     y_pred = model.predict(test_input)
     print(y_pred.shape)
     predictions = [round(value) for value in y_pred]
-    print(predictions.shape)
+    print(len(predictions))
     tn, fp, fn, tp = confusion_matrix(test_labels, predictions).ravel()
     return tp, tn, fp, fn
 
