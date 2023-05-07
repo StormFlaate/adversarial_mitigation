@@ -285,7 +285,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 result_transfer["before_activation"]["benign_feature_maps"]["l2"]
             )
         )
-        print(output)
+        #print(output)
         print(len(output[0]))
         print(len(output[1]))
         print(len(output[2]))

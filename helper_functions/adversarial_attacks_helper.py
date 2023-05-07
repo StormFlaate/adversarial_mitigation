@@ -248,11 +248,12 @@ def evaluate_classifier_metrics(
         tuple: A tuple containing true positive, true negative, false positive, and
             false negative values.
     """
-    print(test_input.shape)
+    
+    print("test_input.shape:", test_input.shape)
     y_pred = model.predict(test_input)
-    print(y_pred.shape)
+    print("y_pred.shape:",y_pred.shape)
     predictions = [round(value) for value in y_pred]
-    print(len(predictions))
+    print("len(predictions):",len(predictions))
     tn, fp, fn, tp = confusion_matrix(test_labels, predictions).ravel()
     return tp, tn, fp, fn
 
