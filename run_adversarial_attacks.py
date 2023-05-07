@@ -178,10 +178,14 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
             transfer_accuracy = evaluate_classifier_accuracy(
                 combo_dense_act_l2_fm_linf.model, output[0], output[2])
-            transfer_confusion = evaluate_classifier_metrics(
+            transfer_confusion_matrix = evaluate_classifier_metrics(
                 combo_dense_act_l2_fm_linf.model, output[0], output[2])
 
-            print_result(attack_name_transfer, transfer_accuracy, *transfer_confusion)
+            print_result(
+                attack_name_transfer,
+                transfer_accuracy,
+                *transfer_confusion_matrix
+            )
 
     
 
