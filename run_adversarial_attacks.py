@@ -260,4 +260,6 @@ if __name__ == '__main__':
 
     for model_name in ["resnet18", "inception_v3"]:
         for year in ["2018", "2019"]:
+            print("Model name:", model_name)
+            print("Year:", year)
             main(year, model_name, False, 10000, "bim", True)
