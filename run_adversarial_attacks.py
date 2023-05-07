@@ -154,7 +154,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             combo_dense_act_l2_fm_linf.fn
         )
 
-
+        continue
         attack_name_transfer = "fgsm"
         attack_transfer = select_attack(model, "fgsm")
         result_transfer: ProcessResults = (
@@ -186,24 +186,6 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             combo_dense_act_l2_fm_linf.model, output[0], output[2])
         print(f"Transfer accuracy: {accuracy_transfer}")
 
-
-    
-
-
-
-    # test_benign, test_adv = process_and_extract_components_and_metrics(
-    #     test_dl_2018, deepfool_attack, model, model_name, device)
-
-    # test_input, _, test_label, __ = prepare_data(
-    #     test_benign,
-    #     test_adv,
-    #     test_size=0.05 
-    # )
-
-    # # Evaluate the accuracy
-    # accuracy = evaluate_classifier_accuracy(
-    #     xgboost_model_feature_map, test_input, test_label)
-    # print("Accuracy: (xgboost_model_feature_map): %.2f%%" % (accuracy * 100.0))
 
     
 
