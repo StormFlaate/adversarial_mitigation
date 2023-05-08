@@ -162,14 +162,6 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         )
 
         print_result(
-            "combo_l2_linf",
-            combo_l2_linf.accuracy*100,
-            combo_l2_linf.tp,
-            combo_l2_linf.tn,
-            combo_l2_linf.fp,
-            combo_l2_linf.fn
-        )
-        print_result(
             "combo_l2_linf_dense",
             combo_l2_linf_dense.accuracy*100,
             combo_l2_linf_dense.tp,
@@ -207,7 +199,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 combo_l2_linf.model, output_1[0], output_1[2])
 
             print_result(
-                attack_name_transfer,
+                "combo_l2_linf",
                 transfer_accuracy*100.0,
                 *transfer_confusion_matrix
             )
@@ -233,7 +225,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
                 combo_l2_linf_dense.model, output_2[0], output_2[2])
 
             print_result(
-                attack_name_transfer,
+                "combo_l2_linf_dense",
                 transfer_accuracy*100.0,
                 *transfer_confusion_matrix
             )
