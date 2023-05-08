@@ -110,6 +110,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attacks.append(attack_name)
 
     for attack_name in attacks:
+        print()
+        print("#"*100)
         print(f"Attack: {attack_name}")
         attack = select_attack(model, attack_name)
         
@@ -145,7 +147,39 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             combo_l2_linf.fn
         )
 
+        benign_combo_list = extend_lists(
+            after_activation.benign_feature_maps.l2,
+            before_activation.benign_feature_maps.linf,
+            result.benign_dense_layers)
+        adv_combo_list = extend_lists(
+            after_activation.adv_feature_maps.l2,
+            before_activation.adv_feature_maps.linf,
+            result.adv_dense_layers)
+
+        combo_l2_linf_dense = train_and_evaluate_xgboost_classifier(
+            benign_combo_list,
+            adv_combo_list
+        )
+
+        print_result(
+            "combo_l2_linf",
+            combo_l2_linf.accuracy*100,
+            combo_l2_linf.tp,
+            combo_l2_linf.tn,
+            combo_l2_linf.fp,
+            combo_l2_linf.fn
+        )
+        print_result(
+            "combo_l2_linf_dense",
+            combo_l2_linf_dense.accuracy*100,
+            combo_l2_linf_dense.tp,
+            combo_l2_linf_dense.tn,
+            combo_l2_linf_dense.fp,
+            combo_l2_linf_dense.fn
+        )
+
         for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
+            print("-"*50)
             print("Original attack: ", attack_name)
             print("Transfer attack: ", attack_name_transfer)
             attack_transfer = select_attack(model, attack_name_transfer)
@@ -163,6 +197,32 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             adv_list_transfer = extend_lists(
                 res_transfer.after_activation.adv_feature_maps.l2,
                 res_transfer.before_activation.adv_feature_maps.linf
+            )
+                    
+            output = prepare_data(benign_list_transfer, adv_list_transfer)
+
+            transfer_accuracy = evaluate_classifier_accuracy(
+                combo_l2_linf.model, output[0], output[2])
+            transfer_confusion_matrix = evaluate_classifier_metrics(
+                combo_l2_linf.model, output[0], output[2])
+
+            print_result(
+                attack_name_transfer,
+                transfer_accuracy*100.0,
+                *transfer_confusion_matrix
+            )
+
+
+            # Double combo
+            benign_list_transfer = extend_lists(
+                res_transfer.after_activation.benign_feature_maps.l2,
+                res_transfer.before_activation.benign_feature_maps.linf,
+                res_transfer.benign_dense_layers
+            )
+            adv_list_transfer = extend_lists(
+                res_transfer.after_activation.adv_feature_maps.l2,
+                res_transfer.before_activation.adv_feature_maps.linf,
+                res_transfer.adv_dense_layers
             )
                     
             output = prepare_data(benign_list_transfer, adv_list_transfer)

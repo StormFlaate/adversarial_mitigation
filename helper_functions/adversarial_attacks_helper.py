@@ -679,9 +679,9 @@ def select_attack(model, attack_name):
         raise ValueError(f"Unsupported attack name: {attack_name}")
 
 
-def print_result(title, acc, tp, tn, fp, fn):
-        print(f"\n{title}: {acc:.2f}%")
-        print(f" {tp} & {tn} & {fp} & {fn} ")
+def print_result(attack_title, acc, tp, tn, fp, fn):
+    
+        print(f"\n{attack_title}: {tp} & {tn} & {fp} & {fn} & {acc:.2f}\% ")
 
 def print_results(*results_list):
     labels = [
@@ -689,16 +689,16 @@ def print_results(*results_list):
         "Feature map L1",
         "Feature map L2",
         "Feature map Linf",
-        "Feature map std",
-        "Feature map var",
-        "Feature map fro",
+        # "Feature map std",
+        # "Feature map var",
+        # "Feature map fro",
         "Activations mean",
         "Activations L1",
         "Activations L2",
         "Activations Linf",
-        "Activations std",
-        "Activations var",
-        "Activations fro",
+        # "Activations std",
+        # "Activations var",
+        # "Activations fro",
         "Dense layers"
     ]
 
@@ -770,16 +770,16 @@ def evaluate_attack_metrics(results: ProcessResults):
         metrics["feature_map_l2"],
         metrics["feature_map_l1"],
         metrics["feature_map_linf"],
-        metrics["feature_map_std"],
-        metrics["feature_map_var"],
-        metrics["feature_map_fro"],
+        # metrics["feature_map_std"],
+        # metrics["feature_map_var"],
+        # metrics["feature_map_fro"],
         metrics["activations_mean"],
         metrics["activations_l1"],
         metrics["activations_l2"],
         metrics["activations_linf"],
-        metrics["activations_std"],
-        metrics["activations_var"],
-        metrics["activations_fro"],
+        # metrics["activations_std"],
+        # metrics["activations_var"],
+        # metrics["activations_fro"],
         metrics["dense_layers"]
     )
 
