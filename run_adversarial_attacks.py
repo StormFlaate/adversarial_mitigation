@@ -190,21 +190,21 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             )
             print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
 
-            benign_list_transfer = extend_lists(
+            benign_list_transfer_1 = extend_lists(
                 res_transfer.after_activation.benign_feature_maps.l2,
                 res_transfer.before_activation.benign_feature_maps.linf
             )
-            adv_list_transfer = extend_lists(
+            adv_list_transfer_1 = extend_lists(
                 res_transfer.after_activation.adv_feature_maps.l2,
                 res_transfer.before_activation.adv_feature_maps.linf
             )
                     
-            output = prepare_data(benign_list_transfer, adv_list_transfer)
+            output_1 = prepare_data(benign_list_transfer_1, adv_list_transfer_1)
 
             transfer_accuracy = evaluate_classifier_accuracy(
-                combo_l2_linf.model, output[0], output[2])
+                combo_l2_linf.model, output_1[0], output_1[2])
             transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_l2_linf.model, output[0], output[2])
+                combo_l2_linf.model, output_1[0], output_1[2])
 
             print_result(
                 attack_name_transfer,
@@ -214,23 +214,23 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
             # Double combo
-            benign_list_transfer = extend_lists(
+            benign_list_transfer_2 = extend_lists(
                 res_transfer.after_activation.benign_feature_maps.l2,
                 res_transfer.before_activation.benign_feature_maps.linf,
                 res_transfer.benign_dense_layers
             )
-            adv_list_transfer = extend_lists(
+            adv_list_transfer_2 = extend_lists(
                 res_transfer.after_activation.adv_feature_maps.l2,
                 res_transfer.before_activation.adv_feature_maps.linf,
                 res_transfer.adv_dense_layers
             )
                     
-            output = prepare_data(benign_list_transfer, adv_list_transfer)
+            output_2 = prepare_data(benign_list_transfer_2, adv_list_transfer_2)
 
             transfer_accuracy = evaluate_classifier_accuracy(
-                combo_l2_linf.model, output[0], output[2])
+                combo_l2_linf.model, output_2[0], output_2[2])
             transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_l2_linf.model, output[0], output[2])
+                combo_l2_linf.model, output_2[0], output_2[2])
 
             print_result(
                 attack_name_transfer,
