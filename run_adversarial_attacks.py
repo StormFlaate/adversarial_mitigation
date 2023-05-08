@@ -1,7 +1,6 @@
 import argparse
 import numpy as np
 import torch
-from torch.utils.data import Subset, ConcatDataset
 import multiprocessing as mp
 from config import (
     INCEPTIONV3_MODEL_NAME, PREPROCESS_INCEPTIONV3, PREPROCESS_RESNET18,
@@ -17,13 +16,12 @@ from helper_functions.adversarial_attacks_helper import (
     extend_lists,
     prepare_data,
     print_result,
-    print_results,
     process_and_extract_components_and_metrics,
     select_attack,
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
-from helper_functions.train_model_helper import get_data_loader, get_data_loaders_by_year
+from helper_functions.train_model_helper import get_data_loaders_by_year
 
 
 def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
@@ -82,11 +80,6 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
 
 
 def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
-    mp.freeze_support()
-    mp.set_start_method('spawn')
-    # Set the randomness seeds
-    torch.manual_seed(RANDOM_SEED)
-    np.random.seed(RANDOM_SEED)
     model_file_name = _get_correct_model_file_name(model_name, year)
 
     model = _initialize_model(
@@ -257,6 +250,11 @@ if __name__ == '__main__':
     #     args.attack,
     #     args.all_attacks
     # )
+    mp.freeze_support()
+    mp.set_start_method('spawn')
+    # Set the randomness seeds
+    torch.manual_seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
 
     for model_name in ["resnet18", "inception_v3"]:
         for year in ["2018", "2019"]:
