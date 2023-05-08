@@ -126,25 +126,23 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
         benign_combo_list = extend_lists(
             after_activation.benign_feature_maps.l2,
-            result.benign_dense_layers,
             before_activation.benign_feature_maps.linf)
         adv_combo_list = extend_lists(
             after_activation.adv_feature_maps.l2,
-            result.adv_dense_layers,
             before_activation.adv_feature_maps.linf)
 
-        combo_dense_act_l2_fm_linf = train_and_evaluate_xgboost_classifier(
+        combo_l2_linf = train_and_evaluate_xgboost_classifier(
             benign_combo_list,
             adv_combo_list
         )
 
         print_result(
-            "combo_dense_act_l2_fm_linf",
-            combo_dense_act_l2_fm_linf.accuracy*100,
-            combo_dense_act_l2_fm_linf.tp,
-            combo_dense_act_l2_fm_linf.tn,
-            combo_dense_act_l2_fm_linf.fp,
-            combo_dense_act_l2_fm_linf.fn
+            "combo_l2_linf",
+            combo_l2_linf.accuracy*100,
+            combo_l2_linf.tp,
+            combo_l2_linf.tn,
+            combo_l2_linf.fp,
+            combo_l2_linf.fn
         )
 
         for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
@@ -160,21 +158,19 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
             benign_list_transfer = extend_lists(
                 res_transfer.after_activation.benign_feature_maps.l2,
-                res_transfer.benign_dense_layers,
                 res_transfer.before_activation.benign_feature_maps.linf
             )
             adv_list_transfer = extend_lists(
                 res_transfer.after_activation.adv_feature_maps.l2,
-                res_transfer.adv_dense_layers,
                 res_transfer.before_activation.adv_feature_maps.linf
             )
                     
             output = prepare_data(benign_list_transfer, adv_list_transfer)
 
             transfer_accuracy = evaluate_classifier_accuracy(
-                combo_dense_act_l2_fm_linf.model, output[0], output[2])
+                combo_l2_linf.model, output[0], output[2])
             transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_dense_act_l2_fm_linf.model, output[0], output[2])
+                combo_l2_linf.model, output[0], output[2])
 
             print_result(
                 attack_name_transfer,
