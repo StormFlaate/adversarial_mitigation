@@ -228,9 +228,9 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             output_2 = prepare_data(benign_list_transfer_2, adv_list_transfer_2)
 
             transfer_accuracy = evaluate_classifier_accuracy(
-                combo_l2_linf.model, output_2[0], output_2[2])
+                combo_l2_linf_dense.model, output_2[0], output_2[2])
             transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_l2_linf.model, output_2[0], output_2[2])
+                combo_l2_linf_dense.model, output_2[0], output_2[2])
 
             print_result(
                 attack_name_transfer,
