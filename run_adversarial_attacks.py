@@ -260,4 +260,4 @@ if __name__ == '__main__':
         for year in ["2018", "2019"]:
             print("Model name:", model_name)
             print("Year:", year)
-            main(year, model_name, False, 10000, "bim", True)
+            main(year, model_name, False, args.samples, "bim", True)
