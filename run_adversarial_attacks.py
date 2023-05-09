@@ -110,6 +110,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attacks.append(attack_name)
 
     for attack_name in attacks:
+        if year == "2018" and attack_name != "pgd":
+            continue
         print()
         print("#"*100)
         print(f"Attack: {attack_name}")
@@ -304,7 +306,7 @@ if __name__ == '__main__':
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    for model_name in ["resnet18", "inception_v3"]:
+    for model_name in ["inception_v3"]:
         for year in ["2018", "2019"]:
             print("Model name:", model_name)
             print("Year:", year)
