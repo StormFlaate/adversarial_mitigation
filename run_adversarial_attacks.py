@@ -315,7 +315,7 @@ if __name__ == '__main__':
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    for model_name in ["resnet", "inception_v3"]:
+    for model_name in [RESNET18_MODEL_NAME, INCEPTIONV3_MODEL_NAME]:
         for year in ["2018", "2019"]:
             print("Model name:", model_name)
             print("Year:", year)
