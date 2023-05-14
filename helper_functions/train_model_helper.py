@@ -203,8 +203,9 @@ def test_model(
     # Calculate the overall accuracy, F1 score, recall (sensitivity), and specificity
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
-    overall_recall = recall_score(target_labels, predicted_labels)
-    overall_precision = precision_score(target_labels, predicted_labels)
+    overall_recall = recall_score(target_labels, predicted_labels, average="weighted")
+    overall_precision = precision_score(
+        target_labels, predicted_labels, average="weighted")
 
 
     # Print the overall accuracy, F1 score, recall (sensitivity), and specificity
