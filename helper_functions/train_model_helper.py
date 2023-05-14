@@ -8,7 +8,7 @@ from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from customDataset import ISICDataset
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score, precision_score
 from config import (
     AUGMENTED_DATASET_2019_LABELS,
     AUGMENTED_DATASET_2019_ROOT_DIR,
@@ -203,25 +203,15 @@ def test_model(
     # Calculate the overall accuracy, F1 score, recall (sensitivity), and specificity
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
-    overall_recall = recall_score(target_labels, predicted_labels, average="weighted")
+    overall_recall = recall_score(target_labels, predicted_labels)
+    overall_precision = precision_score(target_labels, predicted_labels)
 
-    # Generate confusion matrix
-    cm = confusion_matrix(target_labels, predicted_labels)
-
-    # Compute specificity for each class
-    specificity_scores = []
-    for i in range(cm.shape[0]):  # assuming n classes
-        tn = cm[i, :].sum() - cm[i, i]
-        fp = cm[:, i].sum() - cm[i, i]
-        specificity = tn / (tn + fp)
-        specificity_scores.append(specificity)
-    overall_specificity = np.mean(specificity_scores)
 
     # Print the overall accuracy, F1 score, recall (sensitivity), and specificity
     print("Overall accuracy: {:.4f}".format(overall_accuracy))
     print("Overall F1 score: {:.4f}".format(overall_f1_score))
     print("Overall Recall: {:.4f}".format(overall_recall))
-    print("Overall Specificity: {:.4f}".format(overall_specificity))
+    print("Overall Precision: {:.4f}".format(overall_precision))
 
     # Print the accuracy for each skin lesion type
     for col in df.columns[1:]:
