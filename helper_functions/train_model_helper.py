@@ -7,7 +7,7 @@ from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from customDataset import ISICDataset
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 from config import (
     AUGMENTED_DATASET_2019_LABELS,
     AUGMENTED_DATASET_2019_ROOT_DIR,
@@ -201,11 +201,19 @@ def test_model(
 
     # Calculate the overall accuracy and F1 score
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
+    tn, fp, fn, tp = confusion_matrix(target_labels, predicted_labels).ravel()
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
+
 
     # Print the overall accuracy and F1 score
     print("Overall accuracy: {:.4f}".format(overall_accuracy))
     print("Overall F1 score: {:.4f}".format(overall_f1_score))
+
+    # Print them out
+    print("True Positives: {}".format(tp))
+    print("True Negatives: {}".format(tn))
+    print("False Positives: {}".format(fp))
+    print("False Negatives: {}".format(fn))
 
     # Print the accuracy for each skin lesion type
     for col in df.columns[1:]:
