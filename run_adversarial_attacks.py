@@ -21,7 +21,7 @@ from helper_functions.adversarial_attacks_helper import (
     train_and_evaluate_xgboost_classifier,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
-from helper_functions.train_model_helper import get_data_loaders_by_year
+from helper_functions.train_model_helper import get_data_loaders_by_year, test_model
 
 
 def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
@@ -41,13 +41,18 @@ def _initialize_model(model_name: str, model_file_name: str) -> torch.nn.Module:
 def _initialize_data_loader_inception_v3(year:str, is_augmented_dataset:bool):
     dataloader, _ =  get_data_loaders_by_year(
         year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, split_dataset=False)
-    return dataloader
+    *_, test_dataloader, _ =  get_data_loaders_by_year(
+        year, PREPROCESS_INCEPTIONV3, is_augmented_dataset, split_dataset=True)
+    return dataloader, test_dataloader
 
 
 def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
     dataloader, _ = get_data_loaders_by_year(
         year, PREPROCESS_RESNET18, is_augmented_dataset, split_dataset=False)
-    return dataloader
+    
+    *_, test_dataloader, _ = get_data_loaders_by_year(
+        year, PREPROCESS_RESNET18, is_augmented_dataset, split_dataset=True)
+    return dataloader, test_dataloader
     
 
 
@@ -86,20 +91,22 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         model_name,
         model_file_name=model_file_name
     )
-    
+
     # Initialize setup
     if model_name == RESNET18_MODEL_NAME:
         # Initialize setup
-        dataloader = _initialize_data_loader_resnet18(
+        dataloader, test_dataloader = _initialize_data_loader_resnet18(
             year, is_augmented
         )
         
     elif model_name == INCEPTIONV3_MODEL_NAME:
-        dataloader = _initialize_data_loader_inception_v3(
+        dataloader, test_dataloader = _initialize_data_loader_inception_v3(
             year, is_augmented
         )
     else:
         raise Exception("Not a valid model name")
+    
+    test_model(model, test_dataloader, model_name=model_name)
 
     device = _initialize_device()
     attacks: list = []
