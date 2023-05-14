@@ -107,6 +107,8 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         raise Exception("Not a valid model name")
     
     test_model(model, test_dataloader, model_name=model_name)
+    return
+    
 
     device = _initialize_device()
     attacks: list = []
@@ -313,7 +315,7 @@ if __name__ == '__main__':
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    for model_name in ["inception_v3"]:
+    for model_name in ["resnet", "inception_v3"]:
         for year in ["2018", "2019"]:
             print("Model name:", model_name)
             print("Year:", year)
