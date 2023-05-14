@@ -1,4 +1,5 @@
 from typing import Dict, List, Sequence, Union, Tuple, TypeVar
+import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
@@ -7,7 +8,7 @@ from torch.nn import Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from customDataset import ISICDataset
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score
 from config import (
     AUGMENTED_DATASET_2019_LABELS,
     AUGMENTED_DATASET_2019_ROOT_DIR,
@@ -199,21 +200,28 @@ def test_model(
                     if np_predicted[j] == k:
                         accuracy_by_type[col]["correct"] += 1
 
-    # Calculate the overall accuracy and F1 score
+    # Calculate the overall accuracy, F1 score, recall (sensitivity), and specificity
     overall_accuracy = accuracy_score(target_labels, predicted_labels)
-    tn, fp, fn, tp = confusion_matrix(target_labels, predicted_labels).ravel()
     overall_f1_score = f1_score(target_labels, predicted_labels, average="weighted")
+    overall_recall = recall_score(target_labels, predicted_labels, average="weighted")
 
+    # Generate confusion matrix
+    cm = confusion_matrix(target_labels, predicted_labels)
 
-    # Print the overall accuracy and F1 score
+    # Compute specificity for each class
+    specificity_scores = []
+    for i in range(cm.shape[0]):  # assuming n classes
+        tn = cm[i, :].sum() - cm[i, i]
+        fp = cm[:, i].sum() - cm[i, i]
+        specificity = tn / (tn + fp)
+        specificity_scores.append(specificity)
+    overall_specificity = np.mean(specificity_scores)
+
+    # Print the overall accuracy, F1 score, recall (sensitivity), and specificity
     print("Overall accuracy: {:.4f}".format(overall_accuracy))
     print("Overall F1 score: {:.4f}".format(overall_f1_score))
-
-    # Print them out
-    print("True Positives: {}".format(tp))
-    print("True Negatives: {}".format(tn))
-    print("False Positives: {}".format(fp))
-    print("False Negatives: {}".format(fn))
+    print("Overall Recall: {:.4f}".format(overall_recall))
+    print("Overall Specificity: {:.4f}".format(overall_specificity))
 
     # Print the accuracy for each skin lesion type
     for col in df.columns[1:]:
