@@ -155,10 +155,15 @@ def _evaluate_transfer_attack(
         res_transfer = _process_and_extract_metrics(
             dataloader, attack_transfer, model, model_name, device, 
             attack_name_transfer, min(625, samples))
-
+        
         print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
-        evaluate_xgboost_classifier(result_xgboost_1)
-        evaluate_xgboost_classifier(result_xgboost_2)
+        benign_list_1, adv_list_1 = _extend_lists(
+            res_transfer, include_dense_layers=False)
+        evaluate_xgboost_classifier(result_xgboost_1, benign_list_1, adv_list_1)
+
+        benign_list_2, adv_list_2 = _extend_lists(
+            res_transfer, include_dense_layers=True)
+        evaluate_xgboost_classifier(result_xgboost_2, benign_list_2, adv_list_2)
         print("-"*50)
         
 
