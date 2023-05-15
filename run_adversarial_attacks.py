@@ -8,13 +8,9 @@ from config import (
     TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018,
     TRAINED_RESNET18_MODEL_2019
 )
-from data_classes import ProcessResults
 from helper_functions.adversarial_attacks_helper import (
     evaluate_attack_metrics,
-    evaluate_classifier_accuracy,
-    evaluate_classifier_metrics,
     extend_lists,
-    prepare_data,
     print_result,
     process_and_extract_components_and_metrics,
     select_attack,
@@ -55,7 +51,6 @@ def _initialize_data_loader_resnet18(year:str, is_augmented_dataset:bool):
     return dataloader, test_dataloader
     
 
-
 def _initialize_device() -> torch.device:
     """
     Initialize the device.
@@ -77,6 +72,82 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
         return TRAINED_RESNET18_MODEL_2018
 
 
+def _initialize_model(model_name, year):
+    model_file_name = _get_correct_model_file_name(model_name, year)
+    return _initialize_model(model_name, model_file_name=model_file_name)
+
+
+def _initialize_dataloader(model_name, year, is_augmented):
+    if model_name == RESNET18_MODEL_NAME:
+        return _initialize_data_loader_resnet18(year, is_augmented)
+    elif model_name == INCEPTIONV3_MODEL_NAME:
+        return _initialize_data_loader_inception_v3(year, is_augmented)
+    else:
+        raise Exception("Not a valid model name")
+
+
+def _get_attacks(all_attacks, attack_name):
+    return ["fgsm", "bim", "cw", "pgd"] if all_attacks else [attack_name]
+
+
+def _process_and_extract_metrics(
+        dataloader, 
+        attack, 
+        model, 
+        model_name, 
+        device, 
+        attack_name, 
+        samples
+):
+    result = process_and_extract_components_and_metrics(
+        dataloader, attack, model, model_name, device, attack_name, 
+        sample_limit=samples, include_dense_layers=True)
+    evaluate_attack_metrics(result)
+    return result
+
+
+def _evaluate_result(result, result_name, include_dense_layers=False):
+    benign_combo_list, adv_combo_list = _extend_lists(result, include_dense_layers)
+    result_evaluation = _train_and_evaluate(benign_combo_list, adv_combo_list)
+    print_result(
+        result_name, result_evaluation.accuracy*100, result_evaluation.tp, 
+        result_evaluation.tn, result_evaluation.fp, result_evaluation.fn)
+
+def _extend_lists(result, include_dense_layers):
+    benign_list = extend_lists(
+        result.after_activation.benign_feature_maps.l2, 
+        result.before_activation.benign_feature_maps.linf)
+    adv_list = extend_lists(
+        result.after_activation.adv_feature_maps.l2, 
+        result.before_activation.adv_feature_maps.linf)
+    if include_dense_layers:
+        benign_list = extend_lists(benign_list, result.benign_dense_layers)
+        adv_list = extend_lists(adv_list, result.adv_dense_layers)
+    return benign_list, adv_list
+
+
+def _train_and_evaluate(benign_combo_list, adv_combo_list):
+    return train_and_evaluate_xgboost_classifier(benign_combo_list, adv_combo_list)
+
+
+def _evaluate_transfer_attack(
+        result, model, model_name, device, attack_name, samples, dataloader):
+    for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
+        print("-"*50)
+        print("Original attack: ", attack_name)
+        print("Transfer attack: ", attack_name_transfer)
+
+        attack_transfer = select_attack(model, attack_name_transfer)
+        res_transfer = _process_and_extract_metrics(
+            dataloader, attack_transfer, model, model_name, device, 
+            attack_name_transfer, min(625, samples))
+
+        print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
+
+        _evaluate_result(res_transfer, "combo_l2_linf")
+        _evaluate_result(res_transfer, "combo_l2_linf_dense", include_dense_layers=True)
+
+
 
 
 
@@ -85,163 +156,30 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
 
 
 def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
-    model_file_name = _get_correct_model_file_name(model_name, year)
-
-    model = _initialize_model(
-        model_name,
-        model_file_name=model_file_name
-    )
-
-    # Initialize setup
-    if model_name == RESNET18_MODEL_NAME:
-        # Initialize setup
-        dataloader, test_dataloader = _initialize_data_loader_resnet18(
-            year, is_augmented
-        )
-        
-    elif model_name == INCEPTIONV3_MODEL_NAME:
-        dataloader, test_dataloader = _initialize_data_loader_inception_v3(
-            year, is_augmented
-        )
-    else:
-        raise Exception("Not a valid model name")
-    
-    test_model(model, test_dataloader, model_name=model_name)
-    return
-    
+    model = _initialize_model(model_name, year)
+    dataloader, test_dataloader = _initialize_dataloader(model_name, year, is_augmented)
+    test_model(model, test_dataloader, model_name)
 
     device = _initialize_device()
-    attacks: list = []
-
-    if all_attacks:
-        attacks.extend(["fgsm", "bim", "cw", "pgd"])
-    else:
-        attacks.append(attack_name)
-
+    attacks = _get_attacks(all_attacks, attack_name)
+    
     for attack_name in attacks:
         if year == "2018" and attack_name != "pgd":
             continue
-        print()
-        print("#"*100)
+
+        print("\n"+"#"*100)
         print(f"Attack: {attack_name}")
+
         attack = select_attack(model, attack_name)
-        
-        result: ProcessResults = (
-        process_and_extract_components_and_metrics(
-            dataloader, attack, model, model_name, device, attack_name,
-            sample_limit=samples, include_dense_layers=True
-            )
-        )
-        before_activation = result.before_activation
-        after_activation = result.after_activation
-        evaluate_attack_metrics(result)
+        result = _process_and_extract_metrics(
+            dataloader, attack, model, model_name, device, attack_name, samples)
+        _evaluate_result(result, "combo_l2_linf")
+        _evaluate_result(result, "combo_l2_linf_dense", include_dense_layers=True)
+        _evaluate_transfer_attack(
+            result, model, model_name, device, attack_name, samples, dataloader)
 
 
-        benign_combo_list = extend_lists(
-            after_activation.benign_feature_maps.l2,
-            before_activation.benign_feature_maps.linf)
-        adv_combo_list = extend_lists(
-            after_activation.adv_feature_maps.l2,
-            before_activation.adv_feature_maps.linf)
 
-        combo_l2_linf = train_and_evaluate_xgboost_classifier(
-            benign_combo_list,
-            adv_combo_list
-        )
-
-        print_result(
-            "combo_l2_linf",
-            combo_l2_linf.accuracy*100,
-            combo_l2_linf.tp,
-            combo_l2_linf.tn,
-            combo_l2_linf.fp,
-            combo_l2_linf.fn
-        )
-
-        benign_combo_list = extend_lists(
-            after_activation.benign_feature_maps.l2,
-            before_activation.benign_feature_maps.linf,
-            result.benign_dense_layers)
-        adv_combo_list = extend_lists(
-            after_activation.adv_feature_maps.l2,
-            before_activation.adv_feature_maps.linf,
-            result.adv_dense_layers)
-
-        combo_l2_linf_dense = train_and_evaluate_xgboost_classifier(
-            benign_combo_list,
-            adv_combo_list
-        )
-
-        print_result(
-            "combo_l2_linf_dense",
-            combo_l2_linf_dense.accuracy*100,
-            combo_l2_linf_dense.tp,
-            combo_l2_linf_dense.tn,
-            combo_l2_linf_dense.fp,
-            combo_l2_linf_dense.fn
-        )
-
-        for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
-            print("-"*50)
-            print("Original attack: ", attack_name)
-            print("Transfer attack: ", attack_name_transfer)
-            attack_transfer = select_attack(model, attack_name_transfer)
-            res_transfer: ProcessResults = process_and_extract_components_and_metrics(
-                dataloader, attack_transfer, model, model_name, device,
-                attack_name_transfer, sample_limit=min(625, samples),
-                include_dense_layers=True
-            )
-            print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
-
-            benign_list_transfer_1 = extend_lists(
-                res_transfer.after_activation.benign_feature_maps.l2,
-                res_transfer.before_activation.benign_feature_maps.linf
-            )
-            adv_list_transfer_1 = extend_lists(
-                res_transfer.after_activation.adv_feature_maps.l2,
-                res_transfer.before_activation.adv_feature_maps.linf
-            )
-                    
-            output_1 = prepare_data(benign_list_transfer_1, adv_list_transfer_1)
-
-            transfer_accuracy = evaluate_classifier_accuracy(
-                combo_l2_linf.model, output_1[0], output_1[2])
-            transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_l2_linf.model, output_1[0], output_1[2])
-
-            print_result(
-                "combo_l2_linf",
-                transfer_accuracy*100.0,
-                *transfer_confusion_matrix
-            )
-
-
-            # Double combo
-            benign_list_transfer_2 = extend_lists(
-                res_transfer.after_activation.benign_feature_maps.l2,
-                res_transfer.before_activation.benign_feature_maps.linf,
-                res_transfer.benign_dense_layers
-            )
-            adv_list_transfer_2 = extend_lists(
-                res_transfer.after_activation.adv_feature_maps.l2,
-                res_transfer.before_activation.adv_feature_maps.linf,
-                res_transfer.adv_dense_layers
-            )
-                    
-            output_2 = prepare_data(benign_list_transfer_2, adv_list_transfer_2)
-
-            transfer_accuracy = evaluate_classifier_accuracy(
-                combo_l2_linf_dense.model, output_2[0], output_2[2])
-            transfer_confusion_matrix = evaluate_classifier_metrics(
-                combo_l2_linf_dense.model, output_2[0], output_2[2])
-
-            print_result(
-                "combo_l2_linf_dense",
-                transfer_accuracy*100.0,
-                *transfer_confusion_matrix
-            )
-
-    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
