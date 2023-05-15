@@ -164,9 +164,6 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     attacks = _get_attacks(all_attacks, attack_name)
     
     for attack_name in attacks:
-        if year == "2018" and attack_name != "pgd":
-            continue
-
         print("\n"+"#"*100)
         print(f"Attack: {attack_name}")
 
