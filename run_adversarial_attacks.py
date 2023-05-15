@@ -255,5 +255,5 @@ if __name__ == '__main__':
             print("Year:", year)
             main(
                 year, model_name, args.is_augmented, args.samples,
-                parser.attack, parser.all_attacks)
+                args.attack, args.all_attacks)
 
