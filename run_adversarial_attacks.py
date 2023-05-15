@@ -180,7 +180,6 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
 
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=(
@@ -188,22 +187,23 @@ if __name__ == '__main__':
             " and add multiple learning rates."
         )
     )
+
     # Add argument for the dataset year
     parser.add_argument(
         "--year",
         required=True,
-        choices=["2018", "2019"],
-        help="Dataset for which to perform training on (2018 or 2019)."
+        nargs='+',  # '+' means one or more arguments
+        help="Dataset for which to perform training on (2018, 2019 or both)."
     )
 
     # Add argument for the model type
     parser.add_argument(
         "--model",
         required=True,
-        choices=[INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME],
+        nargs='+',  # '+' means one or more arguments
         help=(
-            f"Model for which to perform training ({INCEPTIONV3_MODEL_NAME}"
-            f" or {RESNET18_MODEL_NAME})"
+            f"Model for which to perform training. Options are "
+            f"{INCEPTIONV3_MODEL_NAME} and/or {RESNET18_MODEL_NAME}"
         )
     )
 
@@ -221,7 +221,6 @@ if __name__ == '__main__':
         type=str
     )
 
-
     # Add argument for using augmented dataset
     # Default to use the non-augmented dataset
     parser.add_argument(
@@ -235,26 +234,21 @@ if __name__ == '__main__':
         action="store_true",
         help="Run all attacks to the specified model"
     )
+
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Call the main function with parsed arguments
-    # main(
-    #     args.year,
-    #     args.model,
-    #     args.is_augmented,
-    #     args.samples,
-    #     args.attack,
-    #     args.all_attacks
-    # )
     mp.freeze_support()
     mp.set_start_method('spawn')
+
     # Set the randomness seeds
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    for model_name in [RESNET18_MODEL_NAME, INCEPTIONV3_MODEL_NAME]:
-        for year in ["2018", "2019"]:
+    for model_name in args.model:  # loop through user specified models
+        for year in args.year:  # loop through user specified years
             print("Model name:", model_name)
             print("Year:", year)
             main(year, model_name, False, args.samples, "bim", True)
+
