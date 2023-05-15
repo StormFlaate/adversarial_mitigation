@@ -172,6 +172,7 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             dataloader, attack, model, model_name, device, attack_name, samples)
         _evaluate_result(result, "combo_l2_linf")
         _evaluate_result(result, "combo_l2_linf_dense", include_dense_layers=True)
+        
         _evaluate_transfer_attack(
             result, model, model_name, device, attack_name, samples, dataloader)
 

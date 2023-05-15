@@ -841,7 +841,7 @@ def _get_feature_maps_inception_v3(
     return feature_maps
 
 
-def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: bool):
+def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool):
     """Get feature maps from ResNet18 model.
 
     Args:
@@ -863,10 +863,8 @@ def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: b
         module for _, module in model.named_children() 
         if isinstance(module, (torch.nn.Conv2d, torch.nn.Sequential))
     ]
-    layers = [
-        model.conv1,
-        model.layer1.children(),
-    ]
+    print(len(layers))
+
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
 
@@ -878,7 +876,7 @@ def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: b
 
     return feature_maps
 
-def _get_feature_maps_resnet18(
+def _get_feature_maps_resnet18_new(
         input,
         model: ResNet,
         before_activation_fn: bool,
@@ -919,6 +917,7 @@ def _get_feature_maps_resnet18(
         model.layer4[1].conv1,
         model.layer4[1].conv2,
     ]
+    print(len(layers))
 
     handles = [layer.register_forward_hook(hook) for layer in layers]
 
