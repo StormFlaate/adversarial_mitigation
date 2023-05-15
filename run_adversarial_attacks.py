@@ -142,7 +142,7 @@ def _evaluate_transfer_attack(
             dataloader, attack_transfer, model, model_name, device, 
             attack_name_transfer, min(625, samples))
 
-        print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
+        #print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
 
         _evaluate_result(res_transfer, "combo_l2_linf")
         _evaluate_result(res_transfer, "combo_l2_linf_dense", include_dense_layers=True)
