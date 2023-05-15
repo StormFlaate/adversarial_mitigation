@@ -841,7 +841,7 @@ def _get_feature_maps_inception_v3(
     return feature_maps
 
 
-def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool):
+def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: bool):
     """Get feature maps from ResNet18 model.
 
     Args:
@@ -876,7 +876,7 @@ def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool)
 
     return feature_maps
 
-def _get_feature_maps_resnet18_new(
+def _get_feature_maps_resnet18(
         input,
         model: ResNet,
         before_activation_fn: bool,
