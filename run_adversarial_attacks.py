@@ -72,7 +72,7 @@ def _get_correct_model_file_name(model_name: str, year: str) -> str:
         return TRAINED_RESNET18_MODEL_2018
 
 
-def _initialize_model(model_name, year):
+def _initialize_model_wrapper(model_name, year):
     model_file_name = _get_correct_model_file_name(model_name, year)
     return _initialize_model(model_name, model_file_name=model_file_name)
 
@@ -156,7 +156,7 @@ def _evaluate_transfer_attack(
 
 
 def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
-    model = _initialize_model(model_name, year)
+    model = _initialize_model_wrapper(model_name, year)
     dataloader, test_dataloader = _initialize_dataloader(model_name, year, is_augmented)
     test_model(model, test_dataloader, model_name)
 
