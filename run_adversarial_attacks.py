@@ -8,9 +8,13 @@ from config import (
     TRAINED_INCEPTION_V3_MODEL_2019, TRAINED_RESNET18_MODEL_2018,
     TRAINED_RESNET18_MODEL_2019
 )
+from data_classes import XGBoostClassifierResults
 from helper_functions.adversarial_attacks_helper import (
     evaluate_attack_metrics,
+    evaluate_classifier_accuracy,
+    evaluate_classifier_metrics,
     extend_lists,
+    prepare_data,
     print_result,
     process_and_extract_components_and_metrics,
     select_attack,
@@ -106,12 +110,6 @@ def _process_and_extract_metrics(
     return result
 
 
-def _evaluate_result(result, result_name, include_dense_layers=False):
-    benign_combo_list, adv_combo_list = _extend_lists(result, include_dense_layers)
-    result_evaluation = _train_and_evaluate(benign_combo_list, adv_combo_list)
-    print_result(
-        result_name, result_evaluation.accuracy*100, result_evaluation.tp, 
-        result_evaluation.tn, result_evaluation.fp, result_evaluation.fn)
 
 def _extend_lists(result, include_dense_layers):
     benign_list = extend_lists(
@@ -129,9 +127,25 @@ def _extend_lists(result, include_dense_layers):
 def _train_and_evaluate(benign_combo_list, adv_combo_list):
     return train_and_evaluate_xgboost_classifier(benign_combo_list, adv_combo_list)
 
+def evaluate_xgboost_classifier(xgboost_results, benign_list, adv_list):
+    output = prepare_data(benign_list, adv_list)
+
+    transfer_accuracy = evaluate_classifier_accuracy(
+                xgboost_results.model, output[0], output[2])
+    transfer_confusion_matrix = evaluate_classifier_metrics(
+                xgboost_results.model, output[0], output[2])
+
+    print_result(
+        "combo_l2_linf_dense",
+        transfer_accuracy*100.0,
+        *transfer_confusion_matrix
+    )
 
 def _evaluate_transfer_attack(
-        result, model, model_name, device, attack_name, samples, dataloader):
+        result, model, model_name, device, attack_name, samples, dataloader,
+        result_xgboost_1:XGBoostClassifierResults, 
+        result_xgboost_2: XGBoostClassifierResults
+    ) -> None:
     for attack_name_transfer in ["fgsm", "bim", "cw", "pgd"]:
         print("-"*50)
         print("Original attack: ", attack_name)
@@ -142,16 +156,11 @@ def _evaluate_transfer_attack(
             dataloader, attack_transfer, model, model_name, device, 
             attack_name_transfer, min(625, samples))
 
-        #print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
-
-        _evaluate_result(res_transfer, "combo_l2_linf")
-        _evaluate_result(res_transfer, "combo_l2_linf_dense", include_dense_layers=True)
-
-
-
-
-
-
+        print("Fooling rate: %.2f%%" % (res_transfer.fooling_rate * 100.0))
+        evaluate_xgboost_classifier(result_xgboost_1)
+        evaluate_xgboost_classifier(result_xgboost_2)
+        print("-"*50)
+        
 
 
 
@@ -170,11 +179,36 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
         attack = select_attack(model, attack_name)
         result = _process_and_extract_metrics(
             dataloader, attack, model, model_name, device, attack_name, samples)
-        _evaluate_result(result, "combo_l2_linf")
-        _evaluate_result(result, "combo_l2_linf_dense", include_dense_layers=True)
         
+        # =========================
+        # ===== COMBINATIONS* =====
+        # =========================
+        benign_combo_list, adv_combo_list = _extend_lists(
+            result, include_dense_layers=False)
+        
+        result_xgboost_1: XGBoostClassifierResults = _train_and_evaluate(
+            benign_combo_list, adv_combo_list)
+        
+        print_result(
+            "combo_l2_linf", result_xgboost_1.accuracy*100, result_xgboost_1.tp, 
+            result_xgboost_1.tn, result_xgboost_1.fp, result_xgboost_1.fn)
+
+        # =========================
+        # ===== COMBINATIONS** ====
+        # =========================
+        benign_combo_list, adv_combo_list = _extend_lists(
+            result, include_dense_layers=True)
+        
+        result_xgboost_2: XGBoostClassifierResults = _train_and_evaluate(
+            benign_combo_list, adv_combo_list)
+        
+        print_result(
+            "combo_l2_linf_dense", result_xgboost_2.accuracy*100, result_xgboost_2.tp,
+            result_xgboost_2.tn, result_xgboost_2.fp, result_xgboost_2.fn)
+
         _evaluate_transfer_attack(
-            result, model, model_name, device, attack_name, samples, dataloader)
+            result, model, model_name, device, attack_name, samples, dataloader,
+            result_xgboost_1, result_xgboost_2)
 
 
 

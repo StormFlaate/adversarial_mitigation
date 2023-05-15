@@ -917,7 +917,6 @@ def _get_feature_maps_resnet18(
         model.layer4[1].conv1,
         model.layer4[1].conv2,
     ]
-    print(len(layers))
 
     handles = [layer.register_forward_hook(hook) for layer in layers]
 
