@@ -207,17 +207,21 @@ if __name__ == '__main__':
         )
     )
 
-    # Number of samples
     parser.add_argument(
         "--samples",
         required=True,
         type=int
     )
 
-    # Number of samples
+    parser.add_argument(
+        "--all-attacks",
+        action="store_true",
+        help="Run all attacks to the specified model"
+    )
+
     parser.add_argument(
         "--attack",
-        required=True,
+        required=False,
         type=str
     )
 
@@ -229,14 +233,13 @@ if __name__ == '__main__':
         help="Use augmented dataset if specified."
     )
 
-    parser.add_argument(
-        "--all-attacks",
-        action="store_true",
-        help="Run all attacks to the specified model"
-    )
 
     # Parse the command-line arguments
     args = parser.parse_args()
+
+    # Check if --attack is provided when --all-attacks is False
+    if not args.all_attacks and args.attack is None:
+        parser.error("--attack is required if --all-attacks is not specified")
 
     # Call the main function with parsed arguments
     mp.freeze_support()
@@ -250,5 +253,7 @@ if __name__ == '__main__':
         for year in args.year:  # loop through user specified years
             print("Model name:", model_name)
             print("Year:", year)
-            main(year, model_name, False, args.samples, "bim", True)
+            main(
+                year, model_name, args.is_augmented, args.samples,
+                parser.attack, parser.all_attacks)
 
