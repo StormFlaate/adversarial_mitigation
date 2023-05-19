@@ -190,15 +190,15 @@ def main(
         # ===============================
         # ===== COMBINATIONS SINGLE =====
         # ===============================
-        benign_combo_list, adv_combo_list = _extend_lists(
-            result, include_dense_layers=False)
+        # benign_combo_list, adv_combo_list = _extend_lists(
+        #     result, include_dense_layers=False)
         
-        result_xgboost_1: XGBoostClassifierResults = _train_and_evaluate(
-            benign_combo_list, adv_combo_list)
+        # result_xgboost_1: XGBoostClassifierResults = _train_and_evaluate(
+        #     benign_combo_list, adv_combo_list)
         
-        print_result(
-            "combo_l2_linf", result_xgboost_1.accuracy*100, result_xgboost_1.tp, 
-            result_xgboost_1.tn, result_xgboost_1.fp, result_xgboost_1.fn)
+        # print_result(
+        #     "combo_l2_linf", result_xgboost_1.accuracy*100, result_xgboost_1.tp, 
+        #     result_xgboost_1.tn, result_xgboost_1.fp, result_xgboost_1.fn)
 
         # ==============================
         # ===== COMBINATIONS DOUBLE ====
@@ -214,10 +214,10 @@ def main(
             result_xgboost_2.tn, result_xgboost_2.fp, result_xgboost_2.fn)
 
 
-        if evaluate_transfer:
-            _evaluate_transfer_attack(
-                result, model, model_name, device, attack_name, samples, dataloader,
-                result_xgboost_1, result_xgboost_2)
+        # if evaluate_transfer:
+        #     _evaluate_transfer_attack(
+        #         result, model, model_name, device, attack_name, samples, dataloader,
+        #         result_xgboost_1, result_xgboost_2)
 
 
 
