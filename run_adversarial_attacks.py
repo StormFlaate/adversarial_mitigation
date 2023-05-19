@@ -169,7 +169,9 @@ def _evaluate_transfer_attack(
 
 
 
-def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
+def main(
+        year, model_name, is_augmented, samples, attack_name, all_attacks, 
+        evaluate_transfer):
     model = _initialize_model_wrapper(model_name, year)
     dataloader, test_dataloader = _initialize_dataloader(model_name, year, is_augmented)
     test_model(model, test_dataloader, model_name)
@@ -180,14 +182,14 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
     for attack_name in attacks:
         print("\n"+"#"*100)
         print(f"Attack: {attack_name}")
-
+        
         attack = select_attack(model, attack_name)
         result = _process_and_extract_metrics(
             dataloader, attack, model, model_name, device, attack_name, samples)
         
-        # =========================
-        # ===== COMBINATIONS* =====
-        # =========================
+        # ===============================
+        # ===== COMBINATIONS SINGLE =====
+        # ===============================
         benign_combo_list, adv_combo_list = _extend_lists(
             result, include_dense_layers=False)
         
@@ -198,9 +200,9 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             "combo_l2_linf", result_xgboost_1.accuracy*100, result_xgboost_1.tp, 
             result_xgboost_1.tn, result_xgboost_1.fp, result_xgboost_1.fn)
 
-        # =========================
-        # ===== COMBINATIONS** ====
-        # =========================
+        # ==============================
+        # ===== COMBINATIONS DOUBLE ====
+        # ==============================
         benign_combo_list, adv_combo_list = _extend_lists(
             result, include_dense_layers=True)
         
@@ -211,9 +213,11 @@ def main(year, model_name, is_augmented, samples, attack_name, all_attacks):
             "combo_l2_linf_dense", result_xgboost_2.accuracy*100, result_xgboost_2.tp,
             result_xgboost_2.tn, result_xgboost_2.fp, result_xgboost_2.fn)
 
-        _evaluate_transfer_attack(
-            result, model, model_name, device, attack_name, samples, dataloader,
-            result_xgboost_1, result_xgboost_2)
+
+        if evaluate_transfer:
+            _evaluate_transfer_attack(
+                result, model, model_name, device, attack_name, samples, dataloader,
+                result_xgboost_1, result_xgboost_2)
 
 
 
@@ -262,12 +266,17 @@ if __name__ == '__main__':
         type=str
     )
 
-    # Add argument for using augmented dataset
     # Default to use the non-augmented dataset
     parser.add_argument(
         "--is-augmented",
         action="store_true",
         help="Use augmented dataset if specified."
+    )
+
+    parser.add_argument(
+        "--evaluate-transfer",
+        action="store_true",
+        help="Evaluate how good the model performs on the other attacks."
     )
 
 
@@ -292,5 +301,5 @@ if __name__ == '__main__':
             print("Year:", year)
             main(
                 year, model_name, args.is_augmented, args.samples,
-                args.attack, args.all_attacks)
+                args.attack, args.all_attacks, parser.evaluate_transfer)
 
