@@ -1,4 +1,5 @@
 import argparse
+import time
 import numpy as np
 import torch
 import multiprocessing as mp
@@ -106,7 +107,7 @@ def _process_and_extract_metrics(
     result = process_and_extract_components_and_metrics(
         dataloader, attack, model, model_name, device, attack_name, 
         sample_limit=samples, include_dense_layers=True)
-    evaluate_attack_metrics(result)
+    # evaluate_attack_metrics(result)
     return result
 
 
@@ -182,7 +183,7 @@ def main(
     for attack_name in attacks:
         print("\n"+"#"*100)
         print(f"Attack: {attack_name}")
-        
+        start_time_attack = time.time()
         attack = select_attack(model, attack_name)
         result = _process_and_extract_metrics(
             dataloader, attack, model, model_name, device, attack_name, samples)
@@ -203,6 +204,7 @@ def main(
         # ==============================
         # ===== COMBINATIONS DOUBLE ====
         # ==============================
+        print("Attack time:",{time.time() - start_time_attack})
         benign_combo_list, adv_combo_list = _extend_lists(
             result, include_dense_layers=True)
         

@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
@@ -34,19 +35,19 @@ def process_and_extract_components_and_metrics(
             getattr(feature_maps, metric_name).append(feature_map)
 
     metrics = {
-        'mean': mean_metric,
-        'l1': l1_distance_metric,
+        # 'mean': mean_metric,
+        # 'l1': l1_distance_metric,
         'l2': l2_distance_metric,
         'linf': linfinity_distance_metric,
-        'std': std_dev_metric,
-        'var': variance_metric,
-        'fro': frobenius_norm_metric,
+        # 'std': std_dev_metric,
+        # 'var': variance_metric,
+        # 'fro': frobenius_norm_metric,
     }
 
-    benign_feature_maps_before = Metric([], [], [], [], [], [], [])
-    adv_feature_maps_before = Metric([], [], [], [], [], [], [])
-    benign_feature_maps_after = Metric([], [], [], [], [], [], [])
-    adv_feature_maps_after = Metric([], [], [], [], [], [], [])
+    benign_feature_maps_before = Metric([], [])
+    adv_feature_maps_before = Metric([], [])
+    benign_feature_maps_after = Metric([], [])
+    adv_feature_maps_after = Metric([], [])
     benign_dense_layers = []
     adv_dense_layers = []
     correct = 0
@@ -134,12 +135,13 @@ def train_and_evaluate_xgboost_classifier(
     Returns:
         An instance of XGBoostClassifierResults dataclass
     """
-
+    start_time = time.time()
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
     
     model = train_xgboost_classifier(X_train, y_train)
+    print("Train time: ", time.time()-start_time)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
     
     tp, tn, fp, fn = evaluate_classifier_metrics(model, X_test, y_test)
