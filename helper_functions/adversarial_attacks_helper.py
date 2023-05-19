@@ -44,10 +44,10 @@ def process_and_extract_components_and_metrics(
         # 'fro': frobenius_norm_metric,
     }
 
-    benign_feature_maps_before = Metric([], [])
-    adv_feature_maps_before = Metric([], [])
-    benign_feature_maps_after = Metric([], [])
-    adv_feature_maps_after = Metric([], [])
+    benign_feature_maps_before = Metric([], [], [], [], [], [], [])
+    adv_feature_maps_before = Metric([], [], [], [], [], [], [])
+    benign_feature_maps_after = Metric([], [], [], [], [], [], [])
+    adv_feature_maps_after = Metric([], [], [], [], [], [], [])
     benign_dense_layers = []
     adv_dense_layers = []
     correct = 0
