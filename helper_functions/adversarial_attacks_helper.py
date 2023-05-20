@@ -875,7 +875,6 @@ def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool)
         module for _, module in model.named_children() 
         if isinstance(module, (torch.nn.Conv2d, torch.nn.Sequential))
     ]
-    print(len(layers))
 
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
