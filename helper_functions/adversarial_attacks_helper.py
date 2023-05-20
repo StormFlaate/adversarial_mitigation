@@ -187,8 +187,8 @@ def _get_mean_and_std_for_y(X_train: np.ndarray, y_train: np.ndarray, y_value: i
     X_subset = X_train[indices]
 
     # Compute the mean and standard deviation
-    mean = np.mean(X_subset, axis=1)
-    std = np.std(X_subset, axis=1)
+    mean = np.mean(X_subset, axis=0)
+    std = np.std(X_subset, axis=0)
 
     return mean, std
 
