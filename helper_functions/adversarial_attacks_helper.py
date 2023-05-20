@@ -141,41 +141,10 @@ def train_and_evaluate_xgboost_classifier(
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
-    [print(x[15], y) for x,y in zip(X_test, y_test)]
-    # Define a statistics container
-    Stat = namedtuple('Stat', ['sum', 'squared_sum', 'count'])
-
-    def get_stats(data):
-        # Initialize stats
-        stats = Stat(sum=0.0, squared_sum=0.0, count=0)
-
-        for value in data:
-            stats = Stat(sum=stats.sum + value,
-                        squared_sum=stats.squared_sum + value**2,
-                        count=stats.count + 1)
-        return stats
-
-    # Separate the data
-    X_0 = [x[15] for x, y in zip(X_test, y_test) if y == 0.0]
-    X_not_0 = [x[15] for x, y in zip(X_test, y_test) if y != 0.0]
-
-    # Compute the stats
-    stats_0 = get_stats(X_0)
-    stats_not_0 = get_stats(X_not_0)
-
-    # Compute the averages
-    average_0 = stats_0.sum / stats_0.count if stats_0.count != 0 else 0
-    average_not_0 = stats_not_0.sum / stats_not_0.count if stats_not_0.count != 0 else 0
-
-    # Compute the standard deviations
-    std_dev_0 = math.sqrt(stats_0.squared_sum / stats_0.count - average_0 ** 2) if stats_0.count > 1 else 0
-    std_dev_not_0 = math.sqrt(stats_not_0.squared_sum / stats_not_0.count - average_not_0 ** 2) if stats_not_0.count > 1 else 0
-
-    print("benign average:", average_not_0)
-    print("adv average:", average_0)
-    print("benign std_dev:", std_dev_not_0)
-    print("adv std_dev:", std_dev_0)
-
+    
+    mean, std = _get_mean_and_std_for_y(X_train, y_train, 0)
+    print(mean)
+    print(std)
 
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
@@ -199,7 +168,29 @@ def train_and_evaluate_xgboost_classifier(
         fn=fn
     )
 
+def _get_mean_and_std_for_y(X_train: np.ndarray, y_train: np.ndarray, y_value: int):
+    """
+    Computes the mean and standard deviation of X_train for a given y_value in y_train.
 
+    Args:
+        X_train (np.ndarray): The training feature matrix.
+        y_train (np.ndarray): The training labels.
+        y_value (int): The specific value in y_train to compute the mean and standard deviation for.
+
+    Returns:
+        tuple: A tuple containing the mean and standard deviation.
+    """
+    # Get the indices where y_train equals y_value
+    indices = np.where(y_train == y_value)
+
+    # Select the corresponding rows in X_train
+    X_subset = X_train[indices]
+
+    # Compute the mean and standard deviation
+    mean = np.mean(X_subset, axis=1)
+    std = np.std(X_subset, axis=1)
+
+    return mean, std
 
 def prepare_data(
     benign_list: list[list[float]] | np.ndarray,
