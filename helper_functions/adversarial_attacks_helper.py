@@ -139,7 +139,7 @@ def train_and_evaluate_xgboost_classifier(
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
-    
+    [print(i) for i in X_test]    
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
@@ -147,7 +147,7 @@ def train_and_evaluate_xgboost_classifier(
     tp, tn, fp, fn = evaluate_classifier_metrics(model, X_test, y_test)
 
     # Get feature importances.
-    feature_importances = model.feature_importances_.tolist()  # Convert numpy array to list
+    feature_importances = model.feature_importances_.tolist()
     print(feature_importances)
     # Sort the feature importances in descending order and get the indices.
     indices = np.argsort(feature_importances)[::-1]
