@@ -146,6 +146,13 @@ def train_and_evaluate_xgboost_classifier(
     
     tp, tn, fp, fn = evaluate_classifier_metrics(model, X_test, y_test)
 
+    # Get feature importances.
+    feature_importances = model.feature_importances_.tolist()  # Convert numpy array to list
+    print(feature_importances)
+    # Sort the feature importances in descending order and get the indices.
+    indices = np.argsort(feature_importances)[::-1]
+    print(indices)
+
     return XGBoostClassifierResults(
         model=model,
         accuracy=accuracy,
