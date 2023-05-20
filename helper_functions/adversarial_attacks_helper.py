@@ -144,11 +144,6 @@ def train_and_evaluate_xgboost_classifier(
     )
     
 
-
-    model_svm = train_svm_classifier(X_train, y_train)
-    accuracy_svm = model_svm.score(X_test, y_test)
-    print(accuracy_svm)
-
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
@@ -170,28 +165,6 @@ def train_and_evaluate_xgboost_classifier(
         fp=fp,
         fn=fn
     )
-
-def train_svm_classifier(
-        X_train: np.ndarray, y_train: np.ndarray, kernel: str='rbf', C: float=1.0):
-    """
-    Trains a Support Vector Machine (SVM) classifier on the provided training data.
-
-    Args:
-        X_train (np.ndarray): The features for the training set.
-        y_train (np.ndarray): The labels for the training set.
-        kernel (str, optional): Specifies the kernel type to be used in the algorithm. It must be one of 'linear', 
-            'poly', 'rbf', 'sigmoid', 'precomputed' or a callable. If none is given, 'rbf' will be used. Defaults to 'rbf'.
-        C (float, optional): Regularization parameter. The strength of the regularization is inversely proportional to C. 
-            Must be strictly positive. Defaults to 1.0.
-
-    Returns:
-        clf: The trained SVM classifier.
-    """
-    clf = svm.SVC(kernel=kernel, C=C)
-    clf.fit(X_train, y_train)
-
-    return clf
-
 
 
 def prepare_data(
@@ -880,7 +853,7 @@ def _get_feature_maps_inception_v3(
     return feature_maps
 
 
-def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: bool):
+def _get_feature_maps_resnet18(input, model: ResNet, before_activation_fn: bool):
     """Get feature maps from ResNet18 model.
 
     Args:
@@ -915,7 +888,7 @@ def _get_feature_maps_resnet18_old(input, model: ResNet, before_activation_fn: b
 
     return feature_maps
 
-def _get_feature_maps_resnet18(
+def _get_feature_maps_resnet18_new(
         input,
         model: ResNet,
         before_activation_fn: bool,
