@@ -155,7 +155,7 @@ def train_and_evaluate_xgboost_classifier(
     y_pred = []
     for x in X_test:
         votes = np.sum((x > model['mean_0'] - 2 * model['std_0']) & (x < model['mean_0'] + 2 * model['std_0']))
-        y_pred.append(1 if votes > X_test.shape[1]*0.05 else 0)
+        y_pred.append(1 if votes > X_test.shape[1]*0.95 else 0)
     y_pred = np.array(y_pred)
 
     cm = confusion_matrix(y_test, y_pred)
