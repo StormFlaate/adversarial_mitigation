@@ -5,6 +5,7 @@ import time
 from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
+from sklearn import svm
 from torchvision.models import ResNet, Inception3
 import torch
 import torchattacks
@@ -142,29 +143,9 @@ def train_and_evaluate_xgboost_classifier(
         benign_list, adv_list, test_size, random_state
     )
     
-    mean_0, std_0 = _get_mean_and_std_for_y(X_train, y_train, 0)
-    mean_1, std_1 = _get_mean_and_std_for_y(X_train, y_train, 1)
-
-    model = {
-        'mean_0': mean_0,
-        'std_0': std_0,
-        'mean_1': mean_1,
-        'std_1': std_1,
-    }
-
-    y_pred = []
-    for x in X_test:
-        is_outside = np.any((x < model['mean_0'] - 1 * model['std_0']) | (x > model['mean_0'] + 1 * model['std_0']))
-        y_pred.append(1 if is_outside else 0)
-    y_pred = np.array(y_pred)
 
 
-    cm = confusion_matrix(y_test, y_pred)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(accuracy)
-
-
-
+    model_svm = train_svm_classifier(X_train, y_train)
 
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
@@ -188,29 +169,28 @@ def train_and_evaluate_xgboost_classifier(
         fn=fn
     )
 
-def _get_mean_and_std_for_y(X_train: np.ndarray, y_train: np.ndarray, y_value: int):
+def train_svm_classifier(
+        X_train: np.ndarray, y_train: np.ndarray, kernel: str='rbf', C: float=1.0):
     """
-    Computes the mean and standard deviation of X_train for a given y_value in y_train.
+    Trains a Support Vector Machine (SVM) classifier on the provided training data.
 
     Args:
-        X_train (np.ndarray): The training feature matrix.
-        y_train (np.ndarray): The training labels.
-        y_value (int): The specific value in y_train to compute the mean and standard deviation for.
+        X_train (np.ndarray): The features for the training set.
+        y_train (np.ndarray): The labels for the training set.
+        kernel (str, optional): Specifies the kernel type to be used in the algorithm. It must be one of 'linear', 
+            'poly', 'rbf', 'sigmoid', 'precomputed' or a callable. If none is given, 'rbf' will be used. Defaults to 'rbf'.
+        C (float, optional): Regularization parameter. The strength of the regularization is inversely proportional to C. 
+            Must be strictly positive. Defaults to 1.0.
 
     Returns:
-        tuple: A tuple containing the mean and standard deviation.
+        clf: The trained SVM classifier.
     """
-    # Get the indices where y_train equals y_value
-    indices = np.where(y_train == y_value)
+    clf = svm.SVC(kernel=kernel, C=C)
+    clf.fit(X_train, y_train)
 
-    # Select the corresponding rows in X_train
-    X_subset = X_train[indices]
+    return clf
 
-    # Compute the mean and standard deviation
-    mean = np.mean(X_subset, axis=0)
-    std = np.std(X_subset, axis=0)
 
-    return mean, std
 
 def prepare_data(
     benign_list: list[list[float]] | np.ndarray,
