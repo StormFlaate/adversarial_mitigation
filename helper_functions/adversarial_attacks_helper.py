@@ -1,3 +1,5 @@
+from collections import namedtuple
+import math
 import os
 import time
 from typing import Callable
@@ -140,38 +142,39 @@ def train_and_evaluate_xgboost_classifier(
         benign_list, adv_list, test_size, random_state
     )
     [print(x[15], y) for x,y in zip(X_test, y_test)]
-    sum_x_0 = 0
-    count_x_0 = 0
-    min_x_0 = float('inf')
-    max_x_0 = float('-inf')
-    sum_x_not_0 = 0
-    count_x_not_0 = 0
-    min_x_not_0 = float('inf')
-    max_x_not_0 = float('-inf')
+    # Define a statistics container
+    Stat = namedtuple('Stat', ['sum', 'squared_sum', 'count'])
 
-    for x, y in zip(X_test, y_test):
-        if y == 0.0:
-            value = x[15]  # Assuming 15 is a valid index for the x input
-            sum_x_0 += value
-            count_x_0 += 1
-            min_x_0 = min(min_x_0, value)
-            max_x_0 = max(max_x_0, value)
-        else:
-            value = x[15]
-            sum_x_not_0 += value
-            count_x_not_0 += 1
-            min_x_not_0 = min(min_x_not_0, value)
-            max_x_not_0 = max(max_x_not_0, value)
+    def get_stats(data):
+        # Initialize stats
+        stats = Stat(sum=0.0, squared_sum=0.0, count=0)
 
-    average_x_0 = sum_x_0 / count_x_0 if count_x_0 != 0 else 0
-    average_x_not_0 = sum_x_not_0 / count_x_not_0 if count_x_not_0 != 0 else 0
+        for value in data:
+            stats = Stat(sum=stats.sum + value,
+                        squared_sum=stats.squared_sum + value**2,
+                        count=stats.count + 1)
+        return stats
 
-    print("benign:", average_x_not_0)
-    print("adv:", average_x_0)
-    print("min benign:", min_x_not_0)
-    print("max benign:", max_x_not_0)
-    print("min adv:", min_x_0)
-    print("max adv:", max_x_0)
+    # Separate the data
+    X_0 = [x[15] for x, y in zip(X_test, y_test) if y == 0.0]
+    X_not_0 = [x[15] for x, y in zip(X_test, y_test) if y != 0.0]
+
+    # Compute the stats
+    stats_0 = get_stats(X_0)
+    stats_not_0 = get_stats(X_not_0)
+
+    # Compute the averages
+    average_0 = stats_0.sum / stats_0.count if stats_0.count != 0 else 0
+    average_not_0 = stats_not_0.sum / stats_not_0.count if stats_not_0.count != 0 else 0
+
+    # Compute the standard deviations
+    std_dev_0 = math.sqrt(stats_0.squared_sum / stats_0.count - average_0 ** 2) if stats_0.count > 1 else 0
+    std_dev_not_0 = math.sqrt(stats_not_0.squared_sum / stats_not_0.count - average_not_0 ** 2) if stats_not_0.count > 1 else 0
+
+    print("benign average:", average_not_0)
+    print("adv average:", average_0)
+    print("benign std_dev:", std_dev_not_0)
+    print("adv std_dev:", std_dev_0)
 
 
     model = train_xgboost_classifier(X_train, y_train)
