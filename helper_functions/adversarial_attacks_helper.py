@@ -146,6 +146,8 @@ def train_and_evaluate_xgboost_classifier(
 
 
     model_svm = train_svm_classifier(X_train, y_train)
+    accuracy_svm = model_svm.score(X_test, y_test)
+    print(accuracy_svm)
 
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
