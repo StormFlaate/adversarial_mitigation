@@ -142,21 +142,37 @@ def train_and_evaluate_xgboost_classifier(
     [print(x[15], y) for x,y in zip(X_test, y_test)]
     sum_x_0 = 0
     count_x_0 = 0
+    min_x_0 = float('inf')
+    max_x_0 = float('-inf')
     sum_x_not_0 = 0
     count_x_not_0 = 0
+    min_x_not_0 = float('inf')
+    max_x_not_0 = float('-inf')
 
     for x, y in zip(X_test, y_test):
         if y == 0.0:
-            sum_x_0 += x[15]  # Assuming 15 is a valid index for the x input
+            value = x[15]  # Assuming 15 is a valid index for the x input
+            sum_x_0 += value
             count_x_0 += 1
+            min_x_0 = min(min_x_0, value)
+            max_x_0 = max(max_x_0, value)
         else:
-            sum_x_not_0 += x[15]
+            value = x[15]
+            sum_x_not_0 += value
             count_x_not_0 += 1
+            min_x_not_0 = min(min_x_not_0, value)
+            max_x_not_0 = max(max_x_not_0, value)
 
     average_x_0 = sum_x_0 / count_x_0 if count_x_0 != 0 else 0
     average_x_not_0 = sum_x_not_0 / count_x_not_0 if count_x_not_0 != 0 else 0
-    print("benign",average_x_not_0)
-    print("adv",average_x_0)
+
+    print("benign:", average_x_not_0)
+    print("adv:", average_x_0)
+    print("min benign:", min_x_not_0)
+    print("max benign:", max_x_not_0)
+    print("min adv:", min_x_0)
+    print("max adv:", max_x_0)
+
 
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
