@@ -142,9 +142,28 @@ def train_and_evaluate_xgboost_classifier(
         benign_list, adv_list, test_size, random_state
     )
     
-    mean, std = _get_mean_and_std_for_y(X_train, y_train, 0)
-    print(mean)
-    print(std)
+    mean_0, std_0 = _get_mean_and_std_for_y(X_train, y_train, 0)
+    mean_1, std_1 = _get_mean_and_std_for_y(X_train, y_train, 1)
+
+    model = {
+        'mean_0': mean_0,
+        'std_0': std_0,
+        'mean_1': mean_1,
+        'std_1': std_1,
+    }
+
+    y_pred = []
+    for x in X_test:
+        votes = np.sum((x > model['mean_0'] - 2 * model['std_0']) & (x < model['mean_0'] + 2 * model['std_0']))
+        y_pred.append(1 if votes > X_test.shape[1] / 2 else 0)
+    y_pred = np.array(y_pred)
+
+    cm = confusion_matrix(y_test, y_pred)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(accuracy)
+
+
+
 
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
