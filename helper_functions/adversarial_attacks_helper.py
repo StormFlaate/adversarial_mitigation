@@ -139,7 +139,25 @@ def train_and_evaluate_xgboost_classifier(
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
-    [print(x[15], y) for x,y in zip(X_test, y_test)]    
+    [print(x[15], y) for x,y in zip(X_test, y_test)]
+    sum_x_0 = 0
+    count_x_0 = 0
+    sum_x_not_0 = 0
+    count_x_not_0 = 0
+
+    for x, y in zip(X_test, y_test):
+        if y == 0.0:
+            sum_x_0 += x[15]  # Assuming 15 is a valid index for the x input
+            count_x_0 += 1
+        else:
+            sum_x_not_0 += x[15]
+            count_x_not_0 += 1
+
+    average_x_0 = sum_x_0 / count_x_0 if count_x_0 != 0 else 0
+    average_x_not_0 = sum_x_not_0 / count_x_not_0 if count_x_not_0 != 0 else 0
+    print("benign",average_x_not_0)
+    print("adv",average_x_0)
+
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
