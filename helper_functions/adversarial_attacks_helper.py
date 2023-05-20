@@ -139,7 +139,7 @@ def train_and_evaluate_xgboost_classifier(
     X_train, X_test, y_train, y_test = prepare_data(
         benign_list, adv_list, test_size, random_state
     )
-    [print(x, y) for x,y in zip(X_test, y_test)]    
+    [print(x[15], y) for x,y in zip(X_test, y_test)]    
     model = train_xgboost_classifier(X_train, y_train)
     print("Train time: ", time.time()-start_time)
     accuracy = evaluate_classifier_accuracy(model, X_test, y_test)
