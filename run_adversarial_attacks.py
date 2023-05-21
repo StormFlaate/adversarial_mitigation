@@ -216,13 +216,12 @@ def main(
 
         write_results_to_csv(
             "results.csv", model_name, attack_name, samples,
-            result_xgboost_2.accuracy*100)
+        result_xgboost_2.accuracy*100)
 
         # if evaluate_transfer:
         #     _evaluate_transfer_attack(
         #         result, model, model_name, device, attack_name, samples, dataloader,
         #         result_xgboost_1, result_xgboost_2)
-
 
 
 if __name__ == '__main__':
@@ -252,9 +251,11 @@ if __name__ == '__main__':
         )
     )
 
+    # Update samples to accept multiple values
     parser.add_argument(
         "--samples",
         required=True,
+        nargs='+',  # '+' means one or more arguments
         type=int
     )
 
@@ -299,11 +300,13 @@ if __name__ == '__main__':
     torch.manual_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    for model_name in args.model:  # loop through user specified models
-        for year in args.year:  # loop through user specified years
-            print("Model name:", model_name)
-            print("Year:", year)
-            main(
-                year, model_name, args.is_augmented, args.samples,
-                args.attack, args.all_attacks, args.evaluate_transfer)
-
+    # Loop through the combinations of models, years and samples
+    for sample in args.samples: 
+        for model_name in args.model:
+            for year in args.year:
+                print("Model name:", model_name)
+                print("Year:", year)
+                print("Sample:", sample)
+                main(
+                    year, model_name, args.is_augmented, sample,
+                    args.attack, args.all_attacks, args.evaluate_transfer)
