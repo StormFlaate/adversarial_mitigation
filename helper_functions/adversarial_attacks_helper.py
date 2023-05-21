@@ -55,14 +55,19 @@ def process_and_extract_components_and_metrics(
     adv_dense_layers = []
     correct = 0
     fooled = 0
+    elapsed_times = 0
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
         true_label = true_label.to(device)
 
-        adv_input = generate_adversarial_input(
-            input, true_label, adversarial_attack, attack_name)
 
+        adv_input, elapsed_time = generate_adversarial_input(
+            input, true_label, adversarial_attack, attack_name)
+        
+        # used for evaluting the average time to generate adversarial attack
+        elapsed_times.append(elapsed_time)
+        
         correct, fooled = assess_attack_single_input(
             model, device, input, adv_input, true_label, (correct, fooled)
         )
@@ -89,8 +94,11 @@ def process_and_extract_components_and_metrics(
 
     if correct == 0:
         return 0.0
-
     fooling_rate = fooled / correct
+
+    avg_elapsed_time = sum(elapsed_times)/len(elapsed_times)
+    print(f"Average time over {len(elapsed_times)} runs: {avg_elapsed_time} seconds")
+
 
     results = ProcessResults(
         before_activation=ActivationResults(
@@ -298,6 +306,8 @@ def generate_adversarial_input(
         the input tensor. If batch_size > 1, this will be a tensor of shape 
         (batch_size, channels, height, width).
     """
+    
+    start_time = time.time()
     # Move inputs and labels to the specified device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input = input.to(device)
@@ -307,8 +317,9 @@ def generate_adversarial_input(
 
     adversarial_input = attack(input, label_argmax)
 
-    
-    return adversarial_input
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    return adversarial_input, elapsed_time
 
 
 def assess_attack_and_log_distances(

@@ -11,7 +11,6 @@ from config import (
 )
 from data_classes import XGBoostClassifierResults
 from helper_functions.adversarial_attacks_helper import (
-    evaluate_attack_metrics,
     evaluate_classifier_accuracy,
     evaluate_classifier_metrics,
     extend_lists,
