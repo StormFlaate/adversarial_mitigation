@@ -87,7 +87,7 @@ def process_and_extract_components_and_metrics(
             benign_dense_layers.append(get_dense_layers(input, model, model_name))
             adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
 
-        if sample_limit is not None and i >= sample_limit:
+        if sample_limit is not None and i+1 >= sample_limit:
             break
 
     if correct == 0:
