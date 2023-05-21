@@ -1,11 +1,9 @@
-from collections import namedtuple
-import math
+import csv
 import os
 import time
 from typing import Callable
 from matplotlib import pyplot as plt
 import numpy as np
-from sklearn import svm
 from torchvision.models import ResNet, Inception3
 import torch
 import torchattacks
@@ -807,6 +805,19 @@ def evaluate_attack_metrics(results: ProcessResults):
     )
 
     return metrics
+
+
+def write_results_to_csv(filename, model_name, attack_name, samples, accuracy):
+    # Create or append to the CSV file
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Check if the file is empty, if so write the headers
+        if file.tell() == 0:
+            writer.writerow(['model_name', 'attack_name', 'samples', 'accuracy'])
+
+        # Write the data
+        writer.writerow([model_name, attack_name, samples, accuracy])
 
 
 # ======================================================

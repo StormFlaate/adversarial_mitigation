@@ -19,6 +19,7 @@ from helper_functions.adversarial_attacks_helper import (
     process_and_extract_components_and_metrics,
     select_attack,
     train_and_evaluate_xgboost_classifier,
+    write_results_to_csv,
 )
 from helper_functions.misc_helper import get_trained_or_default_model
 from helper_functions.train_model_helper import get_data_loaders_by_year, test_model
@@ -168,7 +169,6 @@ def _evaluate_transfer_attack(
         
 
 
-
 def main(
         year, model_name, is_augmented, samples, attack_name, all_attacks, 
         evaluate_transfer):
@@ -214,6 +214,9 @@ def main(
             "combo_l2_linf_dense", result_xgboost_2.accuracy*100, result_xgboost_2.tp,
             result_xgboost_2.tn, result_xgboost_2.fp, result_xgboost_2.fn)
 
+        write_results_to_csv(
+            "results.csv", model_name, attack_name, samples,
+            result_xgboost_2.accuracy*100)
 
         # if evaluate_transfer:
         #     _evaluate_transfer_attack(
