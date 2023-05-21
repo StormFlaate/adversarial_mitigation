@@ -822,7 +822,8 @@ def _get_feature_maps_inception_v3(
             feature_maps.append(input[0].detach())
         else:
             feature_maps.append(output.detach())
-    # List of InceptionV3 layers to extract feature maps from
+    
+    # List of InceptionV3 layers to extract feature maps from 
     layers = [
         model.Conv2d_1a_3x3,
         model.Conv2d_2a_3x3,
@@ -839,7 +840,7 @@ def _get_feature_maps_inception_v3(
         model.Mixed_6e,
         model.Mixed_7a,
         model.Mixed_7b,
-        model.Mixed_7c
+        model.Mixed_7c,
     ]
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
