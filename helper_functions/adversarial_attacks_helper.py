@@ -55,7 +55,7 @@ def process_and_extract_components_and_metrics(
     adv_dense_layers = []
     correct = 0
     fooled = 0
-    elapsed_times = 0
+    elapsed_times = []
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
