@@ -54,25 +54,24 @@ def process_and_extract_components_and_metrics(
     correct = 0
     fooled = 0
     elapsed_times = []
+    times = []
 
     for i, (input, true_label) in tqdm(enumerate(data_loader)):
         input = input.to(device)
         true_label = true_label.to(device)
 
-        adv_input = input # remove
 
-        # ADD BACK IN
-        # adv_input, elapsed_time = generate_adversarial_input(
-        #     input, true_label, adversarial_attack, attack_name)
+        adv_input, elapsed_time = generate_adversarial_input(
+            input, true_label, adversarial_attack, attack_name)
         
         # used for evaluting the average time to generate adversarial attack
-        #elapsed_times.append(elapsed_time)
+        elapsed_times.append(elapsed_time)
         
-        # correct, fooled = assess_attack_single_input(
-        #     model, device, input, adv_input, true_label, (correct, fooled)
-        # )
-        # ADD BACK IN
-
+        correct, fooled = assess_attack_single_input(
+            model, device, input, adv_input, true_label, (correct, fooled)
+        )
+        
+        start_time = time.time()
         update_feature_maps(
             benign_feature_maps_before, input, model, model_name, metrics,
             before_activation=True)
@@ -89,9 +88,13 @@ def process_and_extract_components_and_metrics(
         if include_dense_layers:
             benign_dense_layers.append(get_dense_layers(input, model, model_name))
             adv_dense_layers.append(get_dense_layers(adv_input, model, model_name))
-
+        
+        times.append(time.time()-start_time)
         if sample_limit is not None and i+1 >= sample_limit:
             break
+    
+    avg_time = sum(times) / len(times)
+    print(f"Average time for extraction of features are {avg_time} {len(times)} iterations.")
 
     if correct == 0:
         return 0.0
