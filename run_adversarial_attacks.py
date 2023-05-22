@@ -185,15 +185,9 @@ def main(
         start_time_attack = time.time()
         attack = select_attack(model, attack_name)
         
-        times = []
-        for i in range(1000):
-            start_time = time.time()
-            result = _process_and_extract_metrics(
-                dataloader, attack, model, model_name, device, attack_name, samples)
-            times.append(time.time()-start_time)
+        result = _process_and_extract_metrics(
+            dataloader, attack, model, model_name, device, attack_name, samples)
         
-        avg_time = sum(times) / len(times)
-        print(f"Average time for extraction of features are {avg_time} given {len(times)} iterations.")
         # ===============================
         # ===== COMBINATIONS SINGLE =====
         # ===============================
