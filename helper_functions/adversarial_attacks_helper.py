@@ -59,16 +59,19 @@ def process_and_extract_components_and_metrics(
         input = input.to(device)
         true_label = true_label.to(device)
 
+        adv_input = input # remove
 
-        adv_input, elapsed_time = generate_adversarial_input(
-            input, true_label, adversarial_attack, attack_name)
+        # ADD BACK IN
+        # adv_input, elapsed_time = generate_adversarial_input(
+        #     input, true_label, adversarial_attack, attack_name)
         
         # used for evaluting the average time to generate adversarial attack
-        elapsed_times.append(elapsed_time)
+        #elapsed_times.append(elapsed_time)
         
-        correct, fooled = assess_attack_single_input(
-            model, device, input, adv_input, true_label, (correct, fooled)
-        )
+        # correct, fooled = assess_attack_single_input(
+        #     model, device, input, adv_input, true_label, (correct, fooled)
+        # )
+        # ADD BACK IN
 
         update_feature_maps(
             benign_feature_maps_before, input, model, model_name, metrics,
