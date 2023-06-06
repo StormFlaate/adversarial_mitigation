@@ -66,8 +66,6 @@ def process_and_extract_components_and_metrics(
         
         save_image(input, f"{attack_name}_benign_input.png")
         save_image(adv_input, f"{attack_name}_adversarial_input.png")
-        save_image_diff(
-            input, adv_input, f"{attack_name}_difference.png")
         predicted_label = model(input)
         predicted_adversarial_label = model(adv_input)
         print("True Label, Predicted Label and Predicted Adversarial Label",
@@ -1077,17 +1075,3 @@ def _get_feature_map_apply_metric_fn(
         metric_fn(tensor)
         for tensor in get_feature_maps(input, model, model_name, before_activation_fn)
     ]
-
-
-
-
-def save_image_diff(input, adv_input, filename):
-    # Assuming that the adversarial input is a 4D tensor
-    # of shape [batch_size, channels, height, width]
-    # If the tensor values are not between [0, 1], uncomment the following lines:
-    # Calculate the difference
-    diff = torch.exp(input-adv_input)
-    # Set values over 1 to 0
-    diff[diff >= 1] = 0
-    print(diff)
-    save_image(diff, filename)
