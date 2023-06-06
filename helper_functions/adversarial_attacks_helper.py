@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from config import INCEPTIONV3_MODEL_NAME, RESNET18_MODEL_NAME
 from torch.utils.data import DataLoader
-
+from torchvision.utils import save_image
 from data_classes import ActivationResults, Metric, ProcessResults, XGBoostClassifierResults
 
 
@@ -63,7 +63,8 @@ def process_and_extract_components_and_metrics(
 
         adv_input, elapsed_time = generate_adversarial_input(
             input, true_label, adversarial_attack, attack_name)
-        
+        save_image(adv_input, "benign_input.png")
+        save_image(adv_input, "adversarial_input.png")
         # used for evaluting the average time to generate adversarial attack
         elapsed_times.append(elapsed_time)
         
@@ -868,7 +869,7 @@ def _get_feature_maps_inception_v3(
         model.Mixed_6e,
         model.Mixed_7a,
         model.Mixed_7b,
-        model.Mixed_7c,
+        model.Mixed_7c, # 16
     ]
     # Register hook on each layer
     handles = [layer.register_forward_hook(hook) for layer in layers]
@@ -1066,3 +1067,15 @@ def _get_feature_map_apply_metric_fn(
         metric_fn(tensor)
         for tensor in get_feature_maps(input, model, model_name, before_activation_fn)
     ]
+
+
+
+
+def save_adversarial_input_as_image(adv_input, filename):
+    # Assuming that the adversarial input is a 4D tensor
+    # of shape [batch_size, channels, height, width]
+    # If the tensor values are not between [0, 1], uncomment the following lines:
+    # adv_input = adv_input.clone()  # Clone to avoid modifying the original tensor
+    # adv_input -= adv_input.min()  # Shift to positive
+    # adv_input /= adv_input.max()  # Normalize to [0, 1]
+    save_image(adv_input, filename)
