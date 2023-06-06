@@ -1089,8 +1089,6 @@ def save_image_diff(input, adv_input, filename):
 
     print(input)
     print(adv_input)
-    input = (input - input.min()) / (input.max() - input.min())
-    adv_input = (adv_input - adv_input.min()) / (adv_input.max() - adv_input.min())
 
     # Calculate the difference
     diff = adv_input - input
