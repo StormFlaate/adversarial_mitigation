@@ -1086,6 +1086,9 @@ def save_image_diff(input, adv_input, filename):
     # Assuming that the adversarial input is a 4D tensor
     # of shape [batch_size, channels, height, width]
     # If the tensor values are not between [0, 1], uncomment the following lines:
+
+    print(input)
+    print(adv_input)
     input = (input - input.min()) / (input.max() - input.min())
     adv_input = (adv_input - adv_input.min()) / (adv_input.max() - adv_input.min())
 
