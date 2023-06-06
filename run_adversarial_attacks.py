@@ -311,3 +311,8 @@ if __name__ == '__main__':
                 main(
                     year, model_name, args.is_augmented, sample,
                     args.attack, args.all_attacks, args.evaluate_transfer)
+
+
+
+
+# 2019: image,MEL,NV,BCC,AKIEC,BKL,DF,VASC
