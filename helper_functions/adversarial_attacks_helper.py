@@ -66,7 +66,6 @@ def process_and_extract_components_and_metrics(
         
         save_image(input, f"{attack_name}_benign_input.png")
         save_image(adv_input, f"{attack_name}_adversarial_input.png")
-        save_image(input-adv_input, f"{attack_name}_difference.png")
         save_image_diff(
             input, adv_input, f"{attack_name}_difference.png")
         predicted_label = model(input)
@@ -1086,12 +1085,7 @@ def save_image_diff(input, adv_input, filename):
     # Assuming that the adversarial input is a 4D tensor
     # of shape [batch_size, channels, height, width]
     # If the tensor values are not between [0, 1], uncomment the following lines:
-
-    print(input)
-    print(adv_input)
-
     # Calculate the difference
-    diff = adv_input - input
-    print(diff)
-    diff = (diff - diff.min()) / (diff.max() - diff.min())
+    diff = torch.abs(adv_input - input)
+
     save_image(diff, filename)
