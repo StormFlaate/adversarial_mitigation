@@ -1086,7 +1086,6 @@ def save_image_diff(input, adv_input, filename):
     # of shape [batch_size, channels, height, width]
     # If the tensor values are not between [0, 1], uncomment the following lines:
     # Calculate the difference
-    diff = torch.abs(adv_input - input)
-    diff = torch.exp(adv_input - input)
+    diff = torch.exp(input-adv_input)
     print(diff)
     save_image(diff, filename)
