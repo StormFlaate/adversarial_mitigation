@@ -63,7 +63,7 @@ def process_and_extract_components_and_metrics(
 
         adv_input, elapsed_time = generate_adversarial_input(
             input, true_label, adversarial_attack, attack_name)
-        save_image(adv_input, "benign_input.png")
+        save_image(input, "benign_input.png")
         save_image(adv_input, "adversarial_input.png")
         # used for evaluting the average time to generate adversarial attack
         elapsed_times.append(elapsed_time)
