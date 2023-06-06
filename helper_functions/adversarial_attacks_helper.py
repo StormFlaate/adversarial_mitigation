@@ -1087,7 +1087,7 @@ def save_image_diff(input, adv_input, filename):
     # If the tensor values are not between [0, 1], uncomment the following lines:
     # Calculate the difference
     diff = torch.exp(input-adv_input)
-    print(diff)
     # Set values over 1 to 0
-    diff = torch.clamp(diff, max=1.0)
+    diff[diff >= 1] = 0
+    print(diff)
     save_image(diff, filename)
