@@ -1088,4 +1088,6 @@ def save_image_diff(input, adv_input, filename):
     # Calculate the difference
     diff = torch.exp(input-adv_input)
     print(diff)
+    # Set values over 1 to 0
+    diff = torch.clamp(diff, max=1.0)
     save_image(diff, filename)
