@@ -68,7 +68,7 @@ def process_and_extract_components_and_metrics(
         save_image(adv_input, f"{attack_name}_adversarial_input.png")
         save_image(input-adv_input, f"{attack_name}_difference.png")
         save_image_normalize(
-            input-adv_input, f"{attack_name}_difference.png", normalize=True)
+            adv_input-input, f"{attack_name}_difference.png", normalize=True)
         predicted_label = model(input)
         predicted_adversarial_label = model(adv_input)
         print("True Label, Predicted Label and Predicted Adversarial Label",
