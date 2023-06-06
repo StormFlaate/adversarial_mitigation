@@ -315,4 +315,5 @@ if __name__ == '__main__':
 
 
 
-# 2019: image,MEL,NV,BCC,AKIEC,BKL,DF,VASC
+# 2019: image,
+# MEL,NV,BCC,AKIEC,BKL,DF,VASC

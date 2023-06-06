@@ -64,14 +64,14 @@ def process_and_extract_components_and_metrics(
         adv_input, elapsed_time = generate_adversarial_input(
             input, true_label, adversarial_attack, attack_name)
         
-        save_image(input, f"{attack_name}_benign_input.png")
-        save_image(adv_input, f"{attack_name}_adversarial_input.png")
-        predicted_label = model(input)
-        predicted_adversarial_label = model(adv_input)
-        print("True Label, Predicted Label and Predicted Adversarial Label",
-            np.argmax(true_label.detach().cpu().numpy()),
-            np.argmax(predicted_label.detach().cpu().numpy()),
-            np.argmax(predicted_adversarial_label.detach().cpu().numpy()))
+        # save_image(input, f"{attack_name}_benign_input.png")
+        # save_image(adv_input, f"{attack_name}_adversarial_input.png")
+        # predicted_label = model(input)
+        # predicted_adversarial_label = model(adv_input)
+        # print("True Label, Predicted Label and Predicted Adversarial Label",
+        #     np.argmax(true_label.detach().cpu().numpy()),
+        #     np.argmax(predicted_label.detach().cpu().numpy()),
+        #     np.argmax(predicted_adversarial_label.detach().cpu().numpy()))
         
         # used for evaluting the average time to generate adversarial attack
         elapsed_times.append(elapsed_time)
